@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
+import Link from "next/link"
 import Script from "next/script"
 import Hero from "@/components/Hero"
 import HeroCard from "@/components/HeroCard"
@@ -59,12 +60,8 @@ async function fetchMembers(): Promise<Member[]> {
 
 export default function MembersPage() {
   const [members, setMembers] = useState<Member[]>([])
-  const [expandedBatch, setExpandedBatch] = useState<string | null>(null)
   const [expandedBoard, setExpandedBoard] = useState<string | null>(null)
-  const [batchMembers, setBatchMembers] = useState<Member[]>([])
-  const [loadingBatch, setLoadingBatch] = useState(false)
   const [boardLoading, setBoardLoading] = useState(false)
-  const batchContentRef = useRef<HTMLDivElement>(null)
   const [boards, setBoards] = useState<Board[]>([
     {
       id: '25-26', name: 'Board 25-26', year: '2025-2026', imageUrl: '/ourMembers/boads/boad26.jpeg',
@@ -144,38 +141,6 @@ export default function MembersPage() {
     }
     loadMembers()
   }, [])
-
-  useEffect(() => {
-    if (expandedBatch) {
-      const loadBatchMembers = async () => {
-        setLoadingBatch(true)
-        try {
-          const response = await fetch(`/api/members/batch/${encodeURIComponent(expandedBatch)}`)
-          if (response.ok) {
-            const data = await response.json()
-            if (Array.isArray(data) && data.length > 0) {
-              const transformedData = data.map((member: Member) => ({
-                ...member,
-                profileImage: isPlaceholderImage(member.imageUrl) ? undefined : member.imageUrl
-              }))
-              setBatchMembers(transformedData)
-            } else {
-              setBatchMembers(members.filter(m => m.batch === expandedBatch))
-            }
-          } else {
-            setBatchMembers(members.filter(m => m.batch === expandedBatch))
-          }
-        } catch (error) {
-          console.error('Error fetching batch members:', error)
-          setBatchMembers(members.filter(m => m.batch === expandedBatch))
-        }
-        setLoadingBatch(false)
-      }
-      loadBatchMembers()
-    } else {
-      setBatchMembers([])
-    }
-  }, [expandedBatch, members])
 
   const normalize = (text: string) =>
     text.toLowerCase().replace(/[\.\-&\/]/g, ' ').replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim()
@@ -304,17 +269,6 @@ export default function MembersPage() {
       for (const board of boards) await loadBoardMembers(board.id)
     })()
   }, [])
-
-  const handleOutsideClick = useCallback((e: MouseEvent) => {
-    if (expandedBatch && batchContentRef.current && !batchContentRef.current.contains(e.target as Node)) {
-      setExpandedBatch(null)
-    }
-  }, [expandedBatch])
-
-  useEffect(() => {
-    document.addEventListener('mousedown', handleOutsideClick)
-    return () => document.removeEventListener('mousedown', handleOutsideClick)
-  }, [handleOutsideClick])
 
   const defaultBatches = [
     'Winter 2025', 'Summer 2025',
@@ -656,104 +610,33 @@ export default function MembersPage() {
               <h2 className="text-3xl md:text-4xl font-black text-white mt-2">OUR BATCHES</h2>
             </div>
 
-            {expandedBatch ? (
-              <div ref={batchContentRef}>
-                <button
-                  onClick={() => setExpandedBatch(null)}
-                  className="mb-8 group flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {sortedBatches.map((batch, i) => (
+                <div
+                  key={batch.name}
+                  className={`transition-all duration-700 ${batchesView.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+                  style={{ transitionDelay: `${150 + i * 80}ms` }}
                 >
-                  <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                  </svg>
-                  <span className="text-sm font-medium">Back to all batches</span>
-                </button>
-
-                {sortedBatches.filter(b => b.name === expandedBatch).map(batch => (
-                  <div key={batch.name} className="space-y-8">
-                    <h3 className="text-3xl sm:text-4xl font-black text-white">{batch.name}</h3>
-
-                    <div
-                      onClick={() => setExpandedBatch(null)}
-                      className="w-full relative rounded-3xl overflow-hidden border border-white/10 cursor-pointer hover:border-brand-pink/30 transition-all duration-300"
-                    >
-                      <div className="relative w-full h-[70vh] overflow-hidden bg-white/5">
-                        <Image src={batch.groupImageUrl} alt={batch.name} fill sizes="100vw" className="object-cover" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-brand-dark-blue/40 via-transparent to-transparent" />
-                      </div>
-                    </div>
-
-                    <div className="mt-6">
-                      {loadingBatch ? (
-                        <div className="flex justify-center items-center py-16">
-                          <div className="w-10 h-10 border-2 border-brand-pink/30 border-t-brand-pink rounded-full animate-spin" />
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                          {[...batchMembers].sort((a, b) => {
-                            const aHasImage = a.profileImage ? 0 : 1
-                            const bHasImage = b.profileImage ? 0 : 1
-                            return aHasImage - bHasImage
-                          }).map(member => (
-                            <a
-                              key={member.id}
-                              href={member.linkedinUrl || '#'}
-                              target={member.linkedinUrl ? '_blank' : undefined}
-                              rel={member.linkedinUrl ? 'noopener noreferrer' : undefined}
-                              className={`group relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 hover:border-brand-pink/30 hover:bg-white/[0.07] transition-all duration-300 aspect-square ${member.linkedinUrl ? 'cursor-pointer' : 'cursor-default'}`}
-                            >
-                              <div className="relative w-full h-full">
-                                {member.profileImage ? (
-                                  <Image src={member.profileImage} alt={member.name} fill sizes="(max-width: 640px) 33vw, 10vw" className="object-cover" referrerPolicy="no-referrer" />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center bg-white/5">
-                                    <span className="text-white/50 text-2xl font-black tracking-wider">
-                                      {getInitials(member.name)}
-                                    </span>
-                                  </div>
-                                )}
-                                <div className="absolute inset-0 bg-gradient-to-t from-brand-dark-blue/60 via-transparent to-transparent" />
-                                <div className="absolute bottom-0 left-0 right-0 p-3 text-center">
-                                  <p className="font-black text-white text-sm leading-tight">{member.name}</p>
-                                  <p className="text-brand-pink text-xs mt-0.5">{member.study || member.role}</p>
-                                </div>
-                              </div>
-                            </a>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {sortedBatches.map((batch, i) => (
-                  <div
-                    key={batch.name}
-                    className={`transition-all duration-700 ${batchesView.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
-                    style={{ transitionDelay: `${150 + i * 80}ms` }}
+                  <Link
+                    href={`/members/${encodeURIComponent(batch.name.replace(/\s+/g, '_'))}`}
+                    className="block w-full group relative rounded-3xl overflow-hidden border border-white/10 hover:border-brand-pink/30 transition-all duration-300"
                   >
-                    <button
-                      onClick={() => setExpandedBatch(batch.name)}
-                      className="w-full group relative rounded-3xl overflow-hidden border border-white/10 hover:border-brand-pink/30 transition-all duration-300"
-                    >
-                      <div className="relative h-72 sm:h-80 overflow-hidden bg-white/5">
-                        <img
-                          src={batch.groupImageUrl}
-                          alt={batch.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-brand-dark-blue/70 via-transparent to-transparent" />
-                        <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between">
-                          <h3 className="text-xl sm:text-2xl font-black text-white">{batch.name}</h3>
-                          <span className="text-white/50 text-xs font-bold uppercase tracking-widest">Explore →</span>
-                        </div>
+                    <div className="relative h-72 sm:h-80 overflow-hidden bg-white/5">
+                      <img
+                        src={batch.groupImageUrl}
+                        alt={batch.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-brand-dark-blue/70 via-transparent to-transparent" />
+                      <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between">
+                        <h3 className="text-xl sm:text-2xl font-black text-white">{batch.name}</h3>
+                        <span className="text-white/50 text-xs font-bold uppercase tracking-widest">Explore →</span>
                       </div>
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+                    </div>
+                  </Link>
+                </div>
+              ))}
+            </div>
           </section>
 
         </div>
