@@ -96,6 +96,20 @@ export default function MembersPage() {
         { name: 'MARIUS HEUMADER', role: 'MD Partnerships', imageUrl: '/ourMembers/hero-opt.png', linkedinUrl: 'https://www.linkedin.com/in/marius-heumader/' },
       ],
     },
+    {
+      id: '23-24', name: 'Board 23-24', year: '2023-2024', imageUrl: '/ourMembers/hero-opt.png',
+      executiveBoard: [
+        { name: 'BOARD MEMBER', role: 'President', imageUrl: '/ourMembers/hero-opt.png' },
+        { name: 'BOARD MEMBER', role: 'Vice-President', imageUrl: '/ourMembers/hero-opt.png' },
+      ],
+      departmentBoard: [
+        { name: 'BOARD MEMBER', role: 'MD Events', imageUrl: '/ourMembers/hero-opt.png' },
+        { name: 'BOARD MEMBER', role: 'MD Marketing', imageUrl: '/ourMembers/hero-opt.png' },
+        { name: 'BOARD MEMBER', role: 'MD People', imageUrl: '/ourMembers/hero-opt.png' },
+        { name: 'BOARD MEMBER', role: 'MD Finance & Operations', imageUrl: '/ourMembers/hero-opt.png' },
+        { name: 'BOARD MEMBER', role: 'MD Partnerships', imageUrl: '/ourMembers/hero-opt.png' },
+      ],
+    },
   ])
 
   const analyticsView = useInView(0.1)
@@ -189,6 +203,11 @@ export default function MembersPage() {
     '/ourMembers/hero-opt.png'
 
   const termStartYearFromBoard = (board: Board) => {
+    // Special mapping: Board IDs to API years
+    if (board.id === '25-26') return '2026'
+    if (board.id === '24-25') return '2025'
+    if (board.id === '23-24') return '2023'
+
     if (board.year && board.year.includes('-')) {
       const [from] = board.year.split('-').map(v => v.trim())
       if (/^\d{4}$/.test(from)) return from
