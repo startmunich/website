@@ -109,13 +109,10 @@ export default function PhotoGallery() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {eventPhotos.map((photo, index) => {
           const isVisible = index >= photoIndex && index < photoIndex + 6
-          const Wrapper = photo.href ? 'a' : 'div'
-          const wrapperProps = photo.href ? { href: photo.href } : {}
           return (
-            <Wrapper
+            <div
               key={photo.id}
-              {...wrapperProps}
-              className={`group relative overflow-hidden rounded-3xl aspect-video border border-white/10 hover:border-brand-pink/40 transition-all duration-300 block shadow-lg hover:shadow-brand-pink/10${!isVisible ? ' hidden' : ''}`}
+              className={`group relative overflow-hidden rounded-3xl aspect-video border border-white/10 hover:border-brand-pink/40 transition-all duration-300 block shadow-lg hover:shadow-brand-pink/10 cursor-default${!isVisible ? ' hidden' : ''}`}
             >
               <Image
                 src={photo.url}
@@ -123,19 +120,12 @@ export default function PhotoGallery() {
                 fill
                 className="object-cover group-hover:scale-110 transition-transform duration-500"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-brand-dark-blue via-brand-dark-blue/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl">
+              <div className="absolute inset-0 bg-gradient-to-t from-brand-dark-blue via-brand-dark-blue/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <div className="absolute bottom-0 left-0 right-0 p-6">
                   <p className="text-white font-bold text-lg">{photo.caption}</p>
                 </div>
               </div>
-              {photo.href && (
-                <div className="absolute top-4 right-4 w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-50 group-hover:scale-100">
-                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17L17 7M17 7H7M17 7v10" />
-                  </svg>
-                </div>
-              )}
-            </Wrapper>
+            </div>
           )
         })}
       </div>
