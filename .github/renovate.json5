@@ -71,6 +71,17 @@
       groupName: 'node version',
       automerge: true,
     },
+    // engines.node: pinned to major-only ("24") because Vercel honors only
+    // the major version. The global rangeStrategy: 'bump' above would
+    // otherwise rewrite it to a specific patch ("24.16.0") and break Vercel
+    // installs whenever the runtime hadn't caught up. Disable the npm
+    // manager for node so engines stays put; the nvm manager keeps bumping
+    // .nvmrc so local + CI still track the exact patch.
+    {
+      matchManagers: ['npm'],
+      matchPackageNames: ['node'],
+      enabled: false,
+    },
     // pnpm version: keep package.json packageManager in sync. Auto-merge.
     {
       matchPackageNames: ['pnpm'],
