@@ -25,6 +25,7 @@ function FounderAvatar({ name, imageUrl }: { name: string; imageUrl: string }) {
         fill
         sizes="40px"
         className="object-cover"
+        unoptimized
         onError={() => {
           setSrc(
             `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=d0006f&color=fff`,

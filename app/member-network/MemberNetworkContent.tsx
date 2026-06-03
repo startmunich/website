@@ -5,6 +5,7 @@ import Script from 'next/script';
 import { useEffect, useState } from 'react';
 
 import Hero from '@/components/Hero';
+import { isNocoDbImage } from '@/lib/images';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,6 +46,7 @@ function LogoCard({ company }: { company: Company }) {
             sizes="(max-width: 768px) 50vw, 25vw"
             className="object-contain"
             onError={() => setImgFailed(true)}
+            unoptimized={isNocoDbImage(company.logoUrl)}
           />
         </div>
       ) : (
