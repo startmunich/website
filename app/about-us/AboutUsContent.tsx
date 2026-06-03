@@ -50,7 +50,7 @@ const departmentBoard = [
   },
   {
     name: 'Niklas Simakov',
-    role: 'MD Finance & Operations',
+    role: 'MD Technology & Operations',
     photo: '/aboutUs/Board/Niklas-opt.png',
     linkedinUrl: 'https://www.linkedin.com/in/niklas-simakov/',
   },

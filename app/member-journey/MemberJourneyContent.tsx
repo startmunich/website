@@ -148,11 +148,11 @@ const departments: Department[] = [
     ],
   },
   {
-    id: 'finops',
-    name: 'FinOps',
+    id: 'techops',
+    name: 'TechOps',
     description:
       "Learn how to design and build custom tools and automate workflows to increase START's output and influence.",
-    icon: '💰',
+    icon: '🛠️',
     responsibilities: [
       'Build internal tools like Members Platform or Financial Dashboard.',
       'Improve our core systems like Slack, n8n and Notion.',
