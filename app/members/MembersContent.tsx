@@ -7,6 +7,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Hero from '@/components/Hero';
 import HeroCard from '@/components/HeroCard';
 import { useInView } from '@/lib/hooks';
+import { isNocoDbImage } from '@/lib/images';
 import { useAnimatedNumber } from '@/lib/useAnimatedNumber';
 
 export const dynamic = 'force-dynamic';
@@ -787,6 +788,7 @@ export default function MembersPage() {
                                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 15vw"
                                     className="object-cover object-top"
                                     referrerPolicy="no-referrer"
+                                    unoptimized={isNocoDbImage(member.profileImage)}
                                   />
                                 ) : (
                                   <div className="flex h-full w-full items-center justify-center text-3xl font-black text-white/20">
@@ -834,6 +836,7 @@ export default function MembersPage() {
                                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 15vw"
                                     className="object-cover object-top"
                                     referrerPolicy="no-referrer"
+                                    unoptimized={isNocoDbImage(member.profileImage)}
                                   />
                                 ) : (
                                   <div className="flex h-full w-full items-center justify-center text-3xl font-black text-white/20">
@@ -993,6 +996,7 @@ export default function MembersPage() {
                                         sizes="(max-width: 640px) 33vw, 10vw"
                                         className="object-cover"
                                         referrerPolicy="no-referrer"
+                                        unoptimized={isNocoDbImage(member.profileImage)}
                                       />
                                     ) : (
                                       <div className="flex h-full w-full items-center justify-center bg-white/5">

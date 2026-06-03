@@ -4,6 +4,7 @@ import Script from 'next/script';
 
 import Hero from '@/components/Hero';
 import HeroCard from '@/components/HeroCard';
+import { isNocoDbImage } from '@/lib/images';
 import { OG_IMAGES } from '@/lib/metadata';
 import { getAllPartners } from '@/lib/partners';
 
@@ -267,6 +268,7 @@ export default async function ForPartnersPage() {
                         fill
                         className="object-contain p-4"
                         sizes="144px"
+                        unoptimized={isNocoDbImage(partner.logoUrl)}
                       />
                     </div>
                   </div>
