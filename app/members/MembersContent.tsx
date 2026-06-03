@@ -249,9 +249,7 @@ export default function MembersPage() {
     'md marketing': '/ourMembers/hero-opt.png',
     'md people': '/ourMembers/hero-opt.png',
     'md finance operations': '/ourMembers/hero-opt.png',
-    'md finance & operations': '/ourMembers/hero-opt.png',
     'md technology operations': '/ourMembers/hero-opt.png',
-    'md technology & operations': '/ourMembers/hero-opt.png',
     'md partnerships': '/ourMembers/hero-opt.png',
   };
 
