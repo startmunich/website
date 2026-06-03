@@ -104,7 +104,7 @@ export default function MembersPage() {
         { name: 'BOARD MEMBER', role: 'MD People', imageUrl: '/ourMembers/hero-opt.png' },
         {
           name: 'BOARD MEMBER',
-          role: 'MD Finance & Operations',
+          role: 'MD Technology & Operations',
           imageUrl: '/ourMembers/hero-opt.png',
         },
         { name: 'BOARD MEMBER', role: 'MD Partnerships', imageUrl: '/ourMembers/hero-opt.png' },
@@ -116,56 +116,19 @@ export default function MembersPage() {
       year: '2024-2025',
       imageUrl: '/ourMembers/boads/board25.jpg',
       executiveBoard: [
-        {
-          name: 'SIMON BURMER',
-          role: 'CFO',
-          imageUrl: '/ourMembers/hero-opt.png',
-          linkedinUrl: 'https://www.linkedin.com/in/simon-burmer/',
-        },
-        {
-          name: 'ALI SERAG EL DIN',
-          role: 'President',
-          imageUrl: '/ourMembers/hero-opt.png',
-          linkedinUrl: 'https://www.linkedin.com/in/ali-serag-el-din/',
-        },
-        {
-          name: 'DEFNE AYTUNA',
-          role: 'Vice President',
-          imageUrl: '/ourMembers/hero-opt.png',
-          linkedinUrl: 'https://www.linkedin.com/in/defne-aytuna/',
-        },
+        { name: 'BOARD MEMBER', role: 'President', imageUrl: '/ourMembers/hero-opt.png' },
+        { name: 'BOARD MEMBER', role: 'Vice President', imageUrl: '/ourMembers/hero-opt.png' },
       ],
       departmentBoard: [
+        { name: 'BOARD MEMBER', role: 'MD Events', imageUrl: '/ourMembers/hero-opt.png' },
+        { name: 'BOARD MEMBER', role: 'MD Marketing', imageUrl: '/ourMembers/hero-opt.png' },
+        { name: 'BOARD MEMBER', role: 'MD People', imageUrl: '/ourMembers/hero-opt.png' },
         {
-          name: 'MOHAMMED THABIT',
-          role: 'MD Events',
-          imageUrl: '/ourMembers/hero-opt.png',
-          linkedinUrl: 'https://www.linkedin.com/in/mohammed-thabit/',
-        },
-        {
-          name: 'PIOTR NOBIS',
-          role: 'MD Marketing',
-          imageUrl: '/ourMembers/hero-opt.png',
-          linkedinUrl: 'https://www.linkedin.com/in/piotr-nobis/',
-        },
-        {
-          name: 'ANNA HELETYCH',
-          role: 'MD People',
-          imageUrl: '/ourMembers/hero-opt.png',
-          linkedinUrl: 'https://www.linkedin.com/in/anna-heletych/',
-        },
-        {
-          name: 'NIKLAS SIMAKOV',
+          name: 'BOARD MEMBER',
           role: 'MD Finance & Operations',
           imageUrl: '/ourMembers/hero-opt.png',
-          linkedinUrl: 'https://www.linkedin.com/in/niklas-simakov/',
         },
-        {
-          name: 'MARIUS HEUMADER',
-          role: 'MD Partnerships',
-          imageUrl: '/ourMembers/hero-opt.png',
-          linkedinUrl: 'https://www.linkedin.com/in/marius-heumader/',
-        },
+        { name: 'BOARD MEMBER', role: 'MD Partnerships', imageUrl: '/ourMembers/hero-opt.png' },
       ],
     },
   ]);
@@ -270,6 +233,7 @@ export default function MembersPage() {
     cfo: ['chief financial officer', 'chief financial officer (cfo)'],
     'vice president': ['vice-president', 'vice president', 'vp'],
     'md finance operations': ['md finance & operations', 'md finance and operations'],
+    'md technology operations': ['md technology & operations', 'md technology and operations'],
     'md partnerships': ['md partnerships', 'md partnership'],
     'md marketing': ['md marketing'],
     'md people': ['md people'],
@@ -285,7 +249,7 @@ export default function MembersPage() {
     'md marketing': '/ourMembers/hero-opt.png',
     'md people': '/ourMembers/hero-opt.png',
     'md finance operations': '/ourMembers/hero-opt.png',
-    'md finance & operations': '/ourMembers/hero-opt.png',
+    'md technology operations': '/ourMembers/hero-opt.png',
     'md partnerships': '/ourMembers/hero-opt.png',
   };
 
