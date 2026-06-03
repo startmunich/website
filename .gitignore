@@ -31,3 +31,4 @@ test-results
 # Vercel
 .vercel
 .claude
+.gstack/
