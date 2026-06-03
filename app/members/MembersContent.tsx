@@ -269,6 +269,7 @@ export default function MembersPage() {
   const roleSynonyms: Record<string, string[]> = {
     cfo: ['chief financial officer', 'chief financial officer (cfo)'],
     'vice president': ['vice-president', 'vice president', 'vp'],
+    'md finance operations': ['md finance & operations', 'md finance and operations'],
     'md technology operations': ['md technology & operations', 'md technology and operations'],
     'md partnerships': ['md partnerships', 'md partnership'],
     'md marketing': ['md marketing'],
@@ -284,6 +285,8 @@ export default function MembersPage() {
     'md events': '/ourMembers/hero-opt.png',
     'md marketing': '/ourMembers/hero-opt.png',
     'md people': '/ourMembers/hero-opt.png',
+    'md finance operations': '/ourMembers/hero-opt.png',
+    'md finance & operations': '/ourMembers/hero-opt.png',
     'md technology operations': '/ourMembers/hero-opt.png',
     'md technology & operations': '/ourMembers/hero-opt.png',
     'md partnerships': '/ourMembers/hero-opt.png',
