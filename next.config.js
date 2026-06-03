@@ -18,7 +18,11 @@ const nextConfig = {
   },
   skipTrailingSlashRedirect: true,
   images: {
-    formats: ['image/avif', 'image/webp'],
+    // Single format keeps the transformation count low. Each format is billed
+    // as a separate transformation across the browser mix, and AVIF also costs
+    // more compute. WebP is universally supported and ~half the transformations
+    // of avif+webp. See Vercel: managing-image-optimization-costs.
+    formats: ['image/webp'],
     minimumCacheTTL: 31536000,
     remotePatterns: [
       {
