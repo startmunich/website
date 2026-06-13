@@ -271,6 +271,7 @@ export default function MembersPage() {
   }, [])
 
   const defaultBatches = [
+    'Summer 2026',
     'Winter 2025', 'Summer 2025',
     'Winter 2024', 'Summer 2024',
     'Winter 2023', 'Summer 2023',
@@ -299,7 +300,7 @@ export default function MembersPage() {
 
   const batchImageMap: Record<string, string> = {
     ws21: 'WS21-opt.jpg', ws22: 'WS22-opt.jpg', ws23: 'WS23-opt.jpg', ws24: 'WS24-opt.jpg', ws25: 'WS25-opt.jpg',
-    ss22: 'SS22-opt.jpg', ss23: 'SS23-opt.jpg', ss24: 'SS24-opt.jpg', ss25: 'SS25-opt.jpg',
+    ss22: 'SS22-opt.jpg', ss23: 'SS23-opt.jpg', ss24: 'SS24-opt.jpg', ss25: 'SS25-opt.jpg', ss26: 'SS26-opt.jpg',
   }
 
   function getBatchImageKey(batchName: string): string | null {

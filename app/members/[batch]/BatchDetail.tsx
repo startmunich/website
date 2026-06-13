@@ -46,7 +46,7 @@ interface BatchDetailProps {
 
 const batchImageMap: Record<string, string> = {
   ws21: 'WS21-opt.jpg', ws22: 'WS22-opt.jpg', ws23: 'WS23-opt.jpg', ws24: 'WS24-opt.jpg', ws25: 'WS25-opt.jpg',
-  ss22: 'SS22-opt.jpg', ss23: 'SS23-opt.jpg', ss24: 'SS24-opt.jpg', ss25: 'SS25-opt.jpg',
+  ss22: 'SS22-opt.jpg', ss23: 'SS23-opt.jpg', ss24: 'SS24-opt.jpg', ss25: 'SS25-opt.jpg', ss26: 'SS26-opt.jpg',
 }
 
 function getBatchImageKey(batchName: string): string | null {
@@ -184,13 +184,12 @@ export default function BatchDetail({ batchName }: BatchDetailProps) {
                 >
                   <div className="relative w-full h-full">
                     {member.profileImage ? (
-                      <Image
+                      <img
                         src={member.profileImage}
                         alt={member.name}
-                        fill
-                        sizes="(max-width: 640px) 33vw, 10vw"
-                        className="object-cover"
+                        className="absolute inset-0 w-full h-full object-cover"
                         referrerPolicy="no-referrer"
+                        loading="lazy"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-white/5">
