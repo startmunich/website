@@ -24,13 +24,13 @@ importers:
         specifier: ^0.577.0
         version: 0.577.0(react@18.3.1)
       motion:
-        specifier: ^12.41.0
+        specifier: ^12.42.0
         version: 12.42.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       next:
         specifier: ^15.5.19
         version: 15.5.19(@opentelemetry/api@1.9.1)(@playwright/test@1.61.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       posthog-js:
-        specifier: ^1.393.4
+        specifier: ^1.393.5
         version: 1.395.0
       react:
         specifier: ^18.3.1
