@@ -1,43 +1,65 @@
-import { NextResponse } from 'next/server'
+import { NextResponse } from 'next/server';
 
 export const revalidate = 3600;
 
 const NOCODB_API_TOKEN = process.env.NOCODB_API_TOKEN;
 const NOCODB_BASE_URL = process.env.NOCODB_BASE_URL || 'https://ndb.startmunich.de';
 const NOCODB_MEMBERS_TABLE_ID = process.env.NOCODB_MEMBERS_TABLE_ID;
+const NOCODB_TIMEOUT_MS = 10_000;
 
 interface Member {
-  id: number
-  name: string
-  batch: string
-  role: string
-  study?: string
-  company?: string
-  linkedinUrl?: string
-  imageUrl: string
-  bio?: string
-  expertise?: string[]
-  achievements?: string
-  gender?: string
+  id: number;
+  name: string;
+  batch: string;
+  role: string;
+  study?: string;
+  company?: string;
+  linkedinUrl?: string;
+  imageUrl: string;
+  bio?: string;
+  expertise?: string[];
+  achievements?: string;
+  gender?: string;
+}
+
+interface NocoDBMemberRecord {
+  Id?: number;
+  id?: number;
+  Name?: string;
+  Batch?: string;
+  Role?: string;
+  Company?: string;
+  LinkedIn?: string;
+  Bio?: string;
+  Expertise?: string;
+  Achievements?: string;
+  Gender?: string;
+  'Member Picture'?: Array<{ signedPath?: string }>;
 }
 
 // Transform NocoDB record to Member format
-function transformNocoDBRecord(record: any): Member {
+function transformNocoDBRecord(record: NocoDBMemberRecord): Member {
   // Handle profile pic - NocoDB stores it as an array of attachment objects
   let profilePicUrl = '/placeholder-profile.jpg';
-  if (record['Member Picture'] && Array.isArray(record['Member Picture']) && record['Member Picture'][0]) {
+  if (
+    record['Member Picture'] &&
+    Array.isArray(record['Member Picture']) &&
+    record['Member Picture'][0]
+  ) {
     const profilePic = record['Member Picture'][0];
     if (profilePic.signedPath) {
       profilePicUrl = `https://ndb.startmunich.de/${profilePic.signedPath}`;
     }
   }
 
-  const expertise = record.Expertise 
-    ? record.Expertise.split(',').map((e: string) => e.trim()).filter(Boolean)
+  const expertise = record.Expertise
+    ? record.Expertise.split(',')
+        .map((e: string) => e.trim())
+        .filter(Boolean)
     : undefined;
 
   return {
-    id: record.Id || record.id,
+    id: record.Id ?? record.id ?? 0,
     name: record.Name || 'Unknown',
     batch: record.Batch || '',
     role: record.Role || '',
@@ -52,14 +74,8 @@ function transformNocoDBRecord(record: any): Member {
 }
 
 export async function GET() {
-  console.log('========== FETCHING ALL MEMBERS ==========');
-  console.log('🔍 Environment Variables:');
-  console.log('NOCODB_API_TOKEN:', NOCODB_API_TOKEN ? `${NOCODB_API_TOKEN.substring(0, 10)}... (${NOCODB_API_TOKEN.length} chars)` : 'NOT SET');
-  console.log('NOCODB_BASE_URL:', NOCODB_BASE_URL);
-  console.log('NOCODB_MEMBERS_TABLE_ID:', NOCODB_MEMBERS_TABLE_ID);
-  console.log('NOCODB_STARTUPS_TABLE_ID:', process.env.NOCODB_STARTUPS_TABLE_ID);
-  console.log('NODE_ENV:', process.env.NODE_ENV);
-  
+  console.log('NOCODB_API_TOKEN:', NOCODB_API_TOKEN ? 'SET' : 'NOT SET');
+
   // If members table is not configured, return mock data
   if (!NOCODB_API_TOKEN || !NOCODB_MEMBERS_TABLE_ID) {
     console.log('Members table not configured in NocoDB');
@@ -67,8 +83,6 @@ export async function GET() {
   }
 
   try {
-    console.log('Fetching members from NocoDB...');
-    
     const response = await fetch(
       `${NOCODB_BASE_URL}/api/v2/tables/${NOCODB_MEMBERS_TABLE_ID}/records?limit=1000&offset=0`,
       {
@@ -76,8 +90,9 @@ export async function GET() {
           'xc-token': NOCODB_API_TOKEN,
           'Content-Type': 'application/json',
         },
+        signal: AbortSignal.timeout(NOCODB_TIMEOUT_MS),
         next: { revalidate: 3600 },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -88,15 +103,18 @@ export async function GET() {
 
     const data = await response.json();
     const members = (data.list || []).map(transformNocoDBRecord);
-    
-    console.log(`Successfully fetched ${members.length} members from NocoDB`);
+
     return NextResponse.json(members);
-    
   } catch (error) {
     console.error('Error fetching from NocoDB:', error);
+    const isTimeout = error instanceof DOMException && error.name === 'TimeoutError';
     return NextResponse.json(
-      { error: 'Failed to fetch members from database' },
-      { status: 500 }
+      {
+        error: isTimeout
+          ? 'Upstream NocoDB request timed out'
+          : 'Failed to fetch members from database',
+      },
+      { status: isTimeout ? 504 : 500 },
     );
   }
 }

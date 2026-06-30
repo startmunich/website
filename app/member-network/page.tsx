@@ -1,8 +1,10 @@
-import type { Metadata } from 'next'
-import MemberNetworkContent from './MemberNetworkContent'
-import { OG_IMAGES } from '@/lib/metadata'
+import type { Metadata } from 'next';
 
-export const dynamic = 'force-dynamic'
+import { OG_IMAGES } from '@/lib/metadata';
+
+import MemberNetworkContent from './MemberNetworkContent';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Member Network',
@@ -16,8 +18,8 @@ export const metadata: Metadata = {
       'Explore the START Munich member network — connect with fellow students, alumni, and founders from TUM, LMU, and HM who are shaping the future.',
     images: OG_IMAGES,
   },
-}
+};
 
 export default function MemberNetworkPage() {
-  return <MemberNetworkContent />
+  return <MemberNetworkContent />;
 }

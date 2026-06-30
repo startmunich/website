@@ -1,8 +1,10 @@
-import type { Metadata } from 'next'
-import MembersContent from './MembersContent'
-import { OG_IMAGES } from '@/lib/metadata'
+import type { Metadata } from 'next';
 
-export const dynamic = 'force-dynamic'
+import { OG_IMAGES } from '@/lib/metadata';
+
+import MembersContent from './MembersContent';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Members',
@@ -16,8 +18,8 @@ export const metadata: Metadata = {
       'Meet START Munich members — 70+ active members and 600+ alumni from TUM, LMU, and HM building the companies of tomorrow.',
     images: OG_IMAGES,
   },
-}
+};
 
 export default function MembersPage() {
-  return <MembersContent />
+  return <MembersContent />;
 }

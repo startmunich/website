@@ -1,6 +1,8 @@
 # START Munich Startups Website
 
-A Next.js 14 application showcasing startups from the START Munich community. Features include company listings, filtering, detailed company pages, and an admin interface for managing startup data.
+A Next.js 14 application showcasing startups from the START Munich community. Features include
+company listings, filtering, detailed company pages, and an admin interface for managing startup
+data.
 
 ## Tech Stack
 
@@ -27,13 +29,15 @@ NEXT_PUBLIC_TURNSTILE_SITE_KEY=your_turnstile_site_key_here
 TURNSTILE_SECRET_KEY=your_turnstile_secret_key_here
 ```
 
-For the waitlist table and Turnstile setup, see [`docs/waitlist-nocodb-setup.md`](docs/waitlist-nocodb-setup.md).
+For the waitlist table and Turnstile setup, see
+[`docs/waitlist-nocodb-setup.md`](docs/waitlist-nocodb-setup.md).
 
 ### Where to Set Environment Variables
 
 #### Local Development
 
 1. Copy `.env.example` to `.env.local`:
+
    ```bash
    cp .env.example .env.local
    ```
@@ -58,11 +62,13 @@ For the waitlist table and Turnstile setup, see [`docs/waitlist-nocodb-setup.md`
 ### How to Find Your NocoDB Credentials
 
 **NOCODB_API_TOKEN:**
+
 - Log into your NocoDB instance
 - Go to Account Settings → Tokens
 - Create or copy an existing API token
 
 **NOCODB_TABLE_ID:**
+
 - Open your startups table in NocoDB
 - Check the URL: `https://ndb.startmunich.de/nc/{workspace}/{project}/table/{TABLE_ID}`
 - Or use the NocoDB API to list tables and find the ID
@@ -78,12 +84,14 @@ For the waitlist table and Turnstile setup, see [`docs/waitlist-nocodb-setup.md`
 ### Installation
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/startmunich/WebsiteOurStartups.git
    cd WebsiteOurStartups
    ```
 
 2. Install dependencies:
+
    ```bash
    npm install
    ```
@@ -91,6 +99,7 @@ For the waitlist table and Turnstile setup, see [`docs/waitlist-nocodb-setup.md`
 3. Set up environment variables (see above)
 
 4. Run the development server:
+
    ```bash
    npm run dev
    ```
@@ -99,33 +108,34 @@ For the waitlist table and Turnstile setup, see [`docs/waitlist-nocodb-setup.md`
 
 ## Brand Colors
 
-The START Munich brand color scheme is defined in `tailwind.config.ts` for consistent use throughout the application:
+The START Munich brand color scheme is defined in `tailwind.config.ts` for consistent use throughout
+the application:
 
 ### Primary Brand Colors
 
-| Color | Hex Code | Tailwind Class | Usage |
-|-------|----------|----------------|-------|
-| **Pink** | `#d0006f` | `brand-pink` | Primary accent color, buttons, highlights |
-| **Dark Blue** | `#00002c` | `brand-dark-blue` | Main background color |
-| **Secondary Blue** | `#011152` | `brand-secondary-blue` | Department cards, secondary backgrounds |
+| Color              | Hex Code  | Tailwind Class         | Usage                                     |
+| ------------------ | --------- | ---------------------- | ----------------------------------------- |
+| **Pink**           | `#d0006f` | `brand-pink`           | Primary accent color, buttons, highlights |
+| **Dark Blue**      | `#00002c` | `brand-dark-blue`      | Main background color                     |
+| **Secondary Blue** | `#011152` | `brand-secondary-blue` | Department cards, secondary backgrounds   |
 
 ### Usage Examples
 
 ```tsx
 // Background
-className="bg-brand-pink"
-className="bg-brand-dark-blue"
-className="bg-brand-secondary-blue"
+className = 'bg-brand-pink';
+className = 'bg-brand-dark-blue';
+className = 'bg-brand-secondary-blue';
 
 // Text
-className="text-brand-pink"
+className = 'text-brand-pink';
 
 // Borders
-className="border-brand-pink"
+className = 'border-brand-pink';
 
 // With opacity
-className="bg-brand-pink/20"
-className="hover:bg-brand-pink/90"
+className = 'bg-brand-pink/20';
+className = 'hover:bg-brand-pink/90';
 ```
 
 ### Color Customization

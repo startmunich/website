@@ -1,9 +1,9 @@
-"use client"
+'use client';
 
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react';
 
 // Re-export useAnimatedNumber from its dedicated file
-export { useAnimatedNumber } from './useAnimatedNumber'
+export { useAnimatedNumber } from './useAnimatedNumber';
 
 /**
  * Hook to detect when an element enters the viewport
@@ -11,21 +11,21 @@ export { useAnimatedNumber } from './useAnimatedNumber'
  * @returns Object with ref to attach to element and visible boolean
  */
 export function useInView(threshold = 0.2) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [visible, setVisible] = useState(false)
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
   useEffect(() => {
-    if (!ref.current) return
+    if (!ref.current) return;
     const obs = new IntersectionObserver(
       ([e]) => {
         if (e.isIntersecting) {
-          setVisible(true)
-          obs.disconnect()
+          setVisible(true);
+          obs.disconnect();
         }
       },
-      { threshold }
-    )
-    obs.observe(ref.current)
-    return () => obs.disconnect()
-  }, [threshold])
-  return { ref, visible }
+      { threshold },
+    );
+    obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, [threshold]);
+  return { ref, visible };
 }

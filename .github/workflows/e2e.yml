@@ -1,0 +1,83 @@
+name: E2E (Vercel preview)
+
+# Triggered by Vercel posting a deployment_status to GitHub. Vercel fires
+# this each time a preview build succeeds, so by the time this workflow
+# runs we already have a real URL pointing at a real build with real
+# preview-scope env vars — much higher fidelity than `next dev` in CI.
+#
+# Vercel preview deployments are gated by Deployment Protection. The
+# VERCEL_AUTOMATION_BYPASS_SECRET (set in repo Actions secrets, generated
+# in Vercel: Project Settings → Deployment Protection → Protection Bypass
+# for Automation) lets Playwright through. Without it, every page would
+# 401.
+on:
+  deployment_status:
+
+concurrency:
+  # One run per deployment. If a newer deployment arrives for the same
+  # branch, the older E2E run is cancelled.
+  group: e2e-${{ github.event.deployment.environment }}-${{ github.event.deployment.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    # Only run when Vercel reports the preview as successfully deployed.
+    # Production deployments are skipped — we don't want to hammer prod from
+    # CI, and a prod deploy only happens after main has already been merged
+    # (so it's already been vetted by the preview run on the PR).
+    if: |
+      github.event.deployment_status.state == 'success' &&
+      github.event.deployment.environment == 'Preview'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Setup - checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.deployment.sha }}
+
+      - name: Setup - pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          run_install: false
+
+      - name: Setup - Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Setup - dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache - Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install Playwright Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Install Playwright system deps
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
+
+      - name: Run Playwright against preview
+        env:
+          PLAYWRIGHT_TEST_BASE_URL: ${{ github.event.deployment_status.environment_url }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: pnpm exec playwright test
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

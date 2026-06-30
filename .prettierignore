@@ -1,0 +1,12 @@
+node_modules
+.next
+dist
+coverage
+build
+public/**/*.min.*.js
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+.next/types
+playwright-report
+test-results

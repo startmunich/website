@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react';
 
 /**
  * Custom hook for animating numbers from 0 to target value
@@ -12,32 +12,32 @@ export function useAnimatedNumber(
   target: number,
   loading: boolean = false,
   duration: number = 1500,
-  steps: number = 60
+  steps: number = 60,
 ): number {
-  const [animatedValue, setAnimatedValue] = useState(0)
+  const [animatedValue, setAnimatedValue] = useState(0);
 
   useEffect(() => {
-    if (loading || target <= 0) return
+    if (loading || target <= 0) return;
 
-    let currentValue = 0
-    const interval = duration / steps
-    const increment = target / steps
-    let step = 0
+    let currentValue = 0;
+    const interval = duration / steps;
+    const increment = target / steps;
+    let step = 0;
 
     const timer = setInterval(() => {
-      step++
-      currentValue += increment
+      step++;
+      currentValue += increment;
 
       if (step >= steps) {
-        setAnimatedValue(target)
-        clearInterval(timer)
+        setAnimatedValue(target);
+        clearInterval(timer);
       } else {
-        setAnimatedValue(Math.floor(currentValue))
+        setAnimatedValue(Math.floor(currentValue));
       }
-    }, interval)
+    }, interval);
 
-    return () => clearInterval(timer)
-  }, [loading, target, duration, steps])
+    return () => clearInterval(timer);
+  }, [loading, target, duration, steps]);
 
-  return animatedValue
+  return animatedValue;
 }

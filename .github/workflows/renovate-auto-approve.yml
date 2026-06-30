@@ -1,0 +1,31 @@
+name: Renovate auto-approve
+
+# Renovate's `automerge: true` config enables GitHub's auto-merge, which waits
+# for required status checks AND required reviews. This workflow provides the
+# approval so a "1 review required" branch protection rule doesn't block
+# auto-merge. The approval comes from github-actions[bot] — a different identity
+# than renovate[bot] (the PR author) — so it counts as a valid review.
+#
+# Requires "Allow GitHub Actions to create and approve pull requests" in
+# Settings → Actions → General → Workflow permissions.
+#
+# Approving all Renovate PRs is safe: Renovate only opts a PR into auto-merge
+# when its `automerge: true` rule matches (currently npm minor + patch). Major
+# bumps get approved but not auto-merged, so they still sit waiting for a
+# human to click merge.
+
+on: pull_request_target
+
+permissions:
+  pull-requests: write
+
+jobs:
+  approve:
+    if: github.actor == 'renovate[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Approve PR
+        run: gh pr review --approve "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

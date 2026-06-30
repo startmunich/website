@@ -5,6 +5,7 @@ export const revalidate = 3600;
 const NOCODB_API_TOKEN = process.env.NOCODB_API_TOKEN;
 const NOCODB_BASE_URL = process.env.NOCODB_BASE_URL || 'https://ndb.startmunich.de';
 const MEMBER_NETWORK_TABLE_ID = 'mh8taz9b8ne38yg';
+const NOCODB_TIMEOUT_MS = 10_000;
 
 export interface MemberNetworkLogo {
   id: string;
@@ -13,7 +14,14 @@ export interface MemberNetworkLogo {
   logoUrl: string;
 }
 
-function transformRecord(record: any): MemberNetworkLogo {
+interface NocoDbRecord {
+  Id: string | number;
+  Name?: string;
+  Type?: string;
+  Logo?: Array<{ path?: string }>;
+}
+
+function transformRecord(record: NocoDbRecord): MemberNetworkLogo {
   let logoUrl = '';
 
   if (record.Logo && Array.isArray(record.Logo) && record.Logo[0]) {
@@ -44,8 +52,9 @@ export async function GET() {
           'xc-token': NOCODB_API_TOKEN,
           'Content-Type': 'application/json',
         },
+        signal: AbortSignal.timeout(NOCODB_TIMEOUT_MS),
         next: { revalidate: 3600 },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -60,6 +69,10 @@ export async function GET() {
     return NextResponse.json(logos);
   } catch (error) {
     console.error('Error fetching member network logos:', error);
-    return NextResponse.json({ error: 'Failed to fetch data' }, { status: 500 });
+    const isTimeout = error instanceof DOMException && error.name === 'TimeoutError';
+    return NextResponse.json(
+      { error: isTimeout ? 'Upstream NocoDB request timed out' : 'Failed to fetch data' },
+      { status: isTimeout ? 504 : 500 },
+    );
   }
 }

@@ -70,7 +70,10 @@ export async function POST(request: Request) {
   }
 
   if (!turnstileToken) {
-    return NextResponse.json({ error: 'Captcha challenge missing. Please try again.' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Captcha challenge missing. Please try again.' },
+      { status: 400 },
+    );
   }
 
   const remoteIp =
@@ -80,7 +83,10 @@ export async function POST(request: Request) {
 
   const captchaOk = await verifyTurnstile(turnstileToken, remoteIp);
   if (!captchaOk) {
-    return NextResponse.json({ error: 'Captcha verification failed. Please try again.' }, { status: 403 });
+    return NextResponse.json(
+      { error: 'Captcha verification failed. Please try again.' },
+      { status: 403 },
+    );
   }
 
   try {
@@ -101,7 +107,7 @@ export async function POST(request: Request) {
           SignedUpAt: new Date().toISOString(),
         }),
         signal: AbortSignal.timeout(NOCODB_TIMEOUT_MS),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -109,7 +115,7 @@ export async function POST(request: Request) {
       console.error(`NocoDB waitlist error: ${response.status} ${response.statusText}`, errorText);
       return NextResponse.json(
         { error: 'Could not save your email. Please try again later.' },
-        { status: 502 }
+        { status: 502 },
       );
     }
 
@@ -118,7 +124,7 @@ export async function POST(request: Request) {
     console.error('Error writing to NocoDB waitlist:', error);
     return NextResponse.json(
       { error: 'Could not save your email. Please try again later.' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

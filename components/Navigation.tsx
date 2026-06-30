@@ -1,48 +1,119 @@
-"use client"
+'use client';
 
-import React, { useState, useEffect, useRef } from 'react'
-import posthog from 'posthog-js'
-import Link from 'next/link'
-import Image from 'next/image'
+import Image from 'next/image';
+import Link from 'next/link';
+import posthog from 'posthog-js';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+
+// 150ms grace window so the user can cross the gap between the button and
+// the absolutely-positioned panel without the menu collapsing.
+const HOVER_CLOSE_DELAY_MS = 150;
+
+// Touch devices synthesize a `mouseenter` on the first tap and only fire
+// `click` on the second — wiring hover handlers there would force users
+// to double-tap. Gate the hover behavior on a real hover-capable pointer.
+function useHasHover() {
+  const [hasHover, setHasHover] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mq = window.matchMedia('(hover: hover) and (pointer: fine)');
+    setHasHover(mq.matches);
+    const onChange = (e: MediaQueryListEvent) => setHasHover(e.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+  return hasHover;
+}
+
+function useHoverableDropdown(hoverEnabled: boolean) {
+  const [isOpen, setIsOpen] = useState(false);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const cancelClose = useCallback(() => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+  }, []);
+
+  const open = useCallback(() => {
+    cancelClose();
+    setIsOpen(true);
+  }, [cancelClose]);
+
+  const close = useCallback(() => {
+    cancelClose();
+    setIsOpen(false);
+  }, [cancelClose]);
+
+  const toggle = useCallback(() => {
+    cancelClose();
+    setIsOpen((v) => !v);
+  }, [cancelClose]);
+
+  const scheduleClose = useCallback(() => {
+    cancelClose();
+    closeTimerRef.current = setTimeout(() => setIsOpen(false), HOVER_CLOSE_DELAY_MS);
+  }, [cancelClose]);
+
+  useEffect(() => () => cancelClose(), [cancelClose]);
+
+  const hoverProps = useMemo(
+    () =>
+      hoverEnabled
+        ? { onMouseEnter: open, onMouseLeave: scheduleClose }
+        : ({} as { onMouseEnter?: () => void; onMouseLeave?: () => void }),
+    [hoverEnabled, open, scheduleClose],
+  );
+
+  return useMemo(
+    () => ({ isOpen, open, close, toggle, hoverProps }),
+    [isOpen, open, close, toggle, hoverProps],
+  );
+}
 
 export default function Navigation() {
-  const [isCommunityOpen, setIsCommunityOpen] = useState(false)
-  const [isEventsOpen, setIsEventsOpen] = useState(false)
-  const [isPartnerOpen, setIsPartnerOpen] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [isMobileCommunityOpen, setIsMobileCommunityOpen] = useState(false)
-  const [isMobileEventsOpen, setIsMobileEventsOpen] = useState(false)
-  const [isMobilePartnerOpen, setIsMobilePartnerOpen] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
-  const eventsDropdownRef = useRef<HTMLDivElement>(null)
-  const partnerDropdownRef = useRef<HTMLDivElement>(null)
+  const hoverEnabled = useHasHover();
+  const community = useHoverableDropdown(hoverEnabled);
+  const events = useHoverableDropdown(hoverEnabled);
+  const partner = useHoverableDropdown(hoverEnabled);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileCommunityOpen, setIsMobileCommunityOpen] = useState(false);
+  const [isMobileEventsOpen, setIsMobileEventsOpen] = useState(false);
+  const [isMobilePartnerOpen, setIsMobilePartnerOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const eventsDropdownRef = useRef<HTMLDivElement>(null);
+  const partnerDropdownRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsCommunityOpen(false)
+        community.close();
       }
       if (eventsDropdownRef.current && !eventsDropdownRef.current.contains(event.target as Node)) {
-        setIsEventsOpen(false)
+        events.close();
       }
-      if (partnerDropdownRef.current && !partnerDropdownRef.current.contains(event.target as Node)) {
-        setIsPartnerOpen(false)
+      if (
+        partnerDropdownRef.current &&
+        !partnerDropdownRef.current.contains(event.target as Node)
+      ) {
+        partner.close();
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [])
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [community, events, partner]);
 
   return (
     <nav className="sticky top-0 z-50 bg-brand-dark-blue">
       <div className="mx-auto px-10 lg:px-20">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex h-20 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+          <Link href="/" className="flex items-center transition-opacity hover:opacity-80">
             <Image
               src="/startlogo.svg"
               alt="START Munich"
@@ -53,88 +124,130 @@ export default function Navigation() {
           </Link>
 
           {/* Desktop Navigation Links */}
-          <div className="hidden lg:flex items-center space-x-8">
+          <div className="hidden items-center space-x-8 lg:flex">
             <Link
               href="/"
-              className="text-white font-bold text-base hover:text-brand-pink transition-colors uppercase tracking-wide"
+              className="text-base font-bold uppercase tracking-wide text-white transition-colors hover:text-brand-pink"
             >
               HOME
             </Link>
 
             {/* Community Dropdown */}
-            <div
-              ref={dropdownRef}
-              className="relative"
-            >
+            <div ref={dropdownRef} className="relative" {...community.hoverProps}>
               <button
-                onClick={() => setIsCommunityOpen(!isCommunityOpen)}
-                className="text-white font-bold text-base hover:text-brand-pink transition-colors uppercase tracking-wide flex items-center space-x-1"
+                onClick={community.toggle}
+                aria-expanded={community.isOpen}
+                aria-haspopup="menu"
+                className="flex items-center space-x-1 text-base font-bold uppercase tracking-wide text-white transition-colors hover:text-brand-pink"
               >
                 <span>COMMUNITY</span>
                 <svg
-                  className={`w-4 h-4 transition-transform ${isCommunityOpen ? 'rotate-180' : ''}`}
+                  className={`h-4 w-4 transition-transform ${community.isOpen ? 'rotate-180' : ''}`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </button>
 
               {/* Dropdown Menu */}
-              {isCommunityOpen && (
-                <div className="absolute top-full left-0 mt-3 w-64 bg-brand-dark-blue border border-white/20 shadow-2xl rounded-xl overflow-hidden animate-fadeIn">
+              {community.isOpen && (
+                <div className="animate-fadeIn absolute left-0 top-full mt-3 w-64 overflow-hidden rounded-xl border border-white/20 bg-brand-dark-blue shadow-2xl">
                   <div className="py-2">
                     <Link
                       href="/about-us"
-                      onClick={() => setIsCommunityOpen(false)}
-                      className="group block px-6 py-3.5 text-white text-base font-bold hover:bg-brand-pink transition-all duration-200"
+                      onClick={() => community.close()}
+                      className="group block px-6 py-3.5 text-base font-bold text-white transition-all duration-200 hover:bg-brand-pink"
                     >
                       <span className="flex items-center">
-                        <svg className="w-4 h-4 mr-3 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        <svg
+                          className="mr-3 h-4 w-4 transition-transform group-hover:translate-x-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
                         </svg>
                         About Us
                       </span>
                     </Link>
-                                       <Link
+                    <Link
                       href="/member-journey"
-                      onClick={() => setIsCommunityOpen(false)}
-                      className="group block px-6 py-3.5 text-white text-base font-bold hover:bg-brand-pink transition-all duration-200"
+                      onClick={() => community.close()}
+                      className="group block px-6 py-3.5 text-base font-bold text-white transition-all duration-200 hover:bg-brand-pink"
                     >
                       <span className="flex items-center">
-                        <svg className="w-4 h-4 mr-3 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        <svg
+                          className="mr-3 h-4 w-4 transition-transform group-hover:translate-x-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
                         </svg>
                         Member Journey
                       </span>
                     </Link>
                     <Link
                       href="/members"
-                      onClick={() => setIsCommunityOpen(false)}
-                      className="group block px-6 py-3.5 text-white text-base font-bold hover:bg-brand-pink transition-all duration-200"
+                      onClick={() => community.close()}
+                      className="group block px-6 py-3.5 text-base font-bold text-white transition-all duration-200 hover:bg-brand-pink"
                     >
                       <span className="flex items-center">
-                        <svg className="w-4 h-4 mr-3 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        <svg
+                          className="mr-3 h-4 w-4 transition-transform group-hover:translate-x-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
                         </svg>
                         Our Members
                       </span>
                     </Link>
                     <Link
                       href="https://jobs.startmunich.de/jobs"
-                      onClick={() => setIsCommunityOpen(false)}
-                      className="group block px-6 py-3.5 text-white text-base font-bold hover:bg-brand-pink transition-all duration-200"
+                      onClick={() => community.close()}
+                      className="group block px-6 py-3.5 text-base font-bold text-white transition-all duration-200 hover:bg-brand-pink"
                     >
                       <span className="flex items-center">
-                        <svg className="w-4 h-4 mr-3 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        <svg
+                          className="mr-3 h-4 w-4 transition-transform group-hover:translate-x-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
                         </svg>
                         Our Jobs
                       </span>
                     </Link>
- 
-                    
                   </div>
                 </div>
               )}
@@ -142,97 +255,201 @@ export default function Navigation() {
 
             <Link
               href="/startups"
-              className="text-white font-bold text-base hover:text-brand-pink transition-colors uppercase tracking-wide"
+              className="text-base font-bold uppercase tracking-wide text-white transition-colors hover:text-brand-pink"
             >
               OUR STARTUPS
             </Link>
 
             {/* Events Dropdown */}
-            <div
-              ref={eventsDropdownRef}
-              className="relative"
-            >
+            <div ref={eventsDropdownRef} className="relative" {...events.hoverProps}>
               <button
-                onClick={() => setIsEventsOpen(!isEventsOpen)}
-                className="text-white font-bold text-base hover:text-brand-pink transition-colors uppercase tracking-wide flex items-center space-x-1"
+                onClick={events.toggle}
+                aria-expanded={events.isOpen}
+                aria-haspopup="menu"
+                className="flex items-center space-x-1 text-base font-bold uppercase tracking-wide text-white transition-colors hover:text-brand-pink"
               >
                 <span>EVENTS</span>
                 <svg
-                  className={`w-4 h-4 transition-transform ${isEventsOpen ? 'rotate-180' : ''}`}
+                  className={`h-4 w-4 transition-transform ${events.isOpen ? 'rotate-180' : ''}`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </button>
 
-              {isEventsOpen && (
-                <div className="absolute top-full left-0 mt-3 w-64 bg-brand-dark-blue border border-white/20 shadow-2xl rounded-xl overflow-hidden animate-fadeIn">
+              {events.isOpen && (
+                <div className="animate-fadeIn absolute left-0 top-full mt-3 w-64 overflow-hidden rounded-xl border border-white/20 bg-brand-dark-blue shadow-2xl">
                   <div className="py-2">
                     <Link
                       href="/events"
-                      onClick={() => setIsEventsOpen(false)}
-                      className="group block px-6 py-3.5 text-white text-base font-bold hover:bg-brand-pink transition-all duration-200"
+                      onClick={() => events.close()}
+                      className="group block px-6 py-3.5 text-base font-bold text-white transition-all duration-200 hover:bg-brand-pink"
                     >
                       <span className="flex items-center">
-                        <svg className="w-4 h-4 mr-3 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        <svg
+                          className="mr-3 h-4 w-4 transition-transform group-hover:translate-x-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
                         </svg>
                         All Events
                       </span>
                     </Link>
                     <div className="mx-4 my-1 border-t border-white/15" />
                     <a
+                      href="https://europe-embodied.com/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => events.close()}
+                      className="group block px-6 py-2.5 text-sm font-semibold text-white/70 transition-all duration-200 hover:bg-brand-pink hover:text-white"
+                    >
+                      <span className="flex items-center">
+                        <svg
+                          className="mr-3 h-3.5 w-3.5 transition-transform group-hover:translate-x-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                        Europe Embodied
+                      </span>
+                    </a>
+                    <a
                       href="https://www.hacking-legal.org/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={() => setIsEventsOpen(false)}
-                      className="group block px-6 py-2.5 text-white/70 text-sm font-semibold hover:bg-brand-pink hover:text-white transition-all duration-200"
+                      onClick={() => events.close()}
+                      className="group block px-6 py-2.5 text-sm font-semibold text-white/70 transition-all duration-200 hover:bg-brand-pink hover:text-white"
                     >
                       <span className="flex items-center">
-                        <svg className="w-3.5 h-3.5 mr-3 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        <svg
+                          className="mr-3 h-3.5 w-3.5 transition-transform group-hover:translate-x-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
                         </svg>
                         Munich Hacking Legal
                       </span>
                     </a>
                     <a
-                      href="https://summit.startmunich.de/events/rtss"
+                      href="https://www.munich-startup.de/veranstaltung/isar-unfiltered/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={() => setIsEventsOpen(false)}
-                      className="group block px-6 py-2.5 text-white/70 text-sm font-semibold hover:bg-brand-pink hover:text-white transition-all duration-200"
+                      onClick={() => events.close()}
+                      className="group block px-6 py-2.5 text-sm font-semibold text-white/70 transition-all duration-200 hover:bg-brand-pink hover:text-white"
                     >
                       <span className="flex items-center">
-                        <svg className="w-3.5 h-3.5 mr-3 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        <svg
+                          className="mr-3 h-3.5 w-3.5 transition-transform group-hover:translate-x-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
                         </svg>
-                        Road to START Summit
-                      </span>
-                    </a>
-                    <a
-                      href="https://hack.startmunich.de/events/rtsh"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => setIsEventsOpen(false)}
-                      className="group block px-6 py-2.5 text-white/70 text-sm font-semibold hover:bg-brand-pink hover:text-white transition-all duration-200"
-                    >
-                      <span className="flex items-center">
-                        <svg className="w-3.5 h-3.5 mr-3 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                        Road to START Hack
+                        Isar Unfiltered
                       </span>
                     </a>
                     <Link
-                      href="/labs"
-                      onClick={() => setIsEventsOpen(false)}
-                      className="group block px-6 py-2.5 text-white/70 text-sm font-semibold hover:bg-brand-pink hover:text-white transition-all duration-200"
+                      href="/eventpage/rtss"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => events.close()}
+                      className="group block px-6 py-2.5 text-sm font-semibold text-white/70 transition-all duration-200 hover:bg-brand-pink hover:text-white"
                     >
                       <span className="flex items-center">
-                        <svg className="w-3.5 h-3.5 mr-3 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        <svg
+                          className="mr-3 h-3.5 w-3.5 transition-transform group-hover:translate-x-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                        Road to START Summit
+                      </span>
+                    </Link>
+                    <Link
+                      href="/eventpage/rtsh"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => events.close()}
+                      className="group block px-6 py-2.5 text-sm font-semibold text-white/70 transition-all duration-200 hover:bg-brand-pink hover:text-white"
+                    >
+                      <span className="flex items-center">
+                        <svg
+                          className="mr-3 h-3.5 w-3.5 transition-transform group-hover:translate-x-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                        Road to START Hack
+                      </span>
+                    </Link>
+                    <Link
+                      href="/labs"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => events.close()}
+                      className="group block px-6 py-2.5 text-sm font-semibold text-white/70 transition-all duration-200 hover:bg-brand-pink hover:text-white"
+                    >
+                      <span className="flex items-center">
+                        <svg
+                          className="mr-3 h-3.5 w-3.5 transition-transform group-hover:translate-x-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
                         </svg>
                         START Labs
                       </span>
@@ -243,48 +460,72 @@ export default function Navigation() {
             </div>
 
             {/* Partner Dropdown */}
-            <div
-              ref={partnerDropdownRef}
-              className="relative"
-            >
+            <div ref={partnerDropdownRef} className="relative" {...partner.hoverProps}>
               <button
-                onClick={() => setIsPartnerOpen(!isPartnerOpen)}
-                className="text-white font-bold text-base hover:text-brand-pink transition-colors uppercase tracking-wide flex items-center space-x-1"
+                onClick={partner.toggle}
+                aria-expanded={partner.isOpen}
+                aria-haspopup="menu"
+                className="flex items-center space-x-1 text-base font-bold uppercase tracking-wide text-white transition-colors hover:text-brand-pink"
               >
                 <span>PARTNERS</span>
                 <svg
-                  className={`w-4 h-4 transition-transform ${isPartnerOpen ? 'rotate-180' : ''}`}
+                  className={`h-4 w-4 transition-transform ${partner.isOpen ? 'rotate-180' : ''}`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </button>
 
-              {isPartnerOpen && (
-                <div className="absolute top-full left-0 mt-3 w-64 bg-brand-dark-blue border border-white/20 shadow-2xl rounded-xl overflow-hidden animate-fadeIn">
+              {partner.isOpen && (
+                <div className="animate-fadeIn absolute left-0 top-full mt-3 w-64 overflow-hidden rounded-xl border border-white/20 bg-brand-dark-blue shadow-2xl">
                   <div className="py-2">
                     <Link
                       href="/for-partners"
-                      onClick={() => setIsPartnerOpen(false)}
-                      className="group block px-6 py-3.5 text-white text-base font-bold hover:bg-brand-pink transition-all duration-200"
+                      onClick={() => partner.close()}
+                      className="group block px-6 py-3.5 text-base font-bold text-white transition-all duration-200 hover:bg-brand-pink"
                     >
                       <span className="flex items-center">
-                        <svg className="w-4 h-4 mr-3 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        <svg
+                          className="mr-3 h-4 w-4 transition-transform group-hover:translate-x-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
                         </svg>
                         For Partners
                       </span>
                     </Link>
                     <Link
                       href="/partners"
-                      onClick={() => setIsPartnerOpen(false)}
-                      className="group block px-6 py-3.5 text-white text-base font-bold hover:bg-brand-pink transition-all duration-200"
+                      onClick={() => partner.close()}
+                      className="group block px-6 py-3.5 text-base font-bold text-white transition-all duration-200 hover:bg-brand-pink"
                     >
                       <span className="flex items-center">
-                        <svg className="w-4 h-4 mr-3 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        <svg
+                          className="mr-3 h-4 w-4 transition-transform group-hover:translate-x-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
                         </svg>
                         Our Partners
                       </span>
@@ -296,12 +537,12 @@ export default function Navigation() {
           </div>
 
           {/* Apply Now / All Jobs Split Button - Desktop */}
-          <div className="hidden lg:flex items-center">
-            <div className="flex rounded overflow-hidden gap-[2px] bg-brand-dark-blue">
+          <div className="hidden items-center lg:flex">
+            <div className="flex gap-[2px] overflow-hidden rounded bg-brand-dark-blue">
               <Link
                 href="/apply"
                 onClick={() => posthog.capture('nav_apply_clicked', { location: 'desktop' })}
-                className="bg-white text-brand-dark-blue px-4 py-1.5 font-bold text-sm hover:bg-brand-pink hover:text-white transition-all duration-300 uppercase tracking-wide"
+                className="bg-white px-4 py-1.5 text-sm font-bold uppercase tracking-wide text-brand-dark-blue transition-all duration-300 hover:bg-brand-pink hover:text-white"
               >
                 APPLY NOW
               </Link>
@@ -310,7 +551,7 @@ export default function Navigation() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => posthog.capture('nav_jobs_clicked', { location: 'desktop' })}
-                className="bg-white text-brand-dark-blue px-4 py-1.5 font-bold text-sm hover:bg-brand-pink hover:text-white transition-all duration-300 uppercase tracking-wide"
+                className="bg-white px-4 py-1.5 text-sm font-bold uppercase tracking-wide text-brand-dark-blue transition-all duration-300 hover:bg-brand-pink hover:text-white"
               >
                 JOBS
               </a>
@@ -320,16 +561,26 @@ export default function Navigation() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="lg:hidden text-white p-2"
+            className="p-2 text-white lg:hidden"
             aria-label="Toggle menu"
           >
             {isMobileMenuOpen ? (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             ) : (
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
               </svg>
             )}
           </button>
@@ -337,10 +588,14 @@ export default function Navigation() {
 
         {/* Mobile Menu - Full Screen Overlay */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden fixed inset-0 z-50 bg-brand-dark-blue flex flex-col overflow-y-auto">
+          <div className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-brand-dark-blue lg:hidden">
             {/* Header row with logo and close button */}
-            <div className="flex items-center justify-between px-10 h-20 shrink-0">
-              <Link href="/" className="flex items-center hover:opacity-80 transition-opacity" onClick={() => setIsMobileMenuOpen(false)}>
+            <div className="flex h-20 shrink-0 items-center justify-between px-10">
+              <Link
+                href="/"
+                className="flex items-center transition-opacity hover:opacity-80"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
                 <Image
                   src="/startlogo.svg"
                   alt="START Munich"
@@ -351,20 +606,25 @@ export default function Navigation() {
               </Link>
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="text-white p-2"
+                className="p-2 text-white"
                 aria-label="Close menu"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </button>
             </div>
 
             {/* Menu items */}
-            <div className="flex flex-col px-10 py-6 space-y-1 border-t border-white/10 grow">
+            <div className="flex grow flex-col space-y-1 border-t border-white/10 px-10 py-6">
               <Link
                 href="/"
-                className="block py-4 text-white font-bold text-lg hover:text-brand-pink transition-colors uppercase tracking-wide border-b border-white/10"
+                className="block border-b border-white/10 py-4 text-lg font-bold uppercase tracking-wide text-white transition-colors hover:text-brand-pink"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 HOME
@@ -374,45 +634,50 @@ export default function Navigation() {
               <div className="border-b border-white/10">
                 <button
                   onClick={() => setIsMobileCommunityOpen(!isMobileCommunityOpen)}
-                  className="w-full flex items-center justify-between py-4 text-white font-bold text-lg hover:text-brand-pink transition-colors uppercase tracking-wide"
+                  className="flex w-full items-center justify-between py-4 text-lg font-bold uppercase tracking-wide text-white transition-colors hover:text-brand-pink"
                 >
                   <span>COMMUNITY</span>
                   <svg
-                    className={`w-5 h-5 transition-transform ${isMobileCommunityOpen ? 'rotate-180' : ''}`}
+                    className={`h-5 w-5 transition-transform ${isMobileCommunityOpen ? 'rotate-180' : ''}`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </button>
 
                 {isMobileCommunityOpen && (
-                  <div className="pb-3 space-y-1">
+                  <div className="space-y-1 pb-3">
                     <Link
                       href="/about-us"
-                      className="block pl-4 py-2.5 text-white/80 text-base font-semibold hover:text-brand-pink transition-colors"
+                      className="block py-2.5 pl-4 text-base font-semibold text-white/80 transition-colors hover:text-brand-pink"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       About Us
                     </Link>
                     <Link
                       href="/member-journey"
-                      className="block pl-4 py-2.5 text-white/80 text-base font-semibold hover:text-brand-pink transition-colors"
+                      className="block py-2.5 pl-4 text-base font-semibold text-white/80 transition-colors hover:text-brand-pink"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Member Journey
                     </Link>
                     <Link
                       href="/members"
-                      className="block pl-4 py-2.5 text-white/80 text-base font-semibold hover:text-brand-pink transition-colors"
+                      className="block py-2.5 pl-4 text-base font-semibold text-white/80 transition-colors hover:text-brand-pink"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Our Members
                     </Link>
                     <Link
                       href="https://jobs.startmunich.de/jobs"
-                      className="block pl-4 py-2.5 text-white/80 text-base font-semibold hover:text-brand-pink transition-colors"
+                      className="block py-2.5 pl-4 text-base font-semibold text-white/80 transition-colors hover:text-brand-pink"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Our Jobs
@@ -423,7 +688,7 @@ export default function Navigation() {
 
               <Link
                 href="/startups"
-                className="block py-4 text-white font-bold text-lg hover:text-brand-pink transition-colors uppercase tracking-wide border-b border-white/10"
+                className="block border-b border-white/10 py-4 text-lg font-bold uppercase tracking-wide text-white transition-colors hover:text-brand-pink"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 OUR STARTUPS
@@ -433,58 +698,83 @@ export default function Navigation() {
               <div className="border-b border-white/10">
                 <button
                   onClick={() => setIsMobileEventsOpen(!isMobileEventsOpen)}
-                  className="w-full flex items-center justify-between py-4 text-white font-bold text-lg hover:text-brand-pink transition-colors uppercase tracking-wide"
+                  className="flex w-full items-center justify-between py-4 text-lg font-bold uppercase tracking-wide text-white transition-colors hover:text-brand-pink"
                 >
                   <span>EVENTS</span>
                   <svg
-                    className={`w-5 h-5 transition-transform ${isMobileEventsOpen ? 'rotate-180' : ''}`}
+                    className={`h-5 w-5 transition-transform ${isMobileEventsOpen ? 'rotate-180' : ''}`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </button>
 
                 {isMobileEventsOpen && (
-                  <div className="pb-3 space-y-1">
+                  <div className="space-y-1 pb-3">
                     <Link
                       href="/events"
-                      className="block pl-4 py-2.5 text-white/80 text-base font-semibold hover:text-brand-pink transition-colors"
+                      className="block py-2.5 pl-4 text-base font-semibold text-white/80 transition-colors hover:text-brand-pink"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       All Events
                     </Link>
                     <a
+                      href="https://europe-embodied.com/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block py-2 pl-4 text-sm font-medium text-white/50 transition-colors hover:text-brand-pink"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Europe Embodied
+                    </a>
+                    <a
                       href="https://www.hacking-legal.org/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block pl-4 py-2 text-white/50 text-sm font-medium hover:text-brand-pink transition-colors"
+                      className="block py-2 pl-4 text-sm font-medium text-white/50 transition-colors hover:text-brand-pink"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Munich Hacking Legal
                     </a>
                     <a
-                      href="https://summit.startmunich.de/events/rtss"
+                      href="https://www.munich-startup.de/veranstaltung/isar-unfiltered/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block pl-4 py-2 text-white/50 text-sm font-medium hover:text-brand-pink transition-colors"
+                      className="block py-2 pl-4 text-sm font-medium text-white/50 transition-colors hover:text-brand-pink"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Isar Unfiltered
+                    </a>
+                    <Link
+                      href="/eventpage/rtss"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block py-2 pl-4 text-sm font-medium text-white/50 transition-colors hover:text-brand-pink"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Road to START Summit
-                    </a>
-                    <a
-                      href="https://hack.startmunich.de/events/rtsh"
+                    </Link>
+                    <Link
+                      href="/eventpage/rtsh"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="block pl-4 py-2 text-white/50 text-sm font-medium hover:text-brand-pink transition-colors"
+                      className="block py-2 pl-4 text-sm font-medium text-white/50 transition-colors hover:text-brand-pink"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Road to START Hack
-                    </a>
+                    </Link>
                     <Link
                       href="/labs"
-                      className="block pl-4 py-2 text-white/50 text-sm font-medium hover:text-brand-pink transition-colors"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block py-2 pl-4 text-sm font-medium text-white/50 transition-colors hover:text-brand-pink"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       START Labs
@@ -497,31 +787,36 @@ export default function Navigation() {
               <div className="border-b border-white/10">
                 <button
                   onClick={() => setIsMobilePartnerOpen(!isMobilePartnerOpen)}
-                  className="w-full flex items-center justify-between py-4 text-white font-bold text-lg hover:text-brand-pink transition-colors uppercase tracking-wide"
+                  className="flex w-full items-center justify-between py-4 text-lg font-bold uppercase tracking-wide text-white transition-colors hover:text-brand-pink"
                 >
                   <span>PARTNER</span>
                   <svg
-                    className={`w-5 h-5 transition-transform ${isMobilePartnerOpen ? 'rotate-180' : ''}`}
+                    className={`h-5 w-5 transition-transform ${isMobilePartnerOpen ? 'rotate-180' : ''}`}
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </button>
 
                 {isMobilePartnerOpen && (
-                  <div className="pb-3 space-y-1">
+                  <div className="space-y-1 pb-3">
                     <Link
                       href="/for-partners"
-                      className="block pl-4 py-2.5 text-white/80 text-base font-semibold hover:text-brand-pink transition-colors"
+                      className="block py-2.5 pl-4 text-base font-semibold text-white/80 transition-colors hover:text-brand-pink"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       For Partners
                     </Link>
                     <Link
                       href="/partners"
-                      className="block pl-4 py-2.5 text-white/80 text-base font-semibold hover:text-brand-pink transition-colors"
+                      className="block py-2.5 pl-4 text-base font-semibold text-white/80 transition-colors hover:text-brand-pink"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Our Partners
@@ -531,11 +826,14 @@ export default function Navigation() {
               </div>
 
               {/* Apply Now / All Jobs Split Button - Mobile */}
-              <div className="pt-10 flex rounded overflow-hidden gap-[2px] bg-brand-dark-blue">
+              <div className="flex gap-[2px] overflow-hidden rounded bg-brand-dark-blue pt-10">
                 <Link
                   href="/apply"
-                  className="flex-1 text-center bg-white text-brand-dark-blue px-6 py-4 font-black text-base hover:bg-brand-pink hover:text-white transition-all duration-300 uppercase"
-                  onClick={() => { setIsMobileMenuOpen(false); posthog.capture('nav_apply_clicked', { location: 'mobile' }) }}
+                  className="flex-1 bg-white px-6 py-4 text-center text-base font-black uppercase text-brand-dark-blue transition-all duration-300 hover:bg-brand-pink hover:text-white"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    posthog.capture('nav_apply_clicked', { location: 'mobile' });
+                  }}
                 >
                   APPLY NOW
                 </Link>
@@ -543,8 +841,11 @@ export default function Navigation() {
                   href="https://jobs.startmunich.de/jobs"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 text-center bg-white text-brand-dark-blue px-6 py-4 font-black text-base hover:bg-brand-pink hover:text-white transition-all duration-300 uppercase"
-                  onClick={() => { setIsMobileMenuOpen(false); posthog.capture('nav_jobs_clicked', { location: 'mobile' }) }}
+                  className="flex-1 bg-white px-6 py-4 text-center text-base font-black uppercase text-brand-dark-blue transition-all duration-300 hover:bg-brand-pink hover:text-white"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    posthog.capture('nav_jobs_clicked', { location: 'mobile' });
+                  }}
                 >
                   JOBS
                 </a>
@@ -554,5 +855,5 @@ export default function Navigation() {
         )}
       </div>
     </nav>
-  )
+  );
 }

@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from 'react';
 
 type DottedGlowBackgroundProps = {
   className?: string;
@@ -46,9 +46,9 @@ export const DottedGlowBackground = ({
   className,
   gap = 12,
   radius = 2,
-  color = "rgba(0,0,0,0.7)",
+  color = 'rgba(0,0,0,0.7)',
   darkColor,
-  glowColor = "rgba(0, 170, 255, 0.85)",
+  glowColor = 'rgba(0, 170, 255, 0.85)',
   darkGlowColor,
   colorLightVar,
   colorDarkVar,
@@ -66,14 +66,9 @@ export const DottedGlowBackground = ({
   const [resolvedGlowColor, setResolvedGlowColor] = useState<string>(glowColor);
 
   // Resolve CSS variable value from the container or root
-  const resolveCssVariable = (
-    el: Element,
-    variableName?: string,
-  ): string | null => {
+  const resolveCssVariable = (el: Element, variableName?: string): string | null => {
     if (!variableName) return null;
-    const normalized = variableName.startsWith("--")
-      ? variableName
-      : `--${variableName}`;
+    const normalized = variableName.startsWith('--') ? variableName : `--${variableName}`;
     const fromEl = getComputedStyle(el as Element)
       .getPropertyValue(normalized)
       .trim();
@@ -85,12 +80,9 @@ export const DottedGlowBackground = ({
 
   const detectDarkMode = (): boolean => {
     const root = document.documentElement;
-    if (root.classList.contains("dark")) return true;
-    if (root.classList.contains("light")) return false;
-    return (
-      window.matchMedia &&
-      window.matchMedia("(prefers-color-scheme: dark)").matches
-    );
+    if (root.classList.contains('dark')) return true;
+    if (root.classList.contains('light')) return false;
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   };
 
   // Keep resolved colors in sync with theme changes and prop updates
@@ -121,20 +113,18 @@ export const DottedGlowBackground = ({
 
     compute();
 
-    const mql = window.matchMedia
-      ? window.matchMedia("(prefers-color-scheme: dark)")
-      : null;
+    const mql = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
     const handleMql = () => compute();
-    mql?.addEventListener?.("change", handleMql);
+    mql?.addEventListener?.('change', handleMql);
 
     const mo = new MutationObserver(() => compute());
     mo.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ["class", "style"],
+      attributeFilter: ['class', 'style'],
     });
 
     return () => {
-      mql?.removeEventListener?.("change", handleMql);
+      mql?.removeEventListener?.('change', handleMql);
       mo.disconnect();
     };
   }, [
@@ -153,7 +143,7 @@ export const DottedGlowBackground = ({
     const container = containerRef.current;
     if (!el || !container) return;
 
-    const ctx = el.getContext("2d");
+    const ctx = el.getContext('2d');
     if (!ctx) return;
 
     let raf = 0;
@@ -204,16 +194,12 @@ export const DottedGlowBackground = ({
 
     regenDots();
 
-    let last = performance.now();
-
     const draw = (now: number) => {
       if (stopped) return;
       if (!isVisible) {
         raf = requestAnimationFrame(draw);
         return;
       }
-      const dt = (now - last) / 1000; // seconds
-      last = now;
       const { width, height } = container.getBoundingClientRect();
 
       ctx.clearRect(0, 0, el.width, el.height);
@@ -229,11 +215,8 @@ export const DottedGlowBackground = ({
           height * 0.5,
           Math.max(width, height) * 0.7,
         );
-        grad.addColorStop(0, "rgba(0,0,0,0)");
-        grad.addColorStop(
-          1,
-          `rgba(0,0,0,${Math.min(Math.max(backgroundOpacity, 0), 1)})`,
-        );
+        grad.addColorStop(0, 'rgba(0,0,0,0)');
+        grad.addColorStop(1, `rgba(0,0,0,${Math.min(Math.max(backgroundOpacity, 0), 1)})`);
         ctx.fillStyle = grad as unknown as CanvasGradient;
         ctx.fillRect(0, 0, width, height);
       }
@@ -256,7 +239,7 @@ export const DottedGlowBackground = ({
           ctx.shadowColor = resolvedGlowColor;
           ctx.shadowBlur = 6 * glow;
         } else {
-          ctx.shadowColor = "transparent";
+          ctx.shadowColor = 'transparent';
           ctx.shadowBlur = 0;
         }
 
@@ -283,13 +266,13 @@ export const DottedGlowBackground = ({
     );
     observer.observe(container);
 
-    window.addEventListener("resize", handleResize);
+    window.addEventListener('resize', handleResize);
     raf = requestAnimationFrame(draw);
 
     return () => {
       stopped = true;
       cancelAnimationFrame(raf);
-      window.removeEventListener("resize", handleResize);
+      window.removeEventListener('resize', handleResize);
       observer.disconnect();
       ro.disconnect();
     };
@@ -306,15 +289,8 @@ export const DottedGlowBackground = ({
   ]);
 
   return (
-    <div
-      ref={containerRef}
-      className={className}
-      style={{ position: "absolute", inset: 0 }}
-    >
-      <canvas
-        ref={canvasRef}
-        style={{ display: "block", width: "100%", height: "100%" }}
-      />
+    <div ref={containerRef} className={className} style={{ position: 'absolute', inset: 0 }}>
+      <canvas ref={canvasRef} style={{ display: 'block', width: '100%', height: '100%' }} />
     </div>
   );
 };

@@ -1,0 +1,92 @@
+// Renovate config — https://docs.renovatebot.com/configuration-options/
+// Runs via the Mend-hosted Renovate GitHub App.
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  extends: ['config:recommended'],
+  timezone: 'Europe/Berlin',
+
+  // Daily check before 6am. Vulnerability alerts (enabled by config:recommended)
+  // ignore this schedule and PR immediately — important for security patches.
+  schedule: ['before 6am'],
+
+  // Wait 3 days after a release before opening the PR. Filters out versions
+  // that get yanked or hot-patched within the first 24–48h. Overridden for
+  // vulnerability alerts below so security patches still ship immediately.
+  minimumReleaseAge: '3 days',
+
+  // Always advance the package.json range to match the new version
+  // (e.g. "^15.3.9" → "^15.5.18"). Without this, Renovate's "auto" strategy
+  // leaves the range alone when the new version is in-range, and only the
+  // lockfile moves — which is what caused the "package.json doesn't get
+  // updated" symptom on this repo.
+  rangeStrategy: 'bump',
+
+  // Broaden CVE coverage beyond GHSA to include the OSV database.
+  osvVulnerabilityAlerts: true,
+
+  // Security updates bypass schedule, stability window, and dashboard approval.
+  // These are Renovate's defaults for vulnerabilityAlerts; declared explicitly
+  // so the override is visible in this file.
+  vulnerabilityAlerts: {
+    minimumReleaseAge: '0 days',
+    schedule: [],
+    dependencyDashboardApproval: false,
+    labels: ['security'],
+  },
+
+  // Bound PR rate so the first-run catch-up doesn't overwhelm the review queue.
+  prConcurrentLimit: 5,
+  prHourlyLimit: 2,
+
+  // Explicit whitelist — only these managers may open PRs. If Renovate later
+  // gains support for a new ecosystem it will not silently start opening PRs
+  // here unless we add it to this list.
+  enabledManagers: ['npm', 'nvm', 'github-actions'],
+
+  packageRules: [
+    // npm minor + patch: grouped, auto-merged when CI is green.
+    {
+      matchManagers: ['npm'],
+      matchUpdateTypes: ['minor', 'patch'],
+      groupName: 'npm minor & patch',
+      automerge: true,
+    },
+    // npm major: separate PRs, gated behind Dependency Dashboard approval —
+    // tick the checkbox on the dashboard issue when you're ready to take it on.
+    {
+      matchManagers: ['npm'],
+      matchUpdateTypes: ['major'],
+      dependencyDashboardApproval: true,
+    },
+    // GitHub Actions: auto-merge.
+    {
+      matchManagers: ['github-actions'],
+      groupName: 'github actions',
+      automerge: true,
+    },
+    // Node version: keep .nvmrc + CI runner version aligned. Auto-merge —
+    // if quality + e2e pass on the new version, it's good enough.
+    {
+      matchPackageNames: ['node'],
+      groupName: 'node version',
+      automerge: true,
+    },
+    // engines.node: pinned to major-only ("24") because Vercel honors only
+    // the major version. The global rangeStrategy: 'bump' above would
+    // otherwise rewrite it to a specific patch ("24.16.0") and break Vercel
+    // installs whenever the runtime hadn't caught up. Disable the npm
+    // manager for node so engines stays put; the nvm manager keeps bumping
+    // .nvmrc so local + CI still track the exact patch.
+    {
+      matchManagers: ['npm'],
+      matchPackageNames: ['node'],
+      enabled: false,
+    },
+    // pnpm version: keep package.json packageManager in sync. Auto-merge.
+    {
+      matchPackageNames: ['pnpm'],
+      groupName: 'pnpm version',
+      automerge: true,
+    },
+  ],
+}

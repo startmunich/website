@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Avenir Next - All weights and styles from TTC v */ 
+/* Avenir Next - All weights and styles from TTC v */
 @font-face {
   font-family: 'Avenirnextltpro';
   src: url('/fonts/AvenirNext-Heavy-09.ttf') format('truetype');
@@ -71,10 +71,12 @@
   * {
     @apply border-border;
   }
+
   html {
     background-color: #00002c;
     overscroll-behavior: none;
   }
+
   body {
     @apply bg-background text-foreground;
     background-color: #00002c;
@@ -118,6 +120,7 @@
     0% {
       transform: translateX(0);
     }
+
     100% {
       transform: translateX(-50%);
     }
@@ -194,12 +197,15 @@
     0% {
       transform: translate(0px, 0px) scale(1);
     }
+
     33% {
       transform: translate(30px, -50px) scale(1.1);
     }
+
     66% {
       transform: translate(-20px, 20px) scale(0.9);
     }
+
     100% {
       transform: translate(0px, 0px) scale(1);
     }
@@ -221,6 +227,7 @@
     from {
       opacity: 0;
     }
+
     to {
       opacity: 1;
     }
@@ -231,6 +238,7 @@
       opacity: 0;
       transform: scale(0.95) translateY(10px);
     }
+
     to {
       opacity: 1;
       transform: scale(1) translateY(0);
@@ -242,9 +250,30 @@
       opacity: 0;
       transform: translateY(-100px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
+    }
+  }
+
+  @keyframes yearStampIn {
+    0% {
+      opacity: 0;
+      transform: rotate(-24deg) scale(1.22) translate(36px, -22px);
+      filter: blur(2px);
+    }
+
+    60% {
+      opacity: 1;
+      transform: rotate(-14deg) scale(0.96) translate(-4px, 2px);
+      filter: blur(0);
+    }
+
+    100% {
+      opacity: 1;
+      transform: rotate(-16deg) scale(1) translate(0, 0);
+      filter: blur(0);
     }
   }
 

@@ -1,24 +1,25 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react'
+import Image from 'next/image';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 // Event Card Component
 export interface EventCardProps {
   event: {
-    id: string
-    name: string
-    description: string
-    month: string
-    image: string
-    category: string
-  }
-  index: number
-  hoveredEvent: string | null
-  setHoveredEvent: (id: string | null) => void
-  isFlagship?: boolean
-  className?: string
-  onClick?: () => void
-  ctaLabel?: string
-  ctaHref?: string
-  ctaDisabledLabel?: string
+    id: string;
+    name: string;
+    description: string;
+    month: string;
+    image: string;
+    category: string;
+  };
+  index: number;
+  hoveredEvent: string | null;
+  setHoveredEvent: (id: string | null) => void;
+  isFlagship?: boolean;
+  className?: string;
+  onClick?: () => void;
+  ctaLabel?: string;
+  ctaHref?: string;
+  ctaDisabledLabel?: string;
 }
 
 export const EventCard = ({
@@ -31,35 +32,22 @@ export const EventCard = ({
   onClick,
   ctaLabel,
   ctaHref,
-  ctaDisabledLabel
+  ctaDisabledLabel,
 }: EventCardProps) => {
-  const isHovered = hoveredEvent === event.id
+  const isHovered = hoveredEvent === event.id;
 
-  return (
-    <div
-      data-event-id={event.id}
-      onMouseEnter={() => setHoveredEvent(event.id)}
-      onMouseLeave={() => setHoveredEvent(null)}
-      onClick={onClick}
-      className={`
-        flex-shrink-0
-        ${isFlagship ? 'w-[78vw] sm:w-[340px]' : 'w-[58vw] sm:w-[240px]'}
-        group relative
-        ${isFlagship ? 'bg-gradient-to-br from-[#d0006f]/10 via-white/5 to-[#d0006f]/5' : 'bg-white/5'}
-        rounded-[1.75rem] overflow-hidden transition-all duration-500
-        border-2 ${isHovered ? 'border-[#d0006f]' : 'border-transparent'}
-        ${onClick && isHovered ? 'scale-[1.02] shadow-2xl shadow-black/40' : 'shadow-xl shadow-black/20'}
-        ${onClick ? 'cursor-pointer' : ''}
-        ${className}
-      `}
-      style={{ animationDelay: `${index * 100}ms` }}
-    >
+  const wrapperClassName = `flex flex-col flex-shrink-0 ${isFlagship ? 'w-[78vw] sm:w-[340px]' : 'w-[58vw] sm:w-[240px]'} group relative ${isFlagship ? 'bg-gradient-to-br from-[#d0006f]/10 via-white/5 to-[#d0006f]/5' : 'bg-white/5'} overflow-hidden rounded-[1.75rem] border-2 transition-all duration-500 ${isHovered ? 'border-[#d0006f]' : 'border-transparent'} ${onClick && isHovered ? 'scale-[1.02] shadow-2xl shadow-black/40' : 'shadow-xl shadow-black/20'} ${onClick ? 'cursor-pointer' : ''} ${className} `;
+
+  const cardContent = (
+    <>
       {/* Full card background image */}
       <div className={`relative ${isFlagship ? 'h-[240px]' : 'h-[200px]'} w-full overflow-hidden`}>
-        <img
+        <Image
           src={event.image}
           alt={event.name}
-          className={`absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out ${onClick ? 'group-hover:scale-110' : ''}`}
+          fill
+          sizes={isFlagship ? '(max-width: 640px) 78vw, 340px' : '(max-width: 640px) 58vw, 240px'}
+          className={`object-cover transition-transform duration-700 ease-out ${onClick ? 'group-hover:scale-110' : ''}`}
         />
 
         {/* Top gradient for category badge */}
@@ -72,17 +60,15 @@ export const EventCard = ({
       </div>
 
       {/* Text content area */}
-      <div className="px-6 py-4 flex flex-col flex-1">
-        <span className="inline-block text-[#d0006f] text-xs font-bold uppercase tracking-widest mb-2">{event.category}</span>
-        <h3 className="text-lg font-black text-white mb-1 leading-tight">
-          {event.name}
-        </h3>
-        <p className="text-white/40 text-xs font-medium mb-2 whitespace-pre-line">{event.month}</p>
-        <p className="text-gray-400 text-sm leading-relaxed flex-1">
-          {event.description}
-        </p>
+      <div className="flex flex-1 flex-col px-6 py-4">
+        <span className="mb-2 inline-block text-xs font-bold uppercase tracking-widest text-[#d0006f]">
+          {event.category}
+        </span>
+        <h3 className="mb-1 text-lg font-black leading-tight text-white">{event.name}</h3>
+        <p className="mb-2 whitespace-pre-line text-xs font-medium text-white/40">{event.month}</p>
+        <p className="flex-1 text-sm leading-relaxed text-gray-400">{event.description}</p>
         {ctaLabel ? (
-          <div className="mt-4 pt-4 border-t border-white/10">
+          <div className="mt-4 border-t border-white/10 pt-4">
             {ctaHref ? (
               <a
                 href={ctaHref}
@@ -99,69 +85,100 @@ export const EventCard = ({
               </span>
             )}
           </div>
-        ) : onClick && (
-          <div className="mt-4 pt-3 border-t border-white/10 flex items-center gap-1.5 text-white/50 text-xs font-medium">
-            <span>Learn more</span>
-            <svg className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-          </div>
+        ) : (
+          onClick && (
+            <div className="mt-4 flex items-center gap-1.5 border-t border-white/10 pt-3 text-xs font-medium text-white/50">
+              <span>Learn more</span>
+              <svg
+                className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-1"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2.5}
+                  d="M13 7l5 5m0 0l-5 5m5-5H6"
+                />
+              </svg>
+            </div>
+          )
         )}
       </div>
+    </>
+  );
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        data-event-id={event.id}
+        onMouseEnter={() => setHoveredEvent(event.id)}
+        onMouseLeave={() => setHoveredEvent(null)}
+        onClick={onClick}
+        className={`${wrapperClassName} appearance-none p-0 text-left`}
+        style={{ animationDelay: `${index * 100}ms` }}
+      >
+        {cardContent}
+      </button>
+    );
+  }
+
+  return (
+    <div
+      data-event-id={event.id}
+      onMouseEnter={() => setHoveredEvent(event.id)}
+      onMouseLeave={() => setHoveredEvent(null)}
+      className={wrapperClassName}
+      style={{ animationDelay: `${index * 100}ms` }}
+    >
+      {cardContent}
     </div>
-  )
-}
+  );
+};
 
 // Special Event Card Component
 export interface SpecialEventCardProps {
   event: {
-    id: string
-    name: string
-    description: string
-    category: string
-    image: string
-  }
-  index?: number
-  className?: string
+    id: string;
+    name: string;
+    description: string;
+    category: string;
+    image: string;
+  };
+  index?: number;
+  className?: string;
 }
 
-export const SpecialEventCard = ({
-  event,
-  index = 0,
-  className = ''
-}: SpecialEventCardProps) => {
+export const SpecialEventCard = ({ event, index = 0, className = '' }: SpecialEventCardProps) => {
   return (
     <div
-      className={`
-        flex-shrink-0 w-[90%] sm:w-[400px]
-        group relative
-        rounded-[1.75rem] overflow-hidden
-        shadow-xl shadow-black/20 hover:shadow-2xl hover:shadow-black/40
-        transition-all duration-500 hover:scale-[1.02]
-        ${className}
-      `}
+      className={`group relative w-[90%] flex-shrink-0 overflow-hidden rounded-[1.75rem] shadow-xl shadow-black/20 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-black/40 sm:w-[400px] ${className} `}
       style={{ animationDelay: `${index * 100}ms` }}
     >
       {/* Full card image area */}
       <div className="relative h-72 w-full overflow-hidden">
-        <img
+        <Image
           src={event.image}
           alt={event.name}
-          className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+          fill
+          sizes="(max-width: 640px) 90vw, 400px"
+          className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
 
         {/* Category badge - top left */}
-        <div className="absolute top-5 left-5">
-          <span className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider bg-white/20 backdrop-blur-md text-white border border-white/20">
+        <div className="absolute left-5 top-5">
+          <span className="inline-flex items-center rounded-full border border-white/20 bg-white/20 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-md">
             {event.category}
           </span>
         </div>
 
         {/* Bottom text overlay */}
         <div className="absolute bottom-0 left-0 right-0 p-6">
-          <h3 className="text-xl font-black text-white mb-1 leading-tight drop-shadow-lg">
+          <h3 className="mb-1 text-xl font-black leading-tight text-white drop-shadow-lg">
             {event.name}
           </h3>
         </div>
@@ -169,142 +186,143 @@ export const SpecialEventCard = ({
 
       {/* Bottom info bar */}
       <div className="bg-[#0a0a2e] px-6 py-4">
-        <p className="text-sm text-gray-400 leading-relaxed line-clamp-2">
-          {event.description}
-        </p>
+        <p className="line-clamp-2 text-sm leading-relaxed text-gray-400">{event.description}</p>
       </div>
     </div>
-  )
-}
+  );
+};
 
 // Timeline Marker Component
 export interface TimelineMarkerProps {
-  eventId: string
-  left: string
-  color: string
-  label: string
-  position: 'top' | 'bottom'
-  size?: 'sm' | 'lg'
-  hoveredEvent: string | null
-  onHover: (eventId: string) => void
-  onLeave: () => void
+  eventId: string;
+  left: string;
+  color: string;
+  label: string;
+  position: 'top' | 'bottom';
+  size?: 'sm' | 'lg';
+  hoveredEvent: string | null;
+  onHover: (eventId: string) => void;
+  onLeave: () => void;
 }
 
-export const TimelineMarker = ({ 
-  eventId, 
-  left, 
-  color, 
-  label, 
-  position, 
-  size = 'sm', 
-  hoveredEvent, 
-  onHover, 
-  onLeave 
+export const TimelineMarker = ({
+  eventId,
+  left,
+  color,
+  label,
+  position,
+  size = 'sm',
+  hoveredEvent,
+  onHover,
+  onLeave,
 }: TimelineMarkerProps) => {
-  const isHovered = hoveredEvent === eventId
-  const markerSize = size === 'lg' ? 'w-6 h-6' : 'w-4 h-4'
-  const labelSize = size === 'lg' ? 'text-sm px-4 py-2' : 'text-xs px-3 py-1.5'
-  const positionClass = position === 'top' 
-    ? `${size === 'lg' ? '-top-12' : '-top-10'}` 
-    : `${size === 'lg' ? '-bottom-12' : '-bottom-10'}`
-  
+  const isHovered = hoveredEvent === eventId;
+  const positionClass =
+    position === 'top'
+      ? `${size === 'lg' ? '-top-12' : '-top-10'}`
+      : `${size === 'lg' ? '-bottom-12' : '-bottom-10'}`;
+
   return (
-    <div 
-      className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 cursor-pointer transition-all ${isHovered ? 'scale-150 z-10' : 'hover:scale-125'}`} 
-      style={{ left }} 
+    <div
+      className={`absolute top-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all ${isHovered ? 'z-10 scale-150' : 'hover:scale-125'}`}
+      style={{ left }}
       onMouseEnter={() => onHover(eventId)}
       onMouseLeave={onLeave}
     >
       <div className="relative">
-        <div 
-          className={`w-4 h-4 rounded-full transition-all ${isHovered ? 'ring-4' : ''}`} 
-          style={{ 
+        <div
+          className={`h-4 w-4 rounded-full transition-all ${isHovered ? 'ring-4' : ''}`}
+          style={{
             backgroundColor: color,
-            ...(isHovered && { boxShadow: `0 0 0 4px ${color}80` })
+            ...(isHovered && { boxShadow: `0 0 0 4px ${color}80` }),
           }}
         ></div>
         <div className={`absolute ${positionClass} left-1/2 -translate-x-1/2 whitespace-nowrap`}>
-          <div
-            className="text-xs px-3.5 py-1.5 rounded-full bg-[#0a0a2e] border border-white/10 shadow-lg shadow-black/20"
-          >
-            <p className="text-white font-bold">{label}</p>
+          <div className="rounded-full border border-white/10 bg-[#0a0a2e] px-3.5 py-1.5 text-xs shadow-lg shadow-black/20">
+            <p className="font-bold text-white">{label}</p>
           </div>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 // Scroll Indicator Component
 export interface ScrollIndicatorProps {
-  sliderRef: React.RefObject<HTMLDivElement | null>
-  scrollProgress?: number
+  sliderRef: React.RefObject<HTMLDivElement | null>;
+  scrollProgress?: number;
 }
 
 export const ScrollIndicator = ({ sliderRef }: ScrollIndicatorProps) => {
-  const trackRef = useRef<HTMLDivElement>(null)
-  const isDragging = useRef(false)
-  const [thumbState, setThumbState] = useState({ width: 30, left: 0 })
+  const trackRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const [thumbState, setThumbState] = useState({ width: 30, left: 0 });
 
   const updateThumb = useCallback(() => {
-    const slider = sliderRef.current
-    if (!slider) return
-    const { scrollLeft, scrollWidth, clientWidth } = slider
-    const maxScroll = scrollWidth - clientWidth
+    const slider = sliderRef.current;
+    if (!slider) return;
+    const { scrollLeft, scrollWidth, clientWidth } = slider;
+    const maxScroll = scrollWidth - clientWidth;
     if (maxScroll <= 0) {
-      setThumbState({ width: 100, left: 0 })
-      return
+      setThumbState({ width: 100, left: 0 });
+      return;
     }
-    const ratio = clientWidth / scrollWidth
-    const progress = scrollLeft / maxScroll
+    const ratio = clientWidth / scrollWidth;
+    const progress = scrollLeft / maxScroll;
     setThumbState({
       width: ratio * 100,
       left: progress * (1 - ratio) * 100,
-    })
-  }, [sliderRef])
+    });
+  }, [sliderRef]);
 
   useEffect(() => {
-    const slider = sliderRef.current
-    if (!slider) return
+    const slider = sliderRef.current;
+    if (!slider) return;
 
-    slider.addEventListener('scroll', updateThumb)
-    updateThumb()
+    slider.addEventListener('scroll', updateThumb);
+    updateThumb();
 
-    const observer = new ResizeObserver(updateThumb)
-    observer.observe(slider)
+    const observer = new ResizeObserver(updateThumb);
+    observer.observe(slider);
 
     return () => {
-      slider.removeEventListener('scroll', updateThumb)
-      observer.disconnect()
-    }
-  }, [sliderRef, updateThumb])
+      slider.removeEventListener('scroll', updateThumb);
+      observer.disconnect();
+    };
+  }, [sliderRef, updateThumb]);
 
   const scrollToRatio = (clientX: number) => {
-    const track = trackRef.current
-    const slider = sliderRef.current
-    if (!track || !slider) return
-    const rect = track.getBoundingClientRect()
-    const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width))
-    slider.scrollLeft = ratio * (slider.scrollWidth - slider.clientWidth)
-  }
+    const track = trackRef.current;
+    const slider = sliderRef.current;
+    if (!track || !slider) return;
+    const rect = track.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    slider.scrollLeft = ratio * (slider.scrollWidth - slider.clientWidth);
+  };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    isDragging.current = true
-    scrollToRatio(e.clientX)
-    const onMove = (ev: MouseEvent) => { if (isDragging.current) scrollToRatio(ev.clientX) }
-    const onUp = () => { isDragging.current = false; window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp) }
-    window.addEventListener('mousemove', onMove)
-    window.addEventListener('mouseup', onUp)
-  }
+    isDragging.current = true;
+    scrollToRatio(e.clientX);
+    const onMove = (ev: MouseEvent) => {
+      if (isDragging.current) scrollToRatio(ev.clientX);
+    };
+    const onUp = () => {
+      isDragging.current = false;
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
 
   return (
     <div
       ref={trackRef}
-      className="relative h-1.5 bg-white/[0.06] rounded-full mt-8 overflow-hidden cursor-pointer"
+      className="relative mt-8 h-1.5 cursor-pointer overflow-hidden rounded-full bg-white/[0.06]"
       onMouseDown={handleMouseDown}
     >
       <div
-        className="absolute h-full rounded-full pointer-events-none"
+        className="pointer-events-none absolute h-full rounded-full"
         style={{
           background: 'linear-gradient(to right, #d0006f, rgb(236, 72, 153), #d0006f)',
           opacity: 0.5,
@@ -313,5 +331,5 @@ export const ScrollIndicator = ({ sliderRef }: ScrollIndicatorProps) => {
         }}
       />
     </div>
-  )
-}
+  );
+};

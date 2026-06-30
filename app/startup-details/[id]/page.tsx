@@ -1,56 +1,49 @@
-import type { Metadata } from 'next'
-import StartupDetailsContent from './StartupDetailsContent'
-import { OG_IMAGES } from '@/lib/metadata'
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 
-const NOCODB_API_TOKEN = process.env.NOCODB_API_TOKEN
-const NOCODB_BASE_URL = process.env.NOCODB_BASE_URL || 'https://ndb.startmunich.de'
-const NOCODB_STARTUPS_TABLE_ID = process.env.NOCODB_STARTUPS_TABLE_ID
+import { OG_IMAGES } from '@/lib/metadata';
+import { getStartupById } from '@/lib/startups';
 
-export async function generateMetadata(
-  { params }: { params: Promise<{ id: string }> }
-): Promise<Metadata> {
-  const { id } = await params
+import StartupDetailsContent from './StartupDetailsContent';
 
-  try {
-    if (NOCODB_API_TOKEN && NOCODB_STARTUPS_TABLE_ID) {
-      const res = await fetch(
-        `${NOCODB_BASE_URL}/api/v2/tables/${NOCODB_STARTUPS_TABLE_ID}/records?where=(Id,eq,${id})&limit=1`,
-        {
-          headers: { 'xc-token': NOCODB_API_TOKEN },
-          next: { revalidate: 3600 },
-        }
-      )
-      if (res.ok) {
-        const data = await res.json()
-        const startup = data?.list?.[0]
-        if (startup) {
-          const name = startup['Startup Name'] || 'Startup'
-          const description = startup['Description'] || `Learn about ${name}, a startup founded by START Munich alumni.`
-          return {
-            title: name,
-            description,
-            alternates: { canonical: `https://www.startmunich.de/startup-details/${id}` },
-            openGraph: {
-              url: `https://www.startmunich.de/startup-details/${id}`,
-              title: `${name} | START Munich`,
-              description,
-              images: OG_IMAGES,
-            },
-          }
-        }
-      }
-    }
-  } catch {
-    // fall through to default
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+
+  const company = await getStartupById(id).catch(() => null);
+
+  if (company) {
+    const description =
+      company.description ||
+      `Learn about ${company.name}, a startup founded by START Munich alumni.`;
+    return {
+      title: company.name,
+      description,
+      alternates: { canonical: `https://www.startmunich.de/startup-details/${id}` },
+      openGraph: {
+        url: `https://www.startmunich.de/startup-details/${id}`,
+        title: `${company.name} | START Munich`,
+        description,
+        images: OG_IMAGES,
+      },
+    };
   }
 
   return {
     title: 'Startup',
     description: 'A startup founded by START Munich alumni.',
     alternates: { canonical: `https://www.startmunich.de/startup-details/${id}` },
-  }
+  };
 }
 
-export default function StartupDetailsPage({ params }: { params: Promise<{ id: string }> }) {
-  return <StartupDetailsContent params={params} />
+export default async function StartupDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const company = await getStartupById(id);
+  if (!company) {
+    notFound();
+  }
+  return <StartupDetailsContent company={company} />;
 }

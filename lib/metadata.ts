@@ -6,4 +6,4 @@ export const OG_IMAGES = [
     height: 1120,
     alt: 'START Munich Logo',
   },
-]
+];

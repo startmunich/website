@@ -3,22 +3,26 @@ const nextConfig = {
   async rewrites() {
     return [
       {
-        source: "/ingest/static/:path*",
-        destination: "https://eu-assets.i.posthog.com/static/:path*",
+        source: '/ingest/static/:path*',
+        destination: 'https://eu-assets.i.posthog.com/static/:path*',
       },
       {
         source: '/ingest/array/:path*',
         destination: 'https://eu-assets.i.posthog.com/array/:path*',
       },
       {
-        source: "/ingest/:path*",
-        destination: "https://eu.i.posthog.com/:path*",
-      },  
+        source: '/ingest/:path*',
+        destination: 'https://eu.i.posthog.com/:path*',
+      },
     ];
   },
   skipTrailingSlashRedirect: true,
   images: {
-    formats: ['image/avif', 'image/webp'],
+    // Single format keeps the transformation count low. Each format is billed
+    // as a separate transformation across the browser mix, and AVIF also costs
+    // more compute. WebP is universally supported and ~half the transformations
+    // of avif+webp. See Vercel: managing-image-optimization-costs.
+    formats: ['image/webp'],
     minimumCacheTTL: 31536000,
     remotePatterns: [
       {
@@ -48,6 +52,6 @@ const nextConfig = {
       },
     ],
   },
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

@@ -1,0 +1,74 @@
+name: Code Quality Checks
+
+# Source-level checks that don't need a built/deployed app. These run on
+# every PR to main and on pushes to main. The end-to-end test job that
+# needs a real running app lives in e2e.yml and is triggered separately
+# by Vercel's deployment_status event.
+
+on:
+  pull_request:
+    branches:
+      - main
+  # Run on pushes to main too so the pnpm cache gets populated under
+  # main's branch scope. Without this, every new PR would start cold —
+  # GitHub Actions caches are scoped per branch, and PRs only fall back
+  # to their base branch (main) and the default branch (main). If
+  # nothing ever runs on main, those fallbacks miss every time.
+  push:
+    branches:
+      - main
+
+concurrency:
+  # head_ref is set for pull_request events; falls back to ref for push
+  # events so a push to main doesn't collide with a PR run for the same
+  # branch.
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup - checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      # Skip-on-push rationale: PRs must be up-to-date with main before
+      # merging, so re-running these checks against main itself doesn't
+      # catch anything PR CI didn't already block. We keep only the steps
+      # that populate the pnpm cache under main's branch scope so the
+      # next PR's CI gets a warm restore.
+      #
+      # Order by speed: fastest checks first to fail-fast.
+      - name: Check - commit messages
+        if: github.event_name == 'pull_request'
+        uses: wagoid/commitlint-github-action@v6
+        with:
+          configFile: commitlint.config.mjs
+      - name: Setup - pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          run_install: false
+      - name: Setup - Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - name: Check - package manager hygiene
+        if: github.event_name == 'pull_request'
+        run: pnpm run package-manager:check
+      - name: Setup - dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Check - Prettier formatting
+        if: github.event_name == 'pull_request'
+        run: pnpm run format:check
+      - name: Check - TypeScript types
+        if: github.event_name == 'pull_request'
+        run: pnpm run typecheck
+      - name: Check - ESLint
+        if: github.event_name == 'pull_request'
+        run: pnpm run lint
