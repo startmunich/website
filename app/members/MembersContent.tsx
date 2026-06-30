@@ -1,14 +1,21 @@
-"use client"
+'use client';
 
-import { useState, useEffect, useRef, useCallback } from "react"
-import Image from "next/image"
-import Script from "next/script"
-import Hero from "@/components/Hero"
-import HeroCard from "@/components/HeroCard"
-import { useAnimatedNumber } from "@/lib/useAnimatedNumber"
-import { useInView } from "@/lib/hooks"
+import Image from 'next/image';
+import Script from 'next/script';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import Hero from '@/components/Hero';
+import HeroCard from '@/components/HeroCard';
+import { useInView } from '@/lib/hooks';
+import { useAnimatedNumber } from '@/lib/useAnimatedNumber';
 
 export const dynamic = 'force-dynamic';
+
+// Helper function to check if an image URL is from NocoDB
+const isNocoDbImage = (url?: string): boolean => {
+  if (!url) return false;
+  return url.includes('ndb.startmunich.de') || url.includes('your-objectstorage.com');
+};
 
 interface Member {
   id: number;
@@ -79,13 +86,12 @@ async function fetchMembers(): Promise<Member[]> {
 }
 
 export default function MembersPage() {
-  const [members, setMembers] = useState<Member[]>([])
-  const [expandedBatch, setExpandedBatch] = useState<string | null>(null)
-  const [expandedBoard, setExpandedBoard] = useState<string | null>(null)
-  const [batchMembers, setBatchMembers] = useState<Member[]>([])
-  const [loadingBatch, setLoadingBatch] = useState(false)
-  const [boardLoading, setBoardLoading] = useState(false)
-  const batchContentRef = useRef<HTMLDivElement>(null)
+  const [members, setMembers] = useState<Member[]>([]);
+  const [expandedBatch, setExpandedBatch] = useState<string | null>(null);
+  const [expandedBoard, setExpandedBoard] = useState<string | null>(null);
+  const [batchMembers, setBatchMembers] = useState<Member[]>([]);
+  const [loadingBatch, setLoadingBatch] = useState(false);
+  const batchContentRef = useRef<HTMLDivElement>(null);
   const [boards, setBoards] = useState<Board[]>([
     {
       id: '25-26',
@@ -143,11 +149,15 @@ export default function MembersPage() {
         { name: 'BOARD MEMBER', role: 'MD Events', imageUrl: '/ourMembers/hero-opt.png' },
         { name: 'BOARD MEMBER', role: 'MD Marketing', imageUrl: '/ourMembers/hero-opt.png' },
         { name: 'BOARD MEMBER', role: 'MD People', imageUrl: '/ourMembers/hero-opt.png' },
-        { name: 'BOARD MEMBER', role: 'MD Finance & Operations', imageUrl: '/ourMembers/hero-opt.png' },
+        {
+          name: 'BOARD MEMBER',
+          role: 'MD Finance & Operations',
+          imageUrl: '/ourMembers/hero-opt.png',
+        },
         { name: 'BOARD MEMBER', role: 'MD Partnerships', imageUrl: '/ourMembers/hero-opt.png' },
       ],
     },
-  ])
+  ]);
 
   const analyticsView = useInView(0.1);
   const boardsView = useInView(0.1);
@@ -184,43 +194,43 @@ export default function MembersPage() {
 
   useEffect(() => {
     const loadMembers = async () => {
-      const data = await fetchMembers()
-      setMembers(data)
-    }
-    loadMembers()
-  }, [])
+      const data = await fetchMembers();
+      setMembers(data);
+    };
+    loadMembers();
+  }, []);
 
   useEffect(() => {
     if (expandedBatch) {
       const loadBatchMembers = async () => {
-        setLoadingBatch(true)
+        setLoadingBatch(true);
         try {
-          const response = await fetch(`/api/members/batch/${encodeURIComponent(expandedBatch)}`)
+          const response = await fetch(`/api/members/batch/${encodeURIComponent(expandedBatch)}`);
           if (response.ok) {
-            const data = await response.json()
+            const data = await response.json();
             if (Array.isArray(data) && data.length > 0) {
               const transformedData = data.map((member: Member) => ({
                 ...member,
-                profileImage: isPlaceholderImage(member.imageUrl) ? undefined : member.imageUrl
-              }))
-              setBatchMembers(transformedData)
+                profileImage: isPlaceholderImage(member.imageUrl) ? undefined : member.imageUrl,
+              }));
+              setBatchMembers(transformedData);
             } else {
-              setBatchMembers(members.filter(m => m.batch === expandedBatch))
+              setBatchMembers(members.filter((m) => m.batch === expandedBatch));
             }
           } else {
-            setBatchMembers(members.filter(m => m.batch === expandedBatch))
+            setBatchMembers(members.filter((m) => m.batch === expandedBatch));
           }
         } catch (error) {
-          console.error('Error fetching batch members:', error)
-          setBatchMembers(members.filter(m => m.batch === expandedBatch))
+          console.error('Error fetching batch members:', error);
+          setBatchMembers(members.filter((m) => m.batch === expandedBatch));
         }
-        setLoadingBatch(false)
-      }
-      loadBatchMembers()
+        setLoadingBatch(false);
+      };
+      loadBatchMembers();
     } else {
-      setBatchMembers([])
+      setBatchMembers([]);
     }
-  }, [expandedBatch, members])
+  }, [expandedBatch, members]);
 
   const normalize = (text: string) =>
     text
@@ -261,9 +271,9 @@ export default function MembersPage() {
 
   const termStartYearFromBoard = (board: Board) => {
     // Special mapping: Board IDs to API years
-    if (board.id === '25-26') return '2026'
-    if (board.id === '24-25') return '2025'
-    if (board.id === '23-24') return '2023'
+    if (board.id === '25-26') return '2026';
+    if (board.id === '24-25') return '2025';
+    if (board.id === '23-24') return '2023';
 
     if (board.year && board.year.includes('-')) {
       const [from] = board.year.split('-').map((v) => v.trim());
@@ -308,7 +318,6 @@ export default function MembersPage() {
     signal?: AbortSignal,
     isCancelled?: () => boolean,
   ) => {
-    setBoardLoading(true);
     try {
       const board = boards.find((b) => b.id === boardId);
       if (!board) return;
@@ -392,8 +401,6 @@ export default function MembersPage() {
     } catch (error) {
       if ((error as Error).name === 'AbortError') return;
       console.error('Error fetching board data:', error);
-    } finally {
-      if (!isCancelled?.()) setBoardLoading(false);
     }
   };
 
@@ -413,27 +420,38 @@ export default function MembersPage() {
 
   useEffect(() => {
     void (async () => {
-      for (const board of boards) await loadBoardMembers(board.id)
-    })()
-  }, [])
+      for (const board of boards) await loadBoardMembers(board.id);
+    })();
+  }, []);
 
-  const handleOutsideClick = useCallback((e: MouseEvent) => {
-    if (expandedBatch && batchContentRef.current && !batchContentRef.current.contains(e.target as Node)) {
-      setExpandedBatch(null)
-    }
-  }, [expandedBatch])
+  const handleOutsideClick = useCallback(
+    (e: MouseEvent) => {
+      if (
+        expandedBatch &&
+        batchContentRef.current &&
+        !batchContentRef.current.contains(e.target as Node)
+      ) {
+        setExpandedBatch(null);
+      }
+    },
+    [expandedBatch],
+  );
 
   useEffect(() => {
-    document.addEventListener('mousedown', handleOutsideClick)
-    return () => document.removeEventListener('mousedown', handleOutsideClick)
-  }, [handleOutsideClick])
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, [handleOutsideClick]);
 
   const defaultBatches = [
     'Summer 2026',
-    'Winter 2025', 'Summer 2025',
-    'Winter 2024', 'Summer 2024',
-    'Winter 2023', 'Summer 2023',
-    'Winter 2022', 'Summer 2022',
+    'Winter 2025',
+    'Summer 2025',
+    'Winter 2024',
+    'Summer 2024',
+    'Winter 2023',
+    'Summer 2023',
+    'Winter 2022',
+    'Summer 2022',
     'Winter 2021',
   ];
   const allBatches = Array.from(new Set([...members.map((m) => m.batch), ...defaultBatches]))
@@ -459,9 +477,17 @@ export default function MembersPage() {
   ];
 
   const batchImageMap: Record<string, string> = {
-    ws21: 'WS21-opt.jpg', ws22: 'WS22-opt.jpg', ws23: 'WS23-opt.jpg', ws24: 'WS24-opt.jpg', ws25: 'WS25-opt.jpg',
-    ss22: 'SS22-opt.jpg', ss23: 'SS23-opt.jpg', ss24: 'SS24-opt.jpg', ss25: 'SS25-opt.jpg', ss26: 'SS26-opt.jpg',
-  }
+    ws21: 'WS21-opt.jpg',
+    ws22: 'WS22-opt.jpg',
+    ws23: 'WS23-opt.jpg',
+    ws24: 'WS24-opt.jpg',
+    ws25: 'WS25-opt.jpg',
+    ss22: 'SS22-opt.jpg',
+    ss23: 'SS23-opt.jpg',
+    ss24: 'SS24-opt.jpg',
+    ss25: 'SS25-opt.jpg',
+    ss26: 'SS26-opt.jpg',
+  };
 
   function getBatchImageKey(batchName: string): string | null {
     const normalized = batchName.toLowerCase().trim();
@@ -915,93 +941,124 @@ export default function MembersPage() {
               <div ref={batchContentRef}>
                 <button
                   onClick={() => setExpandedBatch(null)}
-                  className="mb-8 group flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+                  className="group mb-8 flex items-center gap-2 text-gray-400 transition-colors hover:text-white"
                 >
-                  <svg className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+                  <svg
+                    className="h-4 w-4 transition-transform group-hover:-translate-x-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2}
+                  >
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                   </svg>
                   <span className="text-sm font-medium">Back to all batches</span>
                 </button>
 
-                {sortedBatches.filter(b => b.name === expandedBatch).map(batch => (
-                  <div key={batch.name} className="space-y-8">
-                    <h3 className="text-3xl sm:text-4xl font-black text-white">{batch.name}</h3>
+                {sortedBatches
+                  .filter((b) => b.name === expandedBatch)
+                  .map((batch) => (
+                    <div key={batch.name} className="space-y-8">
+                      <h3 className="text-3xl font-black text-white sm:text-4xl">{batch.name}</h3>
 
-                    <div
-                      onClick={() => setExpandedBatch(null)}
-                      className="w-full relative rounded-3xl overflow-hidden border border-white/10 cursor-pointer hover:border-brand-pink/30 transition-all duration-300"
-                    >
-                      <div className="relative w-full h-[70vh] overflow-hidden bg-white/5">
-                        <Image src={batch.groupImageUrl} alt={batch.name} fill sizes="100vw" className="object-cover" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-brand-dark-blue/40 via-transparent to-transparent" />
+                      <div
+                        onClick={() => setExpandedBatch(null)}
+                        className="relative w-full cursor-pointer overflow-hidden rounded-3xl border border-white/10 transition-all duration-300 hover:border-brand-pink/30"
+                      >
+                        <div className="relative h-[70vh] w-full overflow-hidden bg-white/5">
+                          <Image
+                            src={batch.groupImageUrl}
+                            alt={batch.name}
+                            fill
+                            sizes="100vw"
+                            className="object-cover"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-brand-dark-blue/40 via-transparent to-transparent" />
+                        </div>
+                      </div>
+
+                      <div className="mt-6">
+                        {loadingBatch ? (
+                          <div className="flex items-center justify-center py-16">
+                            <div className="h-10 w-10 animate-spin rounded-full border-2 border-brand-pink/30 border-t-brand-pink" />
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+                            {[...batchMembers]
+                              .sort((a, b) => {
+                                const aHasImage = a.profileImage ? 0 : 1;
+                                const bHasImage = b.profileImage ? 0 : 1;
+                                return aHasImage - bHasImage;
+                              })
+                              .map((member) => (
+                                <a
+                                  key={member.id}
+                                  href={member.linkedinUrl || '#'}
+                                  target={member.linkedinUrl ? '_blank' : undefined}
+                                  rel={member.linkedinUrl ? 'noopener noreferrer' : undefined}
+                                  className={`group relative aspect-square overflow-hidden rounded-2xl border border-white/10 bg-white/5 transition-all duration-300 hover:border-brand-pink/30 hover:bg-white/[0.07] ${member.linkedinUrl ? 'cursor-pointer' : 'cursor-default'}`}
+                                >
+                                  <div className="relative h-full w-full">
+                                    {member.profileImage ? (
+                                      <Image
+                                        src={member.profileImage}
+                                        alt={member.name}
+                                        fill
+                                        sizes="(max-width: 640px) 33vw, 10vw"
+                                        className="object-cover"
+                                        referrerPolicy="no-referrer"
+                                      />
+                                    ) : (
+                                      <div className="flex h-full w-full items-center justify-center bg-white/5">
+                                        <span className="text-2xl font-black tracking-wider text-white/50">
+                                          {getInitials(member.name)}
+                                        </span>
+                                      </div>
+                                    )}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-brand-dark-blue/60 via-transparent to-transparent" />
+                                    <div className="absolute bottom-0 left-0 right-0 p-3 text-center">
+                                      <p className="text-sm font-black leading-tight text-white">
+                                        {member.name}
+                                      </p>
+                                      <p className="mt-0.5 text-xs text-brand-pink">
+                                        {member.study || member.role}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </a>
+                              ))}
+                          </div>
+                        )}
                       </div>
                     </div>
-
-                    <div className="mt-6">
-                      {loadingBatch ? (
-                        <div className="flex justify-center items-center py-16">
-                          <div className="w-10 h-10 border-2 border-brand-pink/30 border-t-brand-pink rounded-full animate-spin" />
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                          {[...batchMembers].sort((a, b) => {
-                            const aHasImage = a.profileImage ? 0 : 1
-                            const bHasImage = b.profileImage ? 0 : 1
-                            return aHasImage - bHasImage
-                          }).map(member => (
-                            <a
-                              key={member.id}
-                              href={member.linkedinUrl || '#'}
-                              target={member.linkedinUrl ? '_blank' : undefined}
-                              rel={member.linkedinUrl ? 'noopener noreferrer' : undefined}
-                              className={`group relative overflow-hidden rounded-2xl bg-white/5 border border-white/10 hover:border-brand-pink/30 hover:bg-white/[0.07] transition-all duration-300 aspect-square ${member.linkedinUrl ? 'cursor-pointer' : 'cursor-default'}`}
-                            >
-                              <div className="relative w-full h-full">
-                                {member.profileImage ? (
-                                  <Image src={member.profileImage} alt={member.name} fill sizes="(max-width: 640px) 33vw, 10vw" className="object-cover" referrerPolicy="no-referrer" />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center bg-white/5">
-                                    <span className="text-white/50 text-2xl font-black tracking-wider">
-                                      {getInitials(member.name)}
-                                    </span>
-                                  </div>
-                                )}
-                                <div className="absolute inset-0 bg-gradient-to-t from-brand-dark-blue/60 via-transparent to-transparent" />
-                                <div className="absolute bottom-0 left-0 right-0 p-3 text-center">
-                                  <p className="font-black text-white text-sm leading-tight">{member.name}</p>
-                                  <p className="text-brand-pink text-xs mt-0.5">{member.study || member.role}</p>
-                                </div>
-                              </div>
-                            </a>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
                 {sortedBatches.map((batch, i) => (
                   <div
                     key={batch.name}
-                    className={`transition-all duration-700 ${batchesView.visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+                    className={`transition-all duration-700 ${batchesView.visible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}
                     style={{ transitionDelay: `${150 + i * 80}ms` }}
                   >
                     <button
                       onClick={() => setExpandedBatch(batch.name)}
-                      className="w-full group relative rounded-3xl overflow-hidden border border-white/10 hover:border-brand-pink/30 transition-all duration-300"
+                      className="group relative w-full overflow-hidden rounded-3xl border border-white/10 transition-all duration-300 hover:border-brand-pink/30"
                     >
-                      <div className="relative h-72 sm:h-80 overflow-hidden bg-white/5">
+                      <div className="relative h-72 overflow-hidden bg-white/5 sm:h-80">
                         <img
                           src={batch.groupImageUrl}
                           alt={batch.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-brand-dark-blue/70 via-transparent to-transparent" />
                         <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between">
-                          <h3 className="text-xl sm:text-2xl font-black text-white">{batch.name}</h3>
-                          <span className="text-white/50 text-xs font-bold uppercase tracking-widest">Explore →</span>
+                          <h3 className="text-xl font-black text-white sm:text-2xl">
+                            {batch.name}
+                          </h3>
+                          <span className="text-xs font-bold uppercase tracking-widest text-white/50">
+                            Explore →
+                          </span>
                         </div>
                       </div>
                     </button>

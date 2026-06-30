@@ -127,7 +127,7 @@ export default function PhotoGallery() {
           const Wrapper = photo.href ? 'a' : 'div';
           const wrapperProps = photo.href ? { href: photo.href } : {};
           return (
-            <div
+            <Wrapper
               key={photo.id}
               {...wrapperProps}
               className={cn(

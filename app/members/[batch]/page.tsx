@@ -1,18 +1,18 @@
-import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
-import BatchDetail from './BatchDetail'
+import type { Metadata } from 'next';
 
-export const dynamic = 'force-dynamic'
+import BatchDetail from './BatchDetail';
+
+export const dynamic = 'force-dynamic';
 
 interface PageProps {
   params: Promise<{
-    batch: string
-  }>
+    batch: string;
+  }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { batch } = await params
-  const batchName = decodeURIComponent(batch).replace(/_/g, ' ')
+  const { batch } = await params;
+  const batchName = decodeURIComponent(batch).replace(/_/g, ' ');
 
   return {
     title: `${batchName} | Members`,
@@ -23,12 +23,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: `${batchName} | START Munich`,
       description: `Meet the ${batchName} batch members of START Munich.`,
     },
-  }
+  };
 }
 
 export default async function BatchPage({ params }: PageProps) {
-  const { batch } = await params
-  const batchName = decodeURIComponent(batch).replace(/_/g, ' ')
+  const { batch } = await params;
+  const batchName = decodeURIComponent(batch).replace(/_/g, ' ');
 
-  return <BatchDetail batchName={batchName} />
+  return <BatchDetail batchName={batchName} />;
 }
