@@ -642,7 +642,7 @@ export default function HomeClient({
                     </span>
                   </Link>
                   <Link
-                    href="https://www.instagram.com/start.munich/"
+                    href="https://www.instagram.com/startmunich/"
                     target="_blank"
                     rel="noopener"
                     className="group flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 transition-all duration-300 hover:border-brand-pink/50 hover:bg-brand-pink/10"
@@ -750,7 +750,7 @@ export default function HomeClient({
                   </span>
                 </Link>
                 <Link
-                  href="https://www.instagram.com/start.munich/"
+                  href="https://www.instagram.com/startmunich/"
                   target="_blank"
                   rel="noopener"
                   className="group flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-5 py-2.5 transition-all duration-300 hover:border-brand-pink/50 hover:bg-brand-pink/10"

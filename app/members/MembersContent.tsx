@@ -7,10 +7,15 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Hero from '@/components/Hero';
 import HeroCard from '@/components/HeroCard';
 import { useInView } from '@/lib/hooks';
-import { isNocoDbImage } from '@/lib/images';
 import { useAnimatedNumber } from '@/lib/useAnimatedNumber';
 
 export const dynamic = 'force-dynamic';
+
+// Helper function to check if an image URL is from NocoDB
+const isNocoDbImage = (url?: string): boolean => {
+  if (!url) return false;
+  return url.includes('ndb.startmunich.de') || url.includes('your-objectstorage.com');
+};
 
 interface Member {
   id: number;
@@ -86,7 +91,6 @@ export default function MembersPage() {
   const [expandedBoard, setExpandedBoard] = useState<string | null>(null);
   const [batchMembers, setBatchMembers] = useState<Member[]>([]);
   const [loadingBatch, setLoadingBatch] = useState(false);
-  const [, setBoardLoading] = useState(false);
   const batchContentRef = useRef<HTMLDivElement>(null);
   const [boards, setBoards] = useState<Board[]>([
     {
@@ -119,6 +123,27 @@ export default function MembersPage() {
       executiveBoard: [
         { name: 'BOARD MEMBER', role: 'President', imageUrl: '/ourMembers/hero-opt.png' },
         { name: 'BOARD MEMBER', role: 'Vice President', imageUrl: '/ourMembers/hero-opt.png' },
+      ],
+      departmentBoard: [
+        { name: 'BOARD MEMBER', role: 'MD Events', imageUrl: '/ourMembers/hero-opt.png' },
+        { name: 'BOARD MEMBER', role: 'MD Marketing', imageUrl: '/ourMembers/hero-opt.png' },
+        { name: 'BOARD MEMBER', role: 'MD People', imageUrl: '/ourMembers/hero-opt.png' },
+        {
+          name: 'BOARD MEMBER',
+          role: 'MD Finance & Operations',
+          imageUrl: '/ourMembers/hero-opt.png',
+        },
+        { name: 'BOARD MEMBER', role: 'MD Partnerships', imageUrl: '/ourMembers/hero-opt.png' },
+      ],
+    },
+    {
+      id: '23-24',
+      name: 'Board 23-24',
+      year: '2023-2024',
+      imageUrl: '/ourMembers/hero-opt.png',
+      executiveBoard: [
+        { name: 'BOARD MEMBER', role: 'President', imageUrl: '/ourMembers/hero-opt.png' },
+        { name: 'BOARD MEMBER', role: 'Vice-President', imageUrl: '/ourMembers/hero-opt.png' },
       ],
       departmentBoard: [
         { name: 'BOARD MEMBER', role: 'MD Events', imageUrl: '/ourMembers/hero-opt.png' },
@@ -176,50 +201,35 @@ export default function MembersPage() {
   }, []);
 
   useEffect(() => {
-    if (!expandedBatch) {
-      setBatchMembers([]);
-      return;
-    }
-
-    const controller = new AbortController();
-    let cancelled = false;
-
-    const loadBatchMembers = async () => {
-      setLoadingBatch(true);
-      try {
-        const response = await fetch(`/api/members/batch/${encodeURIComponent(expandedBatch)}`, {
-          signal: controller.signal,
-        });
-        if (cancelled) return;
-        if (response.ok) {
-          const data = await response.json();
-          if (cancelled) return;
-          if (Array.isArray(data) && data.length > 0) {
-            const transformedData = data.map((member: Member) => ({
-              ...member,
-              profileImage: isPlaceholderImage(member.imageUrl) ? undefined : member.imageUrl,
-            }));
-            setBatchMembers(transformedData);
+    if (expandedBatch) {
+      const loadBatchMembers = async () => {
+        setLoadingBatch(true);
+        try {
+          const response = await fetch(`/api/members/batch/${encodeURIComponent(expandedBatch)}`);
+          if (response.ok) {
+            const data = await response.json();
+            if (Array.isArray(data) && data.length > 0) {
+              const transformedData = data.map((member: Member) => ({
+                ...member,
+                profileImage: isPlaceholderImage(member.imageUrl) ? undefined : member.imageUrl,
+              }));
+              setBatchMembers(transformedData);
+            } else {
+              setBatchMembers(members.filter((m) => m.batch === expandedBatch));
+            }
           } else {
             setBatchMembers(members.filter((m) => m.batch === expandedBatch));
           }
-        } else {
+        } catch (error) {
+          console.error('Error fetching batch members:', error);
           setBatchMembers(members.filter((m) => m.batch === expandedBatch));
         }
-      } catch (error) {
-        if ((error as Error).name === 'AbortError') return;
-        console.error('Error fetching batch members:', error);
-        setBatchMembers(members.filter((m) => m.batch === expandedBatch));
-      }
-      if (!cancelled) setLoadingBatch(false);
-    };
-
-    loadBatchMembers();
-
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
+        setLoadingBatch(false);
+      };
+      loadBatchMembers();
+    } else {
+      setBatchMembers([]);
+    }
   }, [expandedBatch, members]);
 
   const normalize = (text: string) =>
@@ -260,6 +270,11 @@ export default function MembersPage() {
     '/ourMembers/hero-opt.png';
 
   const termStartYearFromBoard = (board: Board) => {
+    // Special mapping: Board IDs to API years
+    if (board.id === '25-26') return '2026';
+    if (board.id === '24-25') return '2025';
+    if (board.id === '23-24') return '2023';
+
     if (board.year && board.year.includes('-')) {
       const [from] = board.year.split('-').map((v) => v.trim());
       if (/^\d{4}$/.test(from)) return from;
@@ -303,7 +318,6 @@ export default function MembersPage() {
     signal?: AbortSignal,
     isCancelled?: () => boolean,
   ) => {
-    setBoardLoading(true);
     try {
       const board = boards.find((b) => b.id === boardId);
       if (!board) return;
@@ -387,8 +401,6 @@ export default function MembersPage() {
     } catch (error) {
       if ((error as Error).name === 'AbortError') return;
       console.error('Error fetching board data:', error);
-    } finally {
-      if (!isCancelled?.()) setBoardLoading(false);
     }
   };
 
@@ -410,9 +422,6 @@ export default function MembersPage() {
     void (async () => {
       for (const board of boards) await loadBoardMembers(board.id);
     })();
-    // Mount-only prefetch of all boards; `boards` is initialized once and only
-    // mutated by loadBoardMembers itself, so deps would loop.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleOutsideClick = useCallback(
@@ -434,6 +443,7 @@ export default function MembersPage() {
   }, [handleOutsideClick]);
 
   const defaultBatches = [
+    'Summer 2026',
     'Winter 2025',
     'Summer 2025',
     'Winter 2024',
@@ -476,6 +486,7 @@ export default function MembersPage() {
     ss23: 'SS23-opt.jpg',
     ss24: 'SS24-opt.jpg',
     ss25: 'SS25-opt.jpg',
+    ss26: 'SS26-opt.jpg',
   };
 
   function getBatchImageKey(batchName: string): string | null {
@@ -996,7 +1007,6 @@ export default function MembersPage() {
                                         sizes="(max-width: 640px) 33vw, 10vw"
                                         className="object-cover"
                                         referrerPolicy="no-referrer"
-                                        unoptimized={isNocoDbImage(member.profileImage)}
                                       />
                                     ) : (
                                       <div className="flex h-full w-full items-center justify-center bg-white/5">
@@ -1036,12 +1046,10 @@ export default function MembersPage() {
                       className="group relative w-full overflow-hidden rounded-3xl border border-white/10 transition-all duration-300 hover:border-brand-pink/30"
                     >
                       <div className="relative h-72 overflow-hidden bg-white/5 sm:h-80">
-                        <Image
+                        <img
                           src={batch.groupImageUrl}
                           alt={batch.name}
-                          fill
-                          sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-                          className="object-cover transition-transform duration-500 group-hover:scale-105"
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-brand-dark-blue/70 via-transparent to-transparent" />
                         <div className="absolute bottom-5 left-5 right-5 flex items-end justify-between">
