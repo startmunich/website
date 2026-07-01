@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import Script from 'next/script';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -434,6 +435,7 @@ export default function MembersPage() {
   }, [handleOutsideClick]);
 
   const defaultBatches = [
+    'Summer 2026',
     'Winter 2025',
     'Summer 2025',
     'Winter 2024',
@@ -476,6 +478,7 @@ export default function MembersPage() {
     ss23: 'SS23-opt.jpg',
     ss24: 'SS24-opt.jpg',
     ss25: 'SS25-opt.jpg',
+    ss26: 'SS26-opt.jpg',
   };
 
   function getBatchImageKey(batchName: string): string | null {
@@ -487,6 +490,12 @@ export default function MembersPage() {
     const shortMatch = normalized.match(/^(ws|ss)\s*(\d{2})$/);
     if (shortMatch) return `${shortMatch[1]}${shortMatch[2]}`;
     return null;
+  }
+
+  function getBatchSlug(batchName: string): string {
+    const key = getBatchImageKey(batchName);
+    if (key) return key;
+    return batchName.toLowerCase().replace(/\s+/g, '-');
   }
 
   function isAfterWS21(batchName: string): boolean {
@@ -1031,9 +1040,9 @@ export default function MembersPage() {
                     className={`transition-all duration-700 ${batchesView.visible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}
                     style={{ transitionDelay: `${150 + i * 80}ms` }}
                   >
-                    <button
-                      onClick={() => setExpandedBatch(batch.name)}
-                      className="group relative w-full overflow-hidden rounded-3xl border border-white/10 transition-all duration-300 hover:border-brand-pink/30"
+                    <Link
+                      href={`/members/${getBatchSlug(batch.name)}`}
+                      className="group relative block w-full overflow-hidden rounded-3xl border border-white/10 transition-all duration-300 hover:border-brand-pink/30"
                     >
                       <div className="relative h-72 overflow-hidden bg-white/5 sm:h-80">
                         <Image
@@ -1053,7 +1062,7 @@ export default function MembersPage() {
                           </span>
                         </div>
                       </div>
-                    </button>
+                    </Link>
                   </div>
                 ))}
               </div>
