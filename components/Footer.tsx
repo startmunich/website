@@ -79,12 +79,12 @@ export default function Footer() {
       </div>
 
       {/* Bottom bar */}
-      <div className='flex justify-between align-middle px-12 flex-wrap'>
+      <div className='flex justify-between items-center px-12 flex-wrap'>
         <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-1 text-white/40 text-sm">
           <span>© {new Date().getFullYear()} START Munich. All rights reserved.</span>
         </div>
-        <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-1 text-white/100 text-sm">
-          <span>{"This website is hosted at our Technological Partner: "}<a href='https://hetzner.de'>Hetzner</a></span>
+        <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-1 text-white/40 text-sm">
+          <span>{"This website is hosted at our Technological Partner: "}<a target="_blank" rel="noopener noreferrer" href='https://hetzner.de'>Hetzner</a></span>
         </div>
       </div>
        
