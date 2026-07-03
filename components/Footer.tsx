@@ -84,7 +84,7 @@ export default function Footer() {
           <span>© {new Date().getFullYear()} START Munich. All rights reserved.</span>
         </div>
         <div className="px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-1 text-white/40 text-sm">
-          <span>{"This website is hosted at our Technological Partner: "}<a target="_blank" rel="noopener noreferrer" href='https://hetzner.de'>Hetzner</a></span>
+          <span>{"This website is hosted at our Technological Partner: "}<a target="_blank" rel="noopener noreferrer" href='https://www.hetzner.com/de?mtm_campaign=START-Munich&mtm_medium=referral&mtm_content=sponsoring_link'>Hetzner</a></span>
         </div>
       </div>
        
