@@ -27,14 +27,14 @@
     ]
   },
   "dependencies": {
-    "@radix-ui/react-select": "^2.3.2",
+    "@radix-ui/react-select": "^2.3.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.4.2",
     "lucide-react": "^0.577.0",
     "motion": "^12.42.2",
     "next": "^15.5.20",
-    "posthog-js": "^1.396.6",
+    "posthog-js": "^1.398.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-fast-marquee": "^1.6.5",
