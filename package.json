@@ -34,7 +34,7 @@
     "lucide-react": "^0.577.0",
     "motion": "^12.42.2",
     "next": "^15.5.20",
-    "posthog-js": "^1.398.0",
+    "posthog-js": "^1.399.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-fast-marquee": "^1.6.5",
@@ -42,11 +42,11 @@
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "^21.2.0",
+    "@commitlint/cli": "^21.2.1",
     "@commitlint/config-conventional": "^21.2.0",
     "@eslint/eslintrc": "^3.3.5",
     "@playwright/test": "^1.61.1",
-    "@types/node": "^24.13.2",
+    "@types/node": "^24.13.3",
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",
     "autoprefixer": "^10.5.2",
