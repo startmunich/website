@@ -91,7 +91,7 @@ importers:
         specifier: ^17.0.8
         version: 17.0.8
       postcss:
-        specifier: ^8.5.17
+        specifier: ^8.5.18
         version: 8.5.19
       prettier:
         specifier: ^3.9.5
