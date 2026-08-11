@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Script from 'next/script';
@@ -251,10 +250,10 @@ export default function EventsPage() {
 
         {/* Content Below Hero */}
         <div className="mx-auto max-w-7xl px-4 pt-8 sm:px-6 lg:px-8 lg:pt-20">
-          {/* Featured Event Spotlight */}
+          {/* Europe Embodied event has passed - temporarily hidden (Aug 2026)
+          Featured Event Spotlight (commented out)
           <div className="mb-24">
             <div className="relative overflow-hidden rounded-[1.75rem] border border-[#8eeeff]/30 shadow-2xl shadow-[#00d8ff]/10">
-              {/* Background image */}
               <div className="absolute inset-0">
                 <Image
                   src="/events/eventCards/europe-embodied-prism.png"
@@ -267,10 +266,8 @@ export default function EventsPage() {
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_36%,rgba(142,238,255,0.22),transparent_34%),radial-gradient(circle_at_58%_72%,rgba(255,63,208,0.16),transparent_30%)]" />
               </div>
 
-              {/* Content */}
               <div className="relative flex flex-col items-start gap-8 p-8 md:p-12 lg:flex-row lg:items-center">
                 <div className="flex-1">
-                  {/* Badges */}
                   <div className="mb-5 flex flex-wrap items-center gap-3">
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-[#8eeeff]/45 bg-[#00d8ff]/15 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-[#8eeeff]">
                       <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#8eeeff]"></span>
@@ -341,6 +338,7 @@ export default function EventsPage() {
               </div>
             </div>
           </div>
+          */}
 
           {/* Upcoming Events Calendar Section */}
           <div className="mb-24">
