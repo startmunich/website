@@ -39,31 +39,26 @@ const eventPhotos = [
     id: 'ep6',
     url: '/forPartners/partnerEvents/MHL1-opt.jpg',
     caption: 'Munich Hacking Legal 25',
-    href: '/events/leagel-hack',
   },
   {
     id: 'ep7',
     url: '/forPartners/partnerEvents/MHL2-opt.jpg',
     caption: 'Munich Hacking Legal 25',
-    href: '/events/leagel-hack',
   },
   {
     id: 'ep8',
     url: '/forPartners/partnerEvents/IsarUnfiltered-opt.jpg',
     caption: 'Isar Unfiltered',
-    href: '/events/iu/home',
   },
   {
     id: 'ep9',
     url: '/forPartners/partnerEvents/IsarUnfiltered2-opt.jpg',
     caption: 'Isar Unfiltered',
-    href: '/events/iu/home',
   },
   {
     id: 'ep10',
     url: '/forPartners/partnerEvents/FounderFailTails-opt.jpg',
     caption: 'Founder Fail Tales',
-    href: '/events/founder-fail-tales-4',
   },
 ];
 
