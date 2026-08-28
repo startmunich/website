@@ -1,5 +1,19 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async redirects() {
+    return [
+      {
+        source: '/iu/home',
+        destination: 'https://www.isarunfiltered.de',
+        permanent: true,
+      },
+      {
+        source: '/home',
+        destination: '/',
+        permanent: true,
+      },
+    ];
+  },
   async rewrites() {
     return [
       {
