@@ -10,55 +10,55 @@ import { useAnimatedNumber, useInView } from '@/lib/hooks';
 
 const executiveBoard = [
   {
-    name: 'Ali Serag El Din',
+    name: 'Niklas Drössler',
     role: 'President',
-    photo: '/aboutUs/Board/Ali-opt.png',
-    linkedinUrl: 'https://www.linkedin.com/in/ali-serag-el-din/',
+    photo: '/aboutUs/Board/Niklas-opt.jpg',
+    linkedinUrl: 'https://www.linkedin.com/in/niklasdroessler/',
   },
   {
-    name: 'Defne Aytuna',
+    name: 'Eva Feische',
     role: 'Vice President',
-    photo: '/aboutUs/Board/Defne-opt.png',
-    linkedinUrl: 'https://www.linkedin.com/in/defne-aytuna/',
+    photo: '/aboutUs/Board/Eva-opt.jpg',
+    linkedinUrl: 'https://www.linkedin.com/in/eva-feische-040038251/',
   },
   {
-    name: 'Simon Burmer',
+    name: 'Moritz Gubitzer',
     role: 'CFO',
-    photo: '/aboutUs/Board/Simon-opt.png',
-    linkedinUrl: 'https://www.linkedin.com/in/simon-burmer/',
+    photo: '/aboutUs/Board/Moritz-opt.jpg',
+    linkedinUrl: 'https://www.linkedin.com/in/moritz-gubitzer/',
   },
 ];
 
 const departmentBoard = [
   {
-    name: 'Mohammed Thabit',
+    name: 'Carolin Gerber',
     role: 'MD Events',
-    photo: '/aboutUs/Board/Mohammed-opt.png',
-    linkedinUrl: 'https://www.linkedin.com/in/mohammed-thabit/',
+    photo: '/aboutUs/Board/Carolin-opt.jpg',
+    linkedinUrl: 'https://www.linkedin.com/in/carolin-gerber-798608252/',
   },
   {
-    name: 'Piotr Nobis',
+    name: 'Valentin Ahrend',
     role: 'MD Marketing',
-    photo: '/aboutUs/Board/Piotr-opt.png',
-    linkedinUrl: 'https://www.linkedin.com/in/piotr-nobis/',
+    photo: '/aboutUs/Board/Valentin-opt.jpg',
+    linkedinUrl: 'https://www.linkedin.com/in/valentin-ahrend-583983311/',
   },
   {
-    name: 'Anna Heletych',
+    name: 'Rafael Edmaier',
     role: 'MD People',
-    photo: '/aboutUs/Board/Anna-opt.png',
-    linkedinUrl: 'https://www.linkedin.com/in/anna-heletych/',
+    photo: '/aboutUs/Board/Rafael-opt.jpg',
+    linkedinUrl: 'https://www.linkedin.com/in/rafael-edmaier/',
   },
   {
-    name: 'Niklas Simakov',
+    name: 'Mete Reis Kizildag',
     role: 'MD Technology & Operations',
-    photo: '/aboutUs/Board/Niklas-opt.png',
-    linkedinUrl: 'https://www.linkedin.com/in/niklas-simakov/',
+    photo: '/aboutUs/Board/Mete-opt.jpg',
+    linkedinUrl: 'https://www.linkedin.com/in/mrkizildag/',
   },
   {
-    name: 'Marius Heumader',
+    name: 'Younus Mühlenweg',
     role: 'MD Partnerships',
-    photo: '/aboutUs/Board/Marius-opt.png',
-    linkedinUrl: 'https://www.linkedin.com/in/marius-heumader/',
+    photo: '/aboutUs/Board/Younus-opt.jpg',
+    linkedinUrl: 'https://www.linkedin.com/in/younus-wm/',
   },
 ];
 
