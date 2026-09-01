@@ -26,9 +26,9 @@ export default function LegalNoticePage() {
           <section>
             <h3 className="mb-3 text-xl font-black text-white">Represented by</h3>
             <div className="space-y-1 text-lg leading-relaxed text-gray-300">
-              <p>Ali Serag El Din</p>
-              <p>Defne Aytuna</p>
-              <p>Simon Burmer</p>
+              <p>Niklas Dr&ouml;ssler</p>
+              <p>Eva Feische</p>
+              <p>Moritz Gubitzer</p>
             </div>
           </section>
 

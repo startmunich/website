@@ -195,13 +195,13 @@ export default async function ForPartnersPage() {
           <HeroCard>
             <div className="relative mx-auto mb-4 h-40 w-40 overflow-hidden rounded-full border-2 border-white/20 transition-all duration-300 group-hover:border-brand-pink/50">
               <Image
-                src="/forPartners/md-partnerships.jpg"
+                src="/forPartners/md-partnerships-younus.jpg"
                 alt="MD Partnerships"
                 fill
                 className="object-cover"
               />
             </div>
-            <h3 className="mb-1 text-lg font-bold text-white">Marius Heumader</h3>
+            <h3 className="mb-1 text-lg font-bold text-white">Younus M&uuml;hlenweg</h3>
             <p className="mb-4 text-sm font-semibold text-brand-pink">Head of Partnerships</p>
 
             {/* Contact Button */}
