@@ -93,7 +93,7 @@ export default function RtshPage() {
             rel="noopener noreferrer"
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded bg-[#34e1b8] px-6 py-3 text-sm font-black tracking-wide text-[#0c2724] shadow-[0_10px_30px_-10px_rgba(52,225,184,.55)] transition hover:-translate-y-0.5 hover:bg-[#4bf0c6] hover:shadow-[0_16px_40px_-12px_rgba(52,225,184,.7)]"
           >
-            Join the waitlist
+            Join the waitlist!
           </a>
         </div>
       </header>
