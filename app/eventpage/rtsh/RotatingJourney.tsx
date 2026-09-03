@@ -49,16 +49,21 @@ export default function RotatingJourney() {
   }, []);
 
   return (
-    <div className="journey" aria-hidden="true">
-      <div className="jlabel">The journey</div>
-      <div className="jline" id="jline">
-        <span className="from">from</span>
-        <span className="jword" id="jfrom" ref={fromRef}>
+    <div
+      className="mt-[34px] max-w-[620px] rounded border border-[rgba(52,225,184,.16)] bg-gradient-to-b from-[rgba(20,65,70,.5)] to-[rgba(20,65,70,.18)] p-[22px_24px]"
+      aria-hidden="true"
+    >
+      <p className="text-[0.7rem] font-bold uppercase tracking-[0.22em] text-[#5E8880]">
+        The journey
+      </p>
+      <div className="mt-3.5 flex min-h-[1.3em] flex-wrap items-baseline gap-[0.34em] text-[clamp(1.05rem,2.6vw,1.45rem)] font-bold leading-snug">
+        <span className="font-medium text-[#8FB6AD]">from</span>
+        <span className="duration-400 text-[#E4F3EE] transition-all" ref={fromRef}>
           scribble
         </span>
         <span className="jgap" />
-        <span className="to">to</span>
-        <span className="jword tocol" id="jto" ref={toRef}>
+        <span className="font-medium text-[#8FB6AD]">to</span>
+        <span className="duration-400 text-[#34e1b8] transition-all" ref={toRef}>
           screen
         </span>
       </div>

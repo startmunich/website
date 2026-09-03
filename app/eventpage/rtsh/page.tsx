@@ -31,404 +31,384 @@ export default function RtshPage() {
   return (
     <>
       <style>{`
-        :root {
-          --batwing: #0c2724;
-          --binary: #144146;
-          --teekay: #1b5a68;
-          --ivy: #289e90;
-          --mint: #34e1b8;
-          --text: #E4F3EE;
-          --muted: #8FB6AD;
-          --faint: #5E8880;
-          --line: rgba(52,225,184,.16);
-          --line-strong: rgba(52,225,184,.32);
-          --font: "Figtree", system-ui, -apple-system, sans-serif;
-          --maxw: 1100px;
+        html { scroll-behavior: smooth; }
+        .hero-polygon {
+          position: absolute; top: -160px; right: -200px;
+          width: min(58vw, 660px); height: auto;
+          opacity: .5; z-index: 0; pointer-events: none;
         }
-        *{box-sizing:border-box}
-        html{scroll-behavior:smooth}
-        body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.6;font-weight:400;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-        body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(55% 40% at 82% 0%,rgba(40,158,144,.20),transparent 62%),radial-gradient(50% 42% at 6% 2%,rgba(27,90,104,.28),transparent 60%)}
-        .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px;position:relative;z-index:1}
-        a{color:inherit}
-        ::selection{background:var(--mint);color:var(--batwing)}
-        .eyebrow{font-size:.74rem;letter-spacing:.24em;text-transform:uppercase;color:var(--mint);font-weight:700}
-        .hero-eyebrow{display:inline-flex;align-items:center;font-size:.86rem;letter-spacing:.1em;padding:9px 18px;border-radius:999px;background:rgba(52,225,184,.12);border:1px solid var(--line-strong)}
-
-        .btn{display:inline-flex;align-items:center;gap:.55em;font-family:var(--font);font-weight:700;font-size:1rem;border:none;border-radius:12px;padding:15px 26px;cursor:pointer;text-decoration:none;transition:transform .14s ease,box-shadow .22s ease,background .18s ease;white-space:nowrap}
-        .btn-primary{background:var(--mint);color:var(--batwing);box-shadow:0 10px 30px -10px rgba(52,225,184,.55)}
-        .btn-primary:hover{transform:translateY(-2px);background:#4bf0c6;box-shadow:0 16px 40px -12px rgba(52,225,184,.7)}
-        .btn .arrow{font-weight:700}
-        :focus-visible{outline:2px solid var(--mint);outline-offset:3px;border-radius:8px}
-
-        header.nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(12px);background:rgba(12,39,36,.72);border-bottom:1px solid var(--line)}
-        .nav-inner{display:flex;align-items:center;justify-content:space-between;height:70px}
-        .logo{display:flex;align-items:center}
-        .logo svg{height:30px;width:auto;display:block}
-        .nav .btn{padding:11px 20px;font-size:.92rem}
-
-        .hero{padding:82px 0 44px;position:relative;overflow:hidden}
-        .hero-polygon{position:absolute;top:-160px;right:-200px;width:min(58vw,660px);height:auto;opacity:.5;z-index:0;pointer-events:none}
-        @media (max-width:820px){.hero-polygon{width:80vw;top:-100px;right:-220px;opacity:.35}}
-        h1{font-family:var(--font);font-weight:800;font-size:clamp(2.7rem,7vw,5rem);line-height:1.0;letter-spacing:-.025em;margin:16px 0 0;max-width:15ch}
-        h1 .hw{color:var(--mint)}
-        h1 .hu{color:var(--text)}
-        .lede{color:var(--muted);font-size:1.12rem;max-width:46ch;margin:22px 0 0}
-        .lede em{color:var(--text);font-style:italic}
-
-        .journey{margin:34px 0 0;padding:22px 24px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,rgba(20,65,70,.5),rgba(20,65,70,.18));max-width:620px}
-        .journey .jlabel{font-size:.7rem;letter-spacing:.22em;text-transform:uppercase;color:var(--faint);font-weight:700}
-        .jline{margin-top:14px;font-size:clamp(1.05rem,2.6vw,1.45rem);font-weight:600;line-height:1.25;display:flex;flex-wrap:wrap;align-items:baseline;gap:.34em;min-height:1.3em}
-        .jline .from{color:var(--muted);font-weight:500}
-        .jline .to{color:var(--muted);font-weight:500}
-        .jword{color:var(--text);font-weight:700;transition:opacity .4s ease,transform .4s ease}
-        .jword.tocol{color:var(--mint)}
-        .jgap{position:relative;display:inline-block;width:1.7em;height:.14em;top:-.16em;background:var(--line-strong);border-radius:3px;overflow:hidden;flex:0 0 auto}
-        .jgap::after{content:"";position:absolute;inset:0;background:var(--mint);transform:translateX(-101%);animation:trace 3s ease-in-out infinite}
-        @keyframes trace{0%{transform:translateX(-101%)}45%{transform:translateX(0)}75%{transform:translateX(0)}100%{transform:translateX(101%)}}
-        .swap-out{opacity:0;transform:translateY(6px)}
-
-        .cta-row{margin-top:34px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
-        .cta-note{color:var(--faint);font-size:.9rem;max-width:34ch}
-
-        .facts{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:56px}
-        .facts-grid{display:grid;grid-template-columns:repeat(4,1fr)}
-        .fact{padding:28px 22px;border-right:1px solid var(--line)}
-        .fact:last-child{border-right:none}
-        .fact .k{font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);font-weight:700}
-        .fact .v{font-weight:700;font-size:1.32rem;margin-top:10px;line-height:1.15;color:var(--mint)}
-        .fact .v small{display:block;font-size:.84rem;color:var(--muted);font-weight:500;margin-top:3px}
-
-        section.block{padding-top:80px;padding-bottom:80px}
-        .sec-head{max-width:62ch}
-        h2{font-family:var(--font);font-weight:800;font-size:clamp(1.9rem,4vw,2.8rem);letter-spacing:-.02em;line-height:1.06;margin:12px 0 0;color:var(--mint)}
-        .sec-lede{color:var(--muted);margin-top:18px;font-size:1.08rem;max-width:52ch}
-
-        .why-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;margin-top:46px}
-        .card{background:var(--binary);border:1px solid var(--line);border-radius:16px;padding:26px}
-        .card .n{color:var(--mint);font-weight:800;font-size:.82rem;letter-spacing:.1em}
-        .card h3{font-weight:700;font-size:1.16rem;margin:16px 0 8px;color:var(--text)}
-        .card p{color:var(--muted);font-size:.96rem;margin:0}
-
-        .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-        .stat{text-align:center;padding:32px 26px;background:var(--binary);border:1px solid var(--line);border-radius:16px}
-        .stat .big{font-weight:800;font-size:clamp(2.6rem,6.5vw,4rem);line-height:1;letter-spacing:-.03em;color:var(--mint)}
-        .stat .lbl{color:var(--muted);font-size:.82rem;letter-spacing:.1em;text-transform:uppercase;margin-top:12px;font-weight:600}
-
-        .partners-head{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:12px}
-        .load-tag{color:var(--faint);font-size:.82rem;font-weight:600}
-        .load-tag .blink{color:var(--mint);animation:blink 1.2s steps(1) infinite}
-        @keyframes blink{50%{opacity:0}}
-        .plogos{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:36px}
-        .skel{height:92px;border-radius:14px;border:1px dashed var(--line-strong);background:var(--binary);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:.72rem;color:var(--faint);letter-spacing:.08em;font-weight:600;text-transform:uppercase}
-        .skel::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(52,225,184,.10),transparent);transform:translateX(-100%);animation:shimmer 2.2s infinite}
-        @keyframes shimmer{100%{transform:translateX(100%)}}
-        .partners-note{color:var(--muted);font-size:1rem;margin-top:28px;max-width:56ch}
-        .partners-note b{color:var(--mint);font-weight:700}
-
-        #about{padding-bottom:28px}
-        #stats{padding-top:28px}
-        #ecosystem-partners{padding-top:12px}
-        #ecosystem-partners h2{color:var(--ivy)}
-        .plogos-4{grid-template-columns:repeat(4,1fr)}
-        .skel-eco{background:var(--teekay);border-color:rgba(40,158,144,.4)}
-        .skel-eco::after{background:linear-gradient(90deg,transparent,rgba(40,158,144,.18),transparent)}
-
-        .faq{max-width:780px;margin-top:42px}
-        details{border-bottom:1px solid var(--line)}
-        summary{list-style:none;cursor:pointer;padding:24px 0;font-weight:700;font-size:1.1rem;color:var(--text);display:flex;justify-content:space-between;align-items:center;gap:20px}
-        summary::-webkit-details-marker{display:none}
-        summary .ic{color:var(--mint);font-weight:700;font-size:1.4rem;line-height:1;transition:transform .2s ease;flex:0 0 auto}
-        details[open] summary .ic{transform:rotate(45deg)}
-        details p{color:var(--muted);margin:0 0 24px;font-size:1rem;max-width:66ch}
-        details a{color:var(--mint)}
-
-        .final{background:linear-gradient(155deg,var(--teekay),var(--binary));border:1px solid var(--line);border-radius:24px;padding:60px 44px;text-align:center}
-        .final .fline{font-weight:700;font-size:clamp(1.2rem,3vw,1.7rem);color:var(--muted);margin:0 0 8px;display:inline-flex;flex-wrap:wrap;gap:.3em;align-items:baseline;justify-content:center}
-        .final .fline .fw{color:var(--text)}
-        .final .fline .fg{position:relative;display:inline-block;width:2.4em;height:.14em;top:-.2em;background:var(--mint);border-radius:3px}
-        .final .fline .fu{color:var(--mint)}
-        .final h2{font-size:clamp(2rem,4.4vw,3rem);margin-top:6px}
-        .final .lede{color:var(--muted);max-width:44ch;margin:16px auto 32px}
-        .final .btn{margin:0 auto}
-
-        footer{border-top:1px solid var(--line);margin-top:84px;padding:44px 0}
-        .foot-inner{display:flex;justify-content:space-between;flex-wrap:wrap;gap:22px;align-items:center}
-        .foot-inner .cr{color:var(--faint);font-size:.86rem}
-        .foot-links{display:flex;gap:24px;flex-wrap:wrap}
-        .foot-links a{color:var(--muted);text-decoration:none;font-size:.88rem}
-        .foot-links a:hover{color:var(--mint)}
-
-        @media (max-width:820px){
-          .facts-grid{grid-template-columns:repeat(2,1fr)}
-          .fact:nth-child(2){border-right:none}
-          .fact:nth-child(1),.fact:nth-child(2){border-bottom:1px solid var(--line)}
-          .stats{grid-template-columns:1fr;gap:34px}
-          .plogos{grid-template-columns:repeat(2,1fr)}
+        @media (max-width: 820px) {
+          .hero-polygon { width: 80vw; top: -100px; right: -220px; opacity: .35; }
         }
-        @media (max-width:520px){
-          .wrap{padding:0 28px}
-          .final{padding:44px 24px}
-          .cta-row{flex-direction:column;align-items:flex-start}
+        .jgap {
+          position: relative; display: inline-block;
+          width: 1.7em; height: .14em; top: -.16em;
+          background: rgba(52,225,184,.32); border-radius: 3px;
+          overflow: hidden; flex: 0 0 auto;
         }
-        @media (prefers-reduced-motion:reduce){
-          *{animation:none!important;scroll-behavior:auto!important;transition:none!important}
+        .jgap::after {
+          content: ""; position: absolute; inset: 0;
+          background: #34e1b8;
+          transform: translateX(-101%);
+          animation: trace 3s ease-in-out infinite;
+        }
+        @keyframes trace {
+          0% { transform: translateX(-101%); }
+          45% { transform: translateX(0); }
+          75% { transform: translateX(0); }
+          100% { transform: translateX(101%); }
+        }
+        .swap-out { opacity: 0; transform: translateY(6px); }
+        .partner-skel::after {
+          content: ""; position: absolute; inset: 0;
+          background: linear-gradient(90deg, transparent, rgba(52,225,184,.10), transparent);
+          transform: translateX(-100%); animation: shimmer 2.2s infinite;
+        }
+        .partner-skel-eco::after {
+          background: linear-gradient(90deg, transparent, rgba(40,158,144,.18), transparent);
+        }
+        @keyframes shimmer { 100% { transform: translateX(100%); } }
+        @keyframes blink { 50% { opacity: 0; } }
+        @media (prefers-reduced-motion: reduce) {
+          *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+          }
         }
       `}</style>
 
-      <header className="nav">
-        <div className="wrap nav-inner">
-          <a className="logo" href="#top" aria-label="START Munich, home">
-            <div dangerouslySetInnerHTML={{ __html: START_LOGO_SVG }} />
+      {/* NAV */}
+      <header className="sticky top-0 z-50 border-b border-[#34e1b8]/10 bg-[#0c2724]/70 backdrop-blur-xl">
+        <div className="mx-auto flex h-[70px] max-w-[1100px] items-center justify-between px-5 sm:px-8 lg:px-12">
+          <a href="#top" aria-label="START Munich, home" className="flex items-center">
+            <div
+              className="h-[30px] w-auto [&_svg]:h-full [&_svg]:w-auto"
+              dangerouslySetInnerHTML={{ __html: START_LOGO_SVG }}
+            />
           </a>
-          <a className="btn btn-primary" href={LUMA_URL} target="_blank" rel="noopener noreferrer">
+          <a
+            href={LUMA_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-12 items-center justify-center gap-2 rounded bg-[#34e1b8] px-6 py-3 text-sm font-black tracking-wide text-[#0c2724] shadow-[0_10px_30px_-10px_rgba(52,225,184,.55)] transition hover:-translate-y-0.5 hover:bg-[#4bf0c6] hover:shadow-[0_16px_40px_-12px_rgba(52,225,184,.7)]"
+          >
             Join the waitlist
           </a>
         </div>
       </header>
 
-      <main id="top">
-        <section className="hero">
+      <main id="top" className="bg-[#0c2724] text-[#E4F3EE]">
+        {/* HERO */}
+        <section className="relative overflow-hidden px-5 pb-11 pt-[82px] sm:px-8 lg:px-12">
           <div
             className="hero-polygon"
             dangerouslySetInnerHTML={{ __html: POLYGON_SVG }}
             aria-hidden="true"
           />
-          <div className="wrap">
-            <span className="eyebrow hero-eyebrow">Road to START Hack 2026</span>
-            <h1>
-              From <span className="hw">hello world</span> to{' '}
-              <span className="hu">hello users</span>.
+          <div className="relative z-10 mx-auto max-w-[1100px]">
+            <span className="inline-flex items-center rounded-full border border-[rgba(52,225,184,.32)] bg-[rgba(52,225,184,.12)] px-[18px] py-[9px] text-[0.86rem] font-black tracking-[0.1em] text-[#34e1b8]">
+              Road to START Hack 2026
+            </span>
+            <h1 className="mt-4 max-w-[15ch] text-[clamp(2.7rem,7vw,5rem)] font-black leading-none tracking-tight">
+              From <span className="text-[#34e1b8]">hello world</span> to{' '}
+              <span className="text-[#E4F3EE]">hello users</span>.
             </h1>
-            <p className="lede">
+            <p className="mt-[22px] max-w-[46ch] text-lg font-medium leading-relaxed text-[#8FB6AD]">
               Munich&apos;s most entrepreneurial hackathon is back. 250 builders, one weekend, real
-              challenges from real startups, <em>21–22 November 2026 at the TUM Audimax.</em>
+              challenges from real startups,{' '}
+              <em className="text-[#E4F3EE]">21–22 November 2026 at the TUM Audimax.</em>
             </p>
 
             <RotatingJourney />
 
-            <div className="cta-row">
+            <div className="mt-[34px] flex flex-wrap items-center gap-5">
               <a
-                className="btn btn-primary"
                 href={LUMA_URL}
                 target="_blank"
                 rel="noopener noreferrer"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded bg-[#34e1b8] px-6 py-3 text-sm font-black tracking-wide text-[#0c2724] shadow-[0_10px_30px_-10px_rgba(52,225,184,.55)] transition hover:-translate-y-0.5 hover:bg-[#4bf0c6] hover:shadow-[0_16px_40px_-12px_rgba(52,225,184,.7)]"
               >
-                Join the waitlist <span className="arrow">&rarr;</span>
+                Join the waitlist <span aria-hidden="true">&rarr;</span>
               </a>
-              <p className="cta-note">
+              <p className="max-w-[34ch] text-sm font-medium text-[#5E8880]">
                 250 spots. The waitlist opens on Luma. Join now to be first in line.
               </p>
             </div>
           </div>
 
-          <div className="facts">
-            <div className="wrap facts-grid">
-              <div className="fact">
-                <div className="k">When</div>
-                <div className="v">
-                  21–22 Nov<small>2026 · Sat–Sun</small>
+          {/* FACTS */}
+          <div className="mx-auto mt-14 max-w-[1100px] border-y border-[#34e1b8]/10">
+            <div className="grid grid-cols-2 sm:grid-cols-4">
+              {[
+                { k: 'When', v: '21–22 Nov', sub: '2026 · Sat–Sun' },
+                { k: 'Where', v: 'Audimax', sub: 'TU München' },
+                { k: 'Who', v: '250 builders', sub: 'all fields welcome' },
+                { k: 'Format', v: '24h build', sub: 'demo on stage' },
+              ].map((f, i) => (
+                <div
+                  key={f.k}
+                  className={`py-7 pl-5 pr-4 sm:px-6 sm:py-7 ${
+                    i < 3 ? 'border-b border-[#34e1b8]/10 sm:border-b-0 sm:border-r' : ''
+                  }`}
+                >
+                  <p className="text-[0.68rem] font-bold uppercase tracking-[0.2em] text-[#5E8880]">
+                    {f.k}
+                  </p>
+                  <p className="mt-2.5 text-xl font-black leading-tight text-[#34e1b8]">
+                    {f.v}
+                    <small className="mt-0.5 block text-sm font-medium text-[#8FB6AD]">
+                      {f.sub}
+                    </small>
+                  </p>
                 </div>
-              </div>
-              <div className="fact">
-                <div className="k">Where</div>
-                <div className="v">
-                  Audimax<small>TU München</small>
-                </div>
-              </div>
-              <div className="fact">
-                <div className="k">Who</div>
-                <div className="v">
-                  250 builders<small>all fields welcome</small>
-                </div>
-              </div>
-              <div className="fact">
-                <div className="k">Format</div>
-                <div className="v">
-                  24h build<small>demo on stage</small>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </section>
 
-        <section className="wrap block" id="about">
-          <div className="sec-head">
-            <span className="eyebrow">Road to START Hack 2026</span>
-            <h2>Turn a simple idea into something people can click.</h2>
-            <p className="sec-lede">
-              Road to START Hack brings 250 innovators from all fields and backgrounds together to
-              solve real-world challenges in just 24 hours. We help you keep the scope tight,
-              mentors jump in when you are stuck, and the room stays friendly and focused. You
-              prototype, test with people nearby, and polish just enough to show it. No experience
-              required. Bring your laptop and curiosity. By the end you can say hello users for
-              real, with a demo you are proud to share and a path to keep going.
+        {/* ABOUT */}
+        <section className="px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
+          <div className="mx-auto max-w-[1100px]">
+            <div className="max-w-[62ch]">
+              <span className="text-[0.74rem] font-bold uppercase tracking-[0.24em] text-[#34e1b8]">
+                Road to START Hack 2026
+              </span>
+              <h2 className="mt-3 text-[clamp(1.9rem,4vw,2.8rem)] font-black leading-tight tracking-tight text-[#34e1b8]">
+                Turn a simple idea into something people can click.
+              </h2>
+              <p className="mt-[18px] max-w-[52ch] text-lg font-medium leading-relaxed text-[#8FB6AD]">
+                Road to START Hack brings 250 innovators from all fields and backgrounds together to
+                solve real-world challenges in just 24 hours. We help you keep the scope tight,
+                mentors jump in when you are stuck, and the room stays friendly and focused. You
+                prototype, test with people nearby, and polish just enough to show it. No experience
+                required. Bring your laptop and curiosity. By the end you can say hello users for
+                real, with a demo you are proud to share and a path to keep going.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* STATS */}
+        <section className="px-5 py-20 sm:px-8 lg:px-12">
+          <div className="mx-auto grid max-w-[1100px] gap-4 sm:grid-cols-3">
+            {[
+              { big: '24h', lbl: 'to build' },
+              { big: '250', lbl: 'builders' },
+              { big: '1', lbl: 'demo you&apos;re proud of' },
+            ].map((s) => (
+              <div
+                key={s.lbl}
+                className="rounded border border-[rgba(52,225,184,.16)] bg-[#144146] p-8 text-center shadow-2xl shadow-black/20"
+              >
+                <div className="text-[clamp(2.6rem,6.5vw,4rem)] font-black leading-none tracking-tight text-[#34e1b8]">
+                  {s.big}
+                </div>
+                <div className="mt-3 text-xs font-bold uppercase tracking-[0.1em] text-[#8FB6AD]">
+                  {s.lbl}
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* PARTNERS */}
+        <section className="px-5 py-20 sm:px-8 lg:px-12">
+          <div className="mx-auto max-w-[1100px]">
+            <div className="flex flex-wrap items-baseline justify-between gap-3">
+              <div>
+                <span className="text-[0.74rem] font-bold uppercase tracking-[0.24em] text-[#34e1b8]">
+                  Challenge partners
+                </span>
+                <h2 className="mt-3 text-[clamp(1.9rem,4vw,2.8rem)] font-black leading-tight tracking-tight text-[#34e1b8]">
+                  Who you&apos;ll build with
+                </h2>
+              </div>
+              <p className="text-xs font-bold text-[#5E8880]">
+                signing partners
+                <span
+                  className="text-[#34e1b8]"
+                  style={{ animation: 'blink 1.2s steps(1) infinite' }}
+                >
+                  _
+                </span>
+              </p>
+            </div>
+            <div className="mt-9 grid grid-cols-2 gap-px overflow-hidden rounded border border-[#34e1b8]/15 bg-[#34e1b8]/15 sm:grid-cols-3 md:grid-cols-5">
+              {[...Array(5)].map((_, i) => (
+                <div
+                  key={i}
+                  className="partner-skel relative flex min-h-[92px] items-center justify-center overflow-hidden bg-[#144146] p-7 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-[#5E8880]"
+                >
+                  coming soon
+                </div>
+              ))}
+            </div>
+            <p className="mt-7 max-w-[56ch] text-base font-medium text-[#8FB6AD]">
+              We&apos;re locking in our 2026 challenge partners now, real startups with real
+              problems to solve. <span className="font-bold text-[#34e1b8]">Join the waitlist</span>{' '}
+              to hear who first.
             </p>
           </div>
         </section>
 
-        <section className="wrap block" id="stats">
-          <div className="stats">
-            <div className="stat">
-              <div className="big">24h</div>
-              <div className="lbl">to build</div>
-            </div>
-            <div className="stat">
-              <div className="big">250</div>
-              <div className="lbl">builders</div>
-            </div>
-            <div className="stat">
-              <div className="big">1</div>
-              <div className="lbl">demo you&apos;re proud of</div>
+        {/* ECOSYSTEM PARTNERS */}
+        <section className="px-5 pb-20 pt-3 sm:px-8 lg:px-12">
+          <div className="mx-auto max-w-[1100px]">
+            <h2 className="text-[clamp(1.9rem,4vw,2.8rem)] font-black leading-tight tracking-tight text-[#289e90]">
+              Ecosystem Partners
+            </h2>
+            <div className="mt-9 grid grid-cols-2 gap-px overflow-hidden rounded border border-[rgba(40,158,144,.4)] bg-[rgba(40,158,144,.4)] md:grid-cols-4">
+              {[...Array(4)].map((_, i) => (
+                <div
+                  key={i}
+                  className="partner-skel partner-skel-eco relative flex min-h-[92px] items-center justify-center overflow-hidden bg-[#1b5a68] p-7 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-[#5E8880]"
+                >
+                  coming soon
+                </div>
+              ))}
             </div>
           </div>
         </section>
 
-        <section className="wrap block" id="partners">
-          <div className="partners-head">
-            <div className="sec-head">
-              <span className="eyebrow">Challenge partners</span>
-              <h2>Who you&apos;ll build with</h2>
+        {/* FAQ */}
+        <section className="px-5 py-20 sm:px-8 lg:px-12">
+          <div className="mx-auto max-w-4xl">
+            <div className="text-center">
+              <span className="text-[0.74rem] font-bold uppercase tracking-[0.24em] text-[#34e1b8]">
+                Good to know
+              </span>
+              <h2 className="mt-3 text-[clamp(1.9rem,4vw,2.8rem)] font-black leading-tight tracking-tight text-[#34e1b8]">
+                Frequently Asked Questions
+              </h2>
             </div>
-            <div className="load-tag">
-              signing partners<span className="blink">_</span>
+            <div className="mt-10 divide-y divide-[#34e1b8]/15 rounded border border-[#34e1b8]/15">
+              {[
+                {
+                  q: "What's the waitlist?",
+                  a: 'Applications for the hackathon open on Luma in October 2026, with limited spots. Join the waitlist now and we\u2019ll get you in first when it goes live, before the wider announcement.',
+                },
+                {
+                  q: 'When and where will the hackathon take place?',
+                  a: '21\u201322 November 2026 (Saturday\u2013Sunday), in the Audimax at TU M\u00fcnchen, Arcisstra\u00dfe 21, 80333 Munich. The full schedule and the challenges drop closer to the day.',
+                },
+                {
+                  q: 'Who can join?',
+                  a: 'Any student with curiosity and a spark of creativity! Whether you\u2019re studying engineering, computer science, physics, math, business, or management, if you love solving real-world problems, this hackathon is for you.',
+                },
+                {
+                  q: 'What does it cost, and what do I bring?',
+                  a: 'Taking part is free. Bring a laptop, a charger and a good mood. We\u2019ve got the food, drinks and the space. A blanket helps if you plan to build through the night.',
+                },
+                {
+                  q: 'Do I need to have a team in advance?',
+                  a: 'Nope! You can apply solo. We\u2019ll have a matchmaking session at the start of the event, so there\u2019s plenty of time to find your dream team.',
+                },
+                {
+                  q: 'Can I participate alone?',
+                  a: 'You can apply alone, but you\u2019ll need a team to compete. Don\u2019t worry, we\u2019ll help you find one!',
+                },
+                {
+                  q: 'Still have questions?',
+                  a: 'Talk to us any time: s.nalliboyana@startmunich.de or s.park@startmunich.de.',
+                },
+              ].map((faq, i) => (
+                <details key={i} className="group" open={i === 0}>
+                  <summary className="flex cursor-pointer list-none items-start gap-5 py-6 text-left">
+                    <span className="mt-1 text-xl font-bold text-[#34e1b8] transition group-open:rotate-45">
+                      +
+                    </span>
+                    <span className="text-lg font-black leading-tight text-[#E4F3EE]">{faq.q}</span>
+                  </summary>
+                  <div className="pb-6 pl-10">
+                    {faq.a.includes('@') ? (
+                      <p className="max-w-[66ch] text-base font-medium leading-relaxed text-[#8FB6AD]">
+                        Talk to us any time:{' '}
+                        <a href="mailto:s.nalliboyana@startmunich.de" className="text-[#34e1b8]">
+                          s.nalliboyana@startmunich.de
+                        </a>{' '}
+                        or{' '}
+                        <a href="mailto:s.park@startmunich.de" className="text-[#34e1b8]">
+                          s.park@startmunich.de
+                        </a>
+                        .
+                      </p>
+                    ) : (
+                      <p className="max-w-[66ch] text-base font-medium leading-relaxed text-[#8FB6AD]">
+                        {faq.a}
+                      </p>
+                    )}
+                  </div>
+                </details>
+              ))}
             </div>
-          </div>
-          <div className="plogos">
-            <div className="skel">coming soon</div>
-            <div className="skel">coming soon</div>
-            <div className="skel">coming soon</div>
-            <div className="skel">coming soon</div>
-            <div className="skel">coming soon</div>
-          </div>
-          <p className="partners-note">
-            We&apos;re locking in our 2026 challenge partners now, real startups with real problems
-            to solve. <b>Join the waitlist</b> to hear who first.
-          </p>
-        </section>
-
-        <section className="wrap block" id="ecosystem-partners">
-          <div className="sec-head">
-            <h2>Ecosystem Partners</h2>
-          </div>
-          <div className="plogos plogos-4">
-            <div className="skel skel-eco">coming soon</div>
-            <div className="skel skel-eco">coming soon</div>
-            <div className="skel skel-eco">coming soon</div>
-            <div className="skel skel-eco">coming soon</div>
-          </div>
-        </section>
-
-        <section className="wrap block" id="faq">
-          <div className="sec-head">
-            <span className="eyebrow">Good to know</span>
-            <h2>Frequently Asked Questions</h2>
-          </div>
-          <div className="faq">
-            <details open>
-              <summary>
-                What&apos;s the waitlist? <span className="ic">+</span>
-              </summary>
-              <p>
-                Applications for the hackathon open on Luma in October 2026, with limited spots.
-                Join the waitlist now and we&apos;ll get you in first when it goes live, before the
-                wider announcement.
-              </p>
-            </details>
-            <details>
-              <summary>
-                When and where will the hackathon take place? <span className="ic">+</span>
-              </summary>
-              <p>
-                21–22 November 2026 (Saturday–Sunday), in the Audimax at TU München, Arcisstraße 21,
-                80333 Munich. The full schedule and the challenges drop closer to the day.
-              </p>
-            </details>
-            <details>
-              <summary>
-                Who can join? <span className="ic">+</span>
-              </summary>
-              <p>
-                Any student with curiosity and a spark of creativity! Whether you&apos;re studying
-                engineering, computer science, physics, math, business, or management, if you love
-                solving real-world problems, this hackathon is for you.
-              </p>
-            </details>
-            <details>
-              <summary>
-                What does it cost, and what do I bring? <span className="ic">+</span>
-              </summary>
-              <p>
-                Taking part is free. Bring a laptop, a charger and a good mood. We&apos;ve got the
-                food, drinks and the space. A blanket helps if you plan to build through the night.
-              </p>
-            </details>
-            <details>
-              <summary>
-                Do I need to have a team in advance? <span className="ic">+</span>
-              </summary>
-              <p>
-                Nope! You can apply solo. We&apos;ll have a matchmaking session at the start of the
-                event, so there&apos;s plenty of time to find your dream team.
-              </p>
-            </details>
-            <details>
-              <summary>
-                Can I participate alone? <span className="ic">+</span>
-              </summary>
-              <p>
-                You can apply alone, but you&apos;ll need a team to compete. Don&apos;t worry,
-                we&apos;ll help you find one!
-              </p>
-            </details>
-            <details>
-              <summary>
-                Still have questions? <span className="ic">+</span>
-              </summary>
-              <p>
-                Talk to us any time:{' '}
-                <a href="mailto:s.nalliboyana@startmunich.de">s.nalliboyana@startmunich.de</a> or{' '}
-                <a href="mailto:s.park@startmunich.de">s.park@startmunich.de</a>.
-              </p>
-            </details>
           </div>
         </section>
 
-        <section className="wrap">
-          <div className="final">
-            <span className="eyebrow">Limited to 250 spots</span>
-            <div className="fline" aria-hidden="true">
-              <span>from</span> <span className="fw">blank page</span> <span className="fg" />{' '}
-              <span>to</span> <span className="fu">first users</span>
+        {/* FINAL CTA */}
+        <section className="px-5 pb-20 sm:px-8 lg:px-12">
+          <div className="mx-auto max-w-[1100px] rounded-3xl border border-[rgba(52,225,184,.16)] bg-gradient-to-br from-[#1b5a68] to-[#144146] px-11 py-16 text-center shadow-2xl shadow-black/20">
+            <span className="text-[0.74rem] font-bold uppercase tracking-[0.24em] text-[#34e1b8]">
+              Limited to 250 spots
+            </span>
+            <div
+              className="mt-2 inline-flex flex-wrap items-baseline justify-center gap-[0.3em] text-lg font-bold text-[#8FB6AD]"
+              aria-hidden="true"
+            >
+              <span>from</span>
+              <span className="text-[#E4F3EE]">blank page</span>
+              <span className="relative inline-block h-[0.14em] w-[2.4em] -translate-y-[0.2em] rounded bg-[#34e1b8]" />
+              <span>to</span>
+              <span className="text-[#34e1b8]">first users</span>
             </div>
-            <h2>Save your spot before it&apos;s gone</h2>
-            <p className="lede">
+            <h2 className="mt-1.5 text-[clamp(2rem,4.4vw,3rem)] font-black leading-tight tracking-tight text-[#34e1b8]">
+              Save your spot before it&apos;s gone
+            </h2>
+            <p className="mx-auto mt-4 max-w-[44ch] text-lg font-medium text-[#8FB6AD]">
               The waitlist gets first pick. Join now, and we&apos;ll bring you in the moment
               applications open.
             </p>
             <a
-              className="btn btn-primary"
               href={LUMA_URL}
               target="_blank"
               rel="noopener noreferrer"
+              className="mx-auto mt-8 inline-flex min-h-12 items-center justify-center gap-2 rounded bg-[#34e1b8] px-6 py-3 text-sm font-black tracking-wide text-[#0c2724] shadow-[0_10px_30px_-10px_rgba(52,225,184,.55)] transition hover:-translate-y-0.5 hover:bg-[#4bf0c6] hover:shadow-[0_16px_40px_-12px_rgba(52,225,184,.7)]"
             >
-              Join the waitlist <span className="arrow">&rarr;</span>
+              Join the waitlist <span aria-hidden="true">&rarr;</span>
             </a>
           </div>
         </section>
       </main>
 
-      <footer>
-        <div className="wrap foot-inner">
-          <div className="cr">&copy; 2026 START Munich · Road to START Hack</div>
-          <nav className="foot-links">
-            <a href="https://www.startmunich.de/legal-notice" target="_blank" rel="noopener">
+      {/* FOOTER */}
+      <footer className="border-t border-[rgba(52,225,184,.16)] bg-[#0c2724] px-5 py-11 sm:px-8 lg:px-12">
+        <div className="mx-auto flex max-w-[1100px] flex-wrap items-center justify-between gap-6">
+          <p className="text-sm font-bold text-[#5E8880]">
+            &copy; 2026 START Munich &middot; Road to START Hack
+          </p>
+          <nav className="flex flex-wrap gap-6">
+            <a
+              href="https://www.startmunich.de/legal-notice"
+              target="_blank"
+              rel="noopener"
+              className="text-sm font-bold text-[#8FB6AD] no-underline transition hover:text-[#34e1b8]"
+            >
               Legal Notice
             </a>
-            <a href="https://www.startmunich.de/privacy-policy" target="_blank" rel="noopener">
+            <a
+              href="https://www.startmunich.de/privacy-policy"
+              target="_blank"
+              rel="noopener"
+              className="text-sm font-bold text-[#8FB6AD] no-underline transition hover:text-[#34e1b8]"
+            >
               Privacy Policy
             </a>
-            <a href="https://www.startmunich.de" target="_blank" rel="noopener">
+            <a
+              href="https://www.startmunich.de"
+              target="_blank"
+              rel="noopener"
+              className="text-sm font-bold text-[#8FB6AD] no-underline transition hover:text-[#34e1b8]"
+            >
               START Munich
             </a>
           </nav>
