@@ -1,16 +1,8 @@
-import { readFileSync } from 'fs';
 import type { Metadata } from 'next';
-import { join } from 'path';
 
 import BrevoForm from './BrevoForm';
 import HeroVideo from './HeroVideo';
-import NavBar from './NavBar';
 import RotatingJourney from './RotatingJourney';
-
-const START_HACK_LOGO = readFileSync(
-  join(process.cwd(), 'public', 'eventpage', 'rtsh', 'logo-white.svg'),
-  'utf-8',
-);
 
 export const metadata: Metadata = {
   title: 'Join the Waitlist for Road to START Hack 2026',
@@ -172,9 +164,6 @@ export default function RtshPage() {
           }
         }
       `}</style>
-
-      {/* NAV */}
-      <NavBar logoSvg={START_HACK_LOGO} />
 
       <main id="top" className="bg-[#0c2724] text-[#e4f3ee]">
         {/* HERO */}
