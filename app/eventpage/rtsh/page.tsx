@@ -2,7 +2,13 @@ import { readFileSync } from 'fs';
 import type { Metadata } from 'next';
 import { join } from 'path';
 
+import BrevoForm from './BrevoForm';
 import RotatingJourney from './RotatingJourney';
+
+const START_HACK_LOGO = readFileSync(
+  join(process.cwd(), 'public', 'eventpage', 'rtsh', 'logo-white.svg'),
+  'utf-8',
+);
 
 export const metadata: Metadata = {
   title: 'Join the Waitlist for Road to START Hack 2026',
@@ -15,40 +21,103 @@ export const metadata: Metadata = {
     description:
       'From hello world to hello users in 24 hours. 250 builders, one weekend at TU München. Join the 2026 waitlist.',
     type: 'website',
+    images: [
+      {
+        url: '/eventpage/rtsh/og-image.jpg',
+        width: 1200,
+        height: 800,
+        alt: 'Road to START Hack 2026 — 24 hours from idea to demo',
+      },
+    ],
   },
 };
-
-const LUMA_URL = 'https://lu.ma/';
-
-const POLYGON_SVG = readFileSync(
-  join(process.cwd(), 'public', 'eventpage', 'rtsh', 'polygon.svg'),
-  'utf-8',
-);
-
-const START_LOGO_SVG = readFileSync(join(process.cwd(), 'public', 'startlogo.svg'), 'utf-8');
 
 export default function RtshPage() {
   return (
     <>
       <style>{`
+        :root {
+          --maledives: #34e1b8;
+          --ivy: #289e90;
+          --teekay: #1b5a68;
+          --binary: #144146;
+          --batwing: #0c2724;
+          --white: #ffffff;
+          --ink: #e4f3ee;
+          --muted: #8fb6ad;
+          --faint: #5e8880;
+        }
         html { scroll-behavior: smooth; }
-        .hero-polygon {
-          position: absolute; top: -160px; right: -200px;
-          width: min(58vw, 660px); height: auto;
-          opacity: .5; z-index: 0; pointer-events: none;
+
+        .btn-primary {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          min-height: 3rem;
+          border-radius: 9999px;
+          padding: 0.72rem 1.6rem;
+          background: var(--maledives);
+          color: var(--batwing);
+          font-size: 0.9rem;
+          font-weight: 800;
+          letter-spacing: 0.02em;
+          box-shadow: 0 10px 30px -10px rgba(52, 225, 184, 0.5);
+          transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
         }
-        @media (max-width: 820px) {
-          .hero-polygon { width: 80vw; top: -100px; right: -220px; opacity: .35; }
+        .btn-primary:hover {
+          transform: translateY(-2px);
+          background: #4bf0c6;
+          box-shadow: 0 16px 40px -12px rgba(52, 225, 184, 0.7);
         }
+
+        .chip {
+          display: inline-flex;
+          align-items: center;
+          border-radius: 9999px;
+          border: 1px solid rgba(52, 225, 184, 0.32);
+          background: rgba(52, 225, 184, 0.12);
+          padding: 0.5rem 1.1rem;
+          font-size: 0.82rem;
+          font-weight: 800;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          color: var(--maledives);
+        }
+
+        .kicker {
+          font-size: 0.74rem;
+          font-weight: 800;
+          letter-spacing: 0.24em;
+          text-transform: uppercase;
+          color: var(--maledives);
+        }
+
+        .h2 {
+          margin-top: 0.8rem;
+          font-size: clamp(1.9rem, 4vw, 2.8rem);
+          font-weight: 800;
+          line-height: 1.1;
+          letter-spacing: -0.02em;
+          color: var(--maledives);
+        }
+
         .jgap {
-          position: relative; display: inline-block;
-          width: 1.7em; height: .14em; top: -.16em;
-          background: rgba(52,225,184,.32); border-radius: 3px;
-          overflow: hidden; flex: 0 0 auto;
+          position: relative;
+          display: inline-block;
+          width: 1.7em;
+          height: 0.14em;
+          top: -0.16em;
+          background: rgba(52, 225, 184, 0.32);
+          border-radius: 3px;
+          overflow: hidden;
+          flex: 0 0 auto;
         }
         .jgap::after {
-          content: ""; position: absolute; inset: 0;
-          background: #34e1b8;
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: var(--maledives);
           transform: translateX(-101%);
           animation: trace 3s ease-in-out infinite;
         }
@@ -59,16 +128,21 @@ export default function RtshPage() {
           100% { transform: translateX(101%); }
         }
         .swap-out { opacity: 0; transform: translateY(6px); }
+
         .partner-skel::after {
-          content: ""; position: absolute; inset: 0;
-          background: linear-gradient(90deg, transparent, rgba(52,225,184,.10), transparent);
-          transform: translateX(-100%); animation: shimmer 2.2s infinite;
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(90deg, transparent, rgba(52, 225, 184, 0.1), transparent);
+          transform: translateX(-100%);
+          animation: shimmer 2.2s infinite;
         }
         .partner-skel-eco::after {
-          background: linear-gradient(90deg, transparent, rgba(40,158,144,.18), transparent);
+          background: linear-gradient(90deg, transparent, rgba(40, 158, 144, 0.18), transparent);
         }
         @keyframes shimmer { 100% { transform: translateX(100%); } }
         @keyframes blink { 50% { opacity: 0; } }
+
         @media (prefers-reduced-motion: reduce) {
           *, *::before, *::after {
             animation-duration: 0.01ms !important;
@@ -79,66 +153,62 @@ export default function RtshPage() {
       `}</style>
 
       {/* NAV */}
-      <header className="sticky top-0 z-50 border-b border-[#34e1b8]/10 bg-[#0c2724]/70 backdrop-blur-xl">
+      <header className="border-[var(--maledives)]/10 bg-[var(--batwing)]/70 sticky top-0 z-50 border-b backdrop-blur-xl">
         <div className="mx-auto flex h-[70px] max-w-[1100px] items-center justify-between px-5 sm:px-8 lg:px-12">
-          <a href="#top" aria-label="START Munich, home" className="flex items-center">
+          <a href="#top" aria-label="START Hack, home" className="flex items-center">
             <div
-              className="h-[30px] w-auto [&_svg]:h-full [&_svg]:w-auto"
-              dangerouslySetInnerHTML={{ __html: START_LOGO_SVG }}
+              className="h-[26px] w-auto [&_svg]:h-full [&_svg]:w-auto"
+              dangerouslySetInnerHTML={{ __html: START_HACK_LOGO }}
             />
           </a>
-          <a
-            href={LUMA_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex min-h-12 items-center justify-center gap-2 rounded bg-[#34e1b8] px-6 py-3 text-sm font-black tracking-wide text-[#0c2724] shadow-[0_10px_30px_-10px_rgba(52,225,184,.55)] transition hover:-translate-y-0.5 hover:bg-[#4bf0c6] hover:shadow-[0_16px_40px_-12px_rgba(52,225,184,.7)]"
-          >
-            Join the waitlist!
+          <a href="#waitlist" className="btn-primary">
+            Join the waitlist
           </a>
         </div>
       </header>
 
-      <main id="top" className="bg-[#0c2724] text-[#E4F3EE]">
+      <main id="top" className="bg-[var(--batwing)] text-[var(--ink)]">
         {/* HERO */}
-        <section className="relative overflow-hidden px-5 pb-11 pt-[82px] sm:px-8 lg:px-12">
-          <div
-            className="hero-polygon"
-            dangerouslySetInnerHTML={{ __html: POLYGON_SVG }}
+        <section className="relative flex min-h-[92svh] flex-col justify-center overflow-hidden px-5 pb-10 pt-32 sm:px-8 lg:px-12">
+          <video
+            className="absolute inset-0 h-full w-full object-cover"
+            src="/eventpage/rtsh/green-video.mp4"
+            poster="/eventpage/rtsh/og-image.jpg"
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="metadata"
             aria-hidden="true"
           />
-          <div className="relative z-10 mx-auto max-w-[1100px]">
-            <span className="inline-flex items-center rounded-full border border-[rgba(52,225,184,.32)] bg-[rgba(52,225,184,.12)] px-[18px] py-[9px] text-[0.86rem] font-black tracking-[0.1em] text-[#34e1b8]">
-              Road to START Hack 2026
-            </span>
-            <h1 className="mt-4 max-w-[15ch] text-[clamp(2.7rem,7vw,5rem)] font-black leading-none tracking-tight">
-              From <span className="text-[#34e1b8]">hello world</span> to{' '}
-              <span className="text-[#E4F3EE]">hello users</span>.
+          <div className="from-[var(--batwing)]/85 via-[var(--batwing)]/50 absolute inset-0 bg-gradient-to-b to-[var(--batwing)]" />
+
+          <div className="relative z-10 mx-auto w-full max-w-[1100px]">
+            <span className="chip">Road to START Hack 2026</span>
+            <h1 className="mt-5 max-w-[15ch] text-[clamp(2.7rem,7vw,5rem)] font-black leading-none tracking-tight">
+              From&nbsp;<span className="text-[var(--maledives)]">hello world</span> to{' '}
+              <span className="text-[var(--ink)]">hello users</span>.
             </h1>
-            <p className="mt-[22px] max-w-[46ch] text-lg font-medium leading-relaxed text-[#8FB6AD]">
+            <p className="mt-[22px] max-w-[46ch] text-lg font-medium leading-relaxed text-[var(--muted)]">
               Munich&apos;s most entrepreneurial hackathon is back. 250 builders, one weekend, real
               challenges from real startups,{' '}
-              <em className="text-[#E4F3EE]">21–22 November 2026 at the TUM Audimax.</em>
+              <em className="text-[var(--ink)]">21–22 November 2026 at the TUM Audimax.</em>
             </p>
 
             <RotatingJourney />
 
             <div className="mt-[34px] flex flex-wrap items-center gap-5">
-              <a
-                href={LUMA_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded bg-[#34e1b8] px-6 py-3 text-sm font-black tracking-wide text-[#0c2724] shadow-[0_10px_30px_-10px_rgba(52,225,184,.55)] transition hover:-translate-y-0.5 hover:bg-[#4bf0c6] hover:shadow-[0_16px_40px_-12px_rgba(52,225,184,.7)]"
-              >
+              <a href="#waitlist" className="btn-primary">
                 Join the waitlist <span aria-hidden="true">&rarr;</span>
               </a>
-              <p className="max-w-[34ch] text-sm font-medium text-[#5E8880]">
-                250 spots. The waitlist opens on Luma. Join now to be first in line.
+              <p className="max-w-[34ch] text-sm font-medium text-[var(--faint)]">
+                250 spots. Fill in your details below to be first in line.
               </p>
             </div>
           </div>
 
           {/* FACTS */}
-          <div className="mx-auto mt-14 max-w-[1100px] border-y border-[#34e1b8]/10">
+          <div className="border-[var(--maledives)]/10 relative z-10 mx-auto mt-16 w-full max-w-[1100px] border-t">
             <div className="grid grid-cols-2 sm:grid-cols-4">
               {[
                 { k: 'When', v: '21–22 Nov', sub: '2026 · Sat–Sun' },
@@ -149,15 +219,15 @@ export default function RtshPage() {
                 <div
                   key={f.k}
                   className={`py-7 pl-5 pr-4 sm:px-6 sm:py-7 ${
-                    i < 3 ? 'border-b border-[#34e1b8]/10 sm:border-b-0 sm:border-r' : ''
+                    i < 3 ? 'border-[var(--maledives)]/10 border-b sm:border-b-0 sm:border-r' : ''
                   }`}
                 >
-                  <p className="text-[0.68rem] font-bold uppercase tracking-[0.2em] text-[#5E8880]">
+                  <p className="text-[0.68rem] font-bold uppercase tracking-[0.2em] text-[var(--faint)]">
                     {f.k}
                   </p>
-                  <p className="mt-2.5 text-xl font-black leading-tight text-[#34e1b8]">
+                  <p className="mt-2.5 text-xl font-black leading-tight text-[var(--maledives)]">
                     {f.v}
-                    <small className="mt-0.5 block text-sm font-medium text-[#8FB6AD]">
+                    <small className="mt-0.5 block text-sm font-medium text-[var(--muted)]">
                       {f.sub}
                     </small>
                   </p>
@@ -171,13 +241,9 @@ export default function RtshPage() {
         <section className="px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
           <div className="mx-auto max-w-[1100px]">
             <div className="max-w-[62ch]">
-              <span className="text-[0.74rem] font-bold uppercase tracking-[0.24em] text-[#34e1b8]">
-                Road to START Hack 2026
-              </span>
-              <h2 className="mt-3 text-[clamp(1.9rem,4vw,2.8rem)] font-black leading-tight tracking-tight text-[#34e1b8]">
-                Turn a simple idea into something people can click.
-              </h2>
-              <p className="mt-[18px] max-w-[52ch] text-lg font-medium leading-relaxed text-[#8FB6AD]">
+              <span className="kicker">Road to START Hack 2026</span>
+              <h2 className="h2">Turn a simple idea into something people can click.</h2>
+              <p className="mt-[18px] max-w-[52ch] text-lg font-medium leading-relaxed text-[var(--muted)]">
                 Road to START Hack brings 250 innovators from all fields and backgrounds together to
                 solve real-world challenges in just 24 hours. We help you keep the scope tight,
                 mentors jump in when you are stuck, and the room stays friendly and focused. You
@@ -190,21 +256,21 @@ export default function RtshPage() {
         </section>
 
         {/* STATS */}
-        <section className="px-5 py-20 sm:px-8 lg:px-12">
+        <section className="px-5 pb-20 sm:px-8 lg:px-12">
           <div className="mx-auto grid max-w-[1100px] gap-4 sm:grid-cols-3">
             {[
               { big: '24h', lbl: 'to build' },
               { big: '250', lbl: 'builders' },
-              { big: '1', lbl: 'demo you&apos;re proud of' },
+              { big: '1', lbl: 'demo you\u2019re proud of' },
             ].map((s) => (
               <div
                 key={s.lbl}
-                className="rounded border border-[rgba(52,225,184,.16)] bg-[#144146] p-8 text-center shadow-2xl shadow-black/20"
+                className="border-[var(--maledives)]/15 rounded-2xl border bg-[var(--binary)] p-8 text-center shadow-2xl shadow-black/20"
               >
-                <div className="text-[clamp(2.6rem,6.5vw,4rem)] font-black leading-none tracking-tight text-[#34e1b8]">
+                <div className="text-[clamp(2.6rem,6.5vw,4rem)] font-black leading-none tracking-tight text-[var(--maledives)]">
                   {s.big}
                 </div>
-                <div className="mt-3 text-xs font-bold uppercase tracking-[0.1em] text-[#8FB6AD]">
+                <div className="mt-3 text-xs font-bold uppercase tracking-[0.1em] text-[var(--muted)]">
                   {s.lbl}
                 </div>
               </div>
@@ -212,57 +278,54 @@ export default function RtshPage() {
           </div>
         </section>
 
-        {/* PARTNERS */}
-        <section className="px-5 py-20 sm:px-8 lg:px-12">
+        {/* CHALLENGE PARTNERS */}
+        <section className="px-5 pb-20 sm:px-8 lg:px-12">
           <div className="mx-auto max-w-[1100px]">
             <div className="flex flex-wrap items-baseline justify-between gap-3">
               <div>
-                <span className="text-[0.74rem] font-bold uppercase tracking-[0.24em] text-[#34e1b8]">
-                  Challenge partners
-                </span>
-                <h2 className="mt-3 text-[clamp(1.9rem,4vw,2.8rem)] font-black leading-tight tracking-tight text-[#34e1b8]">
-                  Who you&apos;ll build with
-                </h2>
+                <span className="kicker">Challenge partners</span>
+                <h2 className="h2">Who you&apos;ll build with</h2>
               </div>
-              <p className="text-xs font-bold text-[#5E8880]">
+              <p className="text-xs font-bold text-[var(--faint)]">
                 signing partners
                 <span
-                  className="text-[#34e1b8]"
+                  className="text-[var(--maledives)]"
                   style={{ animation: 'blink 1.2s steps(1) infinite' }}
                 >
                   _
                 </span>
               </p>
             </div>
-            <div className="mt-9 grid grid-cols-2 gap-px overflow-hidden rounded border border-[#34e1b8]/15 bg-[#34e1b8]/15 sm:grid-cols-3 md:grid-cols-5">
+            <div className="border-[var(--maledives)]/15 bg-[var(--maledives)]/15 mt-9 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border sm:grid-cols-3 md:grid-cols-5">
               {[...Array(5)].map((_, i) => (
                 <div
                   key={i}
-                  className="partner-skel relative flex min-h-[92px] items-center justify-center overflow-hidden bg-[#144146] p-7 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-[#5E8880]"
+                  className="partner-skel relative flex min-h-[92px] items-center justify-center overflow-hidden bg-[var(--binary)] p-7 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-[var(--faint)]"
                 >
                   coming soon
                 </div>
               ))}
             </div>
-            <p className="mt-7 max-w-[56ch] text-base font-medium text-[#8FB6AD]">
+            <p className="mt-7 max-w-[56ch] text-base font-medium text-[var(--muted)]">
               We&apos;re locking in our 2026 challenge partners now, real startups with real
-              problems to solve. <span className="font-bold text-[#34e1b8]">Join the waitlist</span>{' '}
-              to hear who first.
+              problems to solve.{' '}
+              <span className="font-bold text-[var(--maledives)]">Join the waitlist</span> to hear
+              who first.
             </p>
           </div>
         </section>
 
         {/* ECOSYSTEM PARTNERS */}
-        <section className="px-5 pb-20 pt-3 sm:px-8 lg:px-12">
+        <section className="px-5 pb-20 sm:px-8 lg:px-12">
           <div className="mx-auto max-w-[1100px]">
-            <h2 className="text-[clamp(1.9rem,4vw,2.8rem)] font-black leading-tight tracking-tight text-[#289e90]">
+            <h2 className="text-[clamp(1.9rem,4vw,2.8rem)] font-black leading-tight tracking-tight text-[var(--ivy)]">
               Ecosystem Partners
             </h2>
-            <div className="mt-9 grid grid-cols-2 gap-px overflow-hidden rounded border border-[rgba(40,158,144,.4)] bg-[rgba(40,158,144,.4)] md:grid-cols-4">
+            <div className="border-[var(--ivy)]/40 bg-[var(--ivy)]/40 mt-9 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border md:grid-cols-4">
               {[...Array(4)].map((_, i) => (
                 <div
                   key={i}
-                  className="partner-skel partner-skel-eco relative flex min-h-[92px] items-center justify-center overflow-hidden bg-[#1b5a68] p-7 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-[#5E8880]"
+                  className="partner-skel partner-skel-eco relative flex min-h-[92px] items-center justify-center overflow-hidden bg-[var(--teekay)] p-7 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-[var(--faint)]"
                 >
                   coming soon
                 </div>
@@ -272,17 +335,15 @@ export default function RtshPage() {
         </section>
 
         {/* FAQ */}
-        <section className="px-5 py-20 sm:px-8 lg:px-12">
+        <section className="px-5 pb-20 sm:px-8 lg:px-12">
           <div className="mx-auto max-w-4xl">
             <div className="text-center">
-              <span className="text-[0.74rem] font-bold uppercase tracking-[0.24em] text-[#34e1b8]">
-                Good to know
-              </span>
-              <h2 className="mt-3 text-[clamp(1.9rem,4vw,2.8rem)] font-black leading-tight tracking-tight text-[#34e1b8]">
+              <span className="kicker">Good to know</span>
+              <h2 className="text-[clamp(1.9rem,4vw,2.8rem)] font-black leading-tight tracking-tight text-[var(--maledives)]">
                 Frequently Asked Questions
               </h2>
             </div>
-            <div className="mt-10 divide-y divide-[#34e1b8]/15 rounded border border-[#34e1b8]/15">
+            <div className="divide-[var(--maledives)]/15 border-[var(--maledives)]/15 mt-10 divide-y rounded-2xl border">
               {[
                 {
                   q: "What's the waitlist?",
@@ -314,27 +375,32 @@ export default function RtshPage() {
                 },
               ].map((faq, i) => (
                 <details key={i} className="group" open={i === 0}>
-                  <summary className="flex cursor-pointer list-none items-start gap-5 py-6 text-left">
-                    <span className="mt-1 text-xl font-bold text-[#34e1b8] transition group-open:rotate-45">
+                  <summary className="flex cursor-pointer list-none items-start gap-5 px-7 py-6 text-left">
+                    <span className="mt-1 text-xl font-bold text-[var(--maledives)] transition group-open:rotate-45">
                       +
                     </span>
-                    <span className="text-lg font-black leading-tight text-[#E4F3EE]">{faq.q}</span>
+                    <span className="text-lg font-black leading-tight text-[var(--ink)]">
+                      {faq.q}
+                    </span>
                   </summary>
-                  <div className="pb-6 pl-10">
+                  <div className="pb-6 pl-[4.6rem] pr-7">
                     {faq.a.includes('@') ? (
-                      <p className="max-w-[66ch] text-base font-medium leading-relaxed text-[#8FB6AD]">
+                      <p className="max-w-[66ch] text-base font-medium leading-relaxed text-[var(--muted)]">
                         Talk to us any time:{' '}
-                        <a href="mailto:s.nalliboyana@startmunich.de" className="text-[#34e1b8]">
+                        <a
+                          href="mailto:s.nalliboyana@startmunich.de"
+                          className="text-[var(--maledives)]"
+                        >
                           s.nalliboyana@startmunich.de
                         </a>{' '}
                         or{' '}
-                        <a href="mailto:s.park@startmunich.de" className="text-[#34e1b8]">
+                        <a href="mailto:s.park@startmunich.de" className="text-[var(--maledives)]">
                           s.park@startmunich.de
                         </a>
                         .
                       </p>
                     ) : (
-                      <p className="max-w-[66ch] text-base font-medium leading-relaxed text-[#8FB6AD]">
+                      <p className="max-w-[66ch] text-base font-medium leading-relaxed text-[var(--muted)]">
                         {faq.a}
                       </p>
                     )}
@@ -345,45 +411,38 @@ export default function RtshPage() {
           </div>
         </section>
 
-        {/* FINAL CTA */}
-        <section className="px-5 pb-20 sm:px-8 lg:px-12">
-          <div className="mx-auto max-w-[1100px] rounded-3xl border border-[rgba(52,225,184,.16)] bg-gradient-to-br from-[#1b5a68] to-[#144146] px-11 py-16 text-center shadow-2xl shadow-black/20">
-            <span className="text-[0.74rem] font-bold uppercase tracking-[0.24em] text-[#34e1b8]">
-              Limited to 250 spots
-            </span>
+        {/* WAITLIST FORM */}
+        <section id="waitlist" className="scroll-mt-24 px-5 pb-24 sm:px-8 lg:px-12">
+          <div className="border-[var(--maledives)]/16 mx-auto max-w-[1100px] rounded-3xl border bg-gradient-to-br from-[var(--teekay)] to-[var(--binary)] px-11 py-16 text-center shadow-2xl shadow-black/20">
+            <span className="kicker">Limited to 250 spots</span>
             <div
-              className="mt-2 inline-flex flex-wrap items-baseline justify-center gap-[0.3em] text-lg font-bold text-[#8FB6AD]"
+              className="mt-2 inline-flex flex-wrap items-baseline justify-center gap-[0.3em] text-lg font-bold text-[var(--muted)]"
               aria-hidden="true"
             >
               <span>from</span>
-              <span className="text-[#E4F3EE]">blank page</span>
-              <span className="relative inline-block h-[0.14em] w-[2.4em] -translate-y-[0.2em] rounded bg-[#34e1b8]" />
+              <span className="text-[var(--ink)]">blank page</span>
+              <span className="relative inline-block h-[0.14em] w-[2.4em] -translate-y-[0.2em] rounded bg-[var(--maledives)]" />
               <span>to</span>
-              <span className="text-[#34e1b8]">first users</span>
+              <span className="text-[var(--maledives)]">first users</span>
             </div>
-            <h2 className="mt-1.5 text-[clamp(2rem,4.4vw,3rem)] font-black leading-tight tracking-tight text-[#34e1b8]">
+            <h2 className="mt-1.5 text-[clamp(2rem,4.4vw,3rem)] font-black leading-tight tracking-tight text-[var(--maledives)]">
               Save your spot before it&apos;s gone
             </h2>
-            <p className="mx-auto mt-4 max-w-[44ch] text-lg font-medium text-[#8FB6AD]">
-              The waitlist gets first pick. Join now, and we&apos;ll bring you in the moment
+            <p className="mx-auto mt-4 max-w-[44ch] text-lg font-medium text-[var(--muted)]">
+              The waitlist gets first pick. Register now, and we&apos;ll bring you in the moment
               applications open.
             </p>
-            <a
-              href={LUMA_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mx-auto mt-8 inline-flex min-h-12 items-center justify-center gap-2 rounded bg-[#34e1b8] px-6 py-3 text-sm font-black tracking-wide text-[#0c2724] shadow-[0_10px_30px_-10px_rgba(52,225,184,.55)] transition hover:-translate-y-0.5 hover:bg-[#4bf0c6] hover:shadow-[0_16px_40px_-12px_rgba(52,225,184,.7)]"
-            >
-              Join the waitlist <span aria-hidden="true">&rarr;</span>
-            </a>
+            <div className="mt-10 flex justify-center">
+              <BrevoForm />
+            </div>
           </div>
         </section>
       </main>
 
       {/* FOOTER */}
-      <footer className="border-t border-[rgba(52,225,184,.16)] bg-[#0c2724] px-5 py-11 sm:px-8 lg:px-12">
+      <footer className="border-[var(--maledives)]/16 border-t bg-[var(--batwing)] px-5 py-11 sm:px-8 lg:px-12">
         <div className="mx-auto flex max-w-[1100px] flex-wrap items-center justify-between gap-6">
-          <p className="text-sm font-bold text-[#5E8880]">
+          <p className="text-sm font-bold text-[var(--faint)]">
             &copy; 2026 START Munich &middot; Road to START Hack
           </p>
           <nav className="flex flex-wrap gap-6">
@@ -391,7 +450,7 @@ export default function RtshPage() {
               href="https://www.startmunich.de/legal-notice"
               target="_blank"
               rel="noopener"
-              className="text-sm font-bold text-[#8FB6AD] no-underline transition hover:text-[#34e1b8]"
+              className="text-sm font-bold text-[var(--muted)] no-underline transition hover:text-[var(--maledives)]"
             >
               Legal Notice
             </a>
@@ -399,7 +458,7 @@ export default function RtshPage() {
               href="https://www.startmunich.de/privacy-policy"
               target="_blank"
               rel="noopener"
-              className="text-sm font-bold text-[#8FB6AD] no-underline transition hover:text-[#34e1b8]"
+              className="text-sm font-bold text-[var(--muted)] no-underline transition hover:text-[var(--maledives)]"
             >
               Privacy Policy
             </a>
@@ -407,7 +466,7 @@ export default function RtshPage() {
               href="https://www.startmunich.de"
               target="_blank"
               rel="noopener"
-              className="text-sm font-bold text-[#8FB6AD] no-underline transition hover:text-[#34e1b8]"
+              className="text-sm font-bold text-[var(--muted)] no-underline transition hover:text-[var(--maledives)]"
             >
               START Munich
             </a>
