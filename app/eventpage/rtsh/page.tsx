@@ -3,6 +3,8 @@ import type { Metadata } from 'next';
 import { join } from 'path';
 
 import BrevoForm from './BrevoForm';
+import HeroVideo from './HeroVideo';
+import NavBar from './NavBar';
 import RotatingJourney from './RotatingJourney';
 
 const START_HACK_LOGO = readFileSync(
@@ -45,9 +47,27 @@ export default function RtshPage() {
           --white: #ffffff;
           --ink: #e4f3ee;
           --muted: #8fb6ad;
-          --faint: #5e8880;
+          --faint: #69988f;
         }
         html { scroll-behavior: smooth; }
+
+        :focus-visible {
+          outline: 2px solid var(--maledives);
+          outline-offset: 3px;
+          border-radius: 6px;
+        }
+
+        .hero-scrim {
+          background:
+            radial-gradient(120% 75% at 50% 45%, rgba(10, 26, 24, 0.88) 0%, transparent 62%),
+            linear-gradient(
+              180deg,
+              rgba(12, 39, 36, 0.94) 0%,
+              rgba(12, 39, 36, 0.78) 42%,
+              rgba(12, 39, 36, 0.88) 68%,
+              var(--batwing) 100%
+            );
+        }
 
         .btn-primary {
           display: inline-flex;
@@ -62,6 +82,7 @@ export default function RtshPage() {
           font-size: 0.9rem;
           font-weight: 800;
           letter-spacing: 0.02em;
+          white-space: nowrap;
           box-shadow: 0 10px 30px -10px rgba(52, 225, 184, 0.5);
           transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
         }
@@ -153,46 +174,24 @@ export default function RtshPage() {
       `}</style>
 
       {/* NAV */}
-      <header className="border-[var(--maledives)]/10 bg-[var(--batwing)]/70 sticky top-0 z-50 border-b backdrop-blur-xl">
-        <div className="mx-auto flex h-[70px] max-w-[1100px] items-center justify-between px-5 sm:px-8 lg:px-12">
-          <a href="#top" aria-label="START Hack, home" className="flex items-center">
-            <div
-              className="h-[26px] w-auto [&_svg]:h-full [&_svg]:w-auto"
-              dangerouslySetInnerHTML={{ __html: START_HACK_LOGO }}
-            />
-          </a>
-          <a href="#waitlist" className="btn-primary">
-            Join the waitlist
-          </a>
-        </div>
-      </header>
+      <NavBar logoSvg={START_HACK_LOGO} />
 
-      <main id="top" className="bg-[var(--batwing)] text-[var(--ink)]">
+      <main id="top" className="bg-[#0c2724] text-[#e4f3ee]">
         {/* HERO */}
         <section className="relative flex min-h-[92svh] flex-col justify-center overflow-hidden px-5 pb-10 pt-32 sm:px-8 lg:px-12">
-          <video
-            className="absolute inset-0 h-full w-full object-cover"
-            src="/eventpage/rtsh/green-video.mp4"
-            poster="/eventpage/rtsh/og-image.jpg"
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="metadata"
-            aria-hidden="true"
-          />
-          <div className="from-[var(--batwing)]/85 via-[var(--batwing)]/50 absolute inset-0 bg-gradient-to-b to-[var(--batwing)]" />
+          <HeroVideo src="/eventpage/rtsh/green-video.mp4" poster="/eventpage/rtsh/og-image.jpg" />
+          <div className="hero-scrim absolute inset-0" />
 
           <div className="relative z-10 mx-auto w-full max-w-[1100px]">
             <span className="chip">Road to START Hack 2026</span>
             <h1 className="mt-5 max-w-[15ch] text-[clamp(2.7rem,7vw,5rem)] font-black leading-none tracking-tight">
-              From&nbsp;<span className="text-[var(--maledives)]">hello world</span> to{' '}
-              <span className="text-[var(--ink)]">hello users</span>.
+              From&nbsp;<span className="text-[#34e1b8]">hello world</span> to{' '}
+              <span className="text-[#e4f3ee]">hello users</span>.
             </h1>
-            <p className="mt-[22px] max-w-[46ch] text-lg font-medium leading-relaxed text-[var(--muted)]">
+            <p className="mt-[22px] max-w-[46ch] text-lg font-medium leading-relaxed text-[#8fb6ad]">
               Munich&apos;s most entrepreneurial hackathon is back. 250 builders, one weekend, real
               challenges from real startups,{' '}
-              <em className="text-[var(--ink)]">21–22 November 2026 at the TUM Audimax.</em>
+              <em className="text-[#e4f3ee]">21–22 November 2026 at the TUM Audimax.</em>
             </p>
 
             <RotatingJourney />
@@ -201,14 +200,11 @@ export default function RtshPage() {
               <a href="#waitlist" className="btn-primary">
                 Join the waitlist <span aria-hidden="true">&rarr;</span>
               </a>
-              <p className="max-w-[34ch] text-sm font-medium text-[var(--faint)]">
-                250 spots. Fill in your details below to be first in line.
-              </p>
             </div>
           </div>
 
           {/* FACTS */}
-          <div className="border-[var(--maledives)]/10 relative z-10 mx-auto mt-16 w-full max-w-[1100px] border-t">
+          <div className="relative z-10 mx-auto mt-16 w-full max-w-[1100px] border-t border-[#34e1b8]/10">
             <div className="grid grid-cols-2 sm:grid-cols-4">
               {[
                 { k: 'When', v: '21–22 Nov', sub: '2026 · Sat–Sun' },
@@ -218,16 +214,16 @@ export default function RtshPage() {
               ].map((f, i) => (
                 <div
                   key={f.k}
-                  className={`py-7 pl-5 pr-4 sm:px-6 sm:py-7 ${
-                    i < 3 ? 'border-[var(--maledives)]/10 border-b sm:border-b-0 sm:border-r' : ''
-                  }`}
+                  className={`border-[#34e1b8]/10 py-7 pl-5 pr-4 sm:px-6 sm:py-7 ${
+                    i < 2 ? 'border-b sm:border-b-0' : ''
+                  } ${i < 3 ? 'sm:border-r' : ''}`}
                 >
-                  <p className="text-[0.68rem] font-bold uppercase tracking-[0.2em] text-[var(--faint)]">
+                  <p className="text-[0.68rem] font-bold uppercase tracking-[0.2em] text-[#69988f]">
                     {f.k}
                   </p>
-                  <p className="mt-2.5 text-xl font-black leading-tight text-[var(--maledives)]">
+                  <p className="mt-2.5 text-xl font-black leading-tight text-[#34e1b8]">
                     {f.v}
-                    <small className="mt-0.5 block text-sm font-medium text-[var(--muted)]">
+                    <small className="mt-0.5 block text-sm font-medium text-[#8fb6ad]">
                       {f.sub}
                     </small>
                   </p>
@@ -241,9 +237,8 @@ export default function RtshPage() {
         <section className="px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
           <div className="mx-auto max-w-[1100px]">
             <div className="max-w-[62ch]">
-              <span className="kicker">Road to START Hack 2026</span>
               <h2 className="h2">Turn a simple idea into something people can click.</h2>
-              <p className="mt-[18px] max-w-[52ch] text-lg font-medium leading-relaxed text-[var(--muted)]">
+              <p className="mt-[18px] max-w-[52ch] text-lg font-medium leading-relaxed text-[#8fb6ad]">
                 Road to START Hack brings 250 innovators from all fields and backgrounds together to
                 solve real-world challenges in just 24 hours. We help you keep the scope tight,
                 mentors jump in when you are stuck, and the room stays friendly and focused. You
@@ -265,12 +260,12 @@ export default function RtshPage() {
             ].map((s) => (
               <div
                 key={s.lbl}
-                className="border-[var(--maledives)]/15 rounded-2xl border bg-[var(--binary)] p-8 text-center shadow-2xl shadow-black/20"
+                className="rounded-2xl border border-[#34e1b8]/15 bg-[#144146] p-8 text-center shadow-2xl shadow-black/20"
               >
-                <div className="text-[clamp(2.6rem,6.5vw,4rem)] font-black leading-none tracking-tight text-[var(--maledives)]">
+                <div className="text-[clamp(2.6rem,6.5vw,4rem)] font-black leading-none tracking-tight text-[#34e1b8]">
                   {s.big}
                 </div>
-                <div className="mt-3 text-xs font-bold uppercase tracking-[0.1em] text-[var(--muted)]">
+                <div className="mt-3 text-xs font-bold uppercase tracking-[0.1em] text-[#8fb6ad]">
                   {s.lbl}
                 </div>
               </div>
@@ -281,51 +276,33 @@ export default function RtshPage() {
         {/* CHALLENGE PARTNERS */}
         <section className="px-5 pb-20 sm:px-8 lg:px-12">
           <div className="mx-auto max-w-[1100px]">
-            <div className="flex flex-wrap items-baseline justify-between gap-3">
-              <div>
-                <span className="kicker">Challenge partners</span>
-                <h2 className="h2">Who you&apos;ll build with</h2>
-              </div>
-              <p className="text-xs font-bold text-[var(--faint)]">
-                signing partners
-                <span
-                  className="text-[var(--maledives)]"
-                  style={{ animation: 'blink 1.2s steps(1) infinite' }}
-                >
-                  _
-                </span>
-              </p>
-            </div>
-            <div className="border-[var(--maledives)]/15 bg-[var(--maledives)]/15 mt-9 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border sm:grid-cols-3 md:grid-cols-5">
-              {[...Array(5)].map((_, i) => (
+            <h2 className="text-[clamp(1.9rem,4vw,2.8rem)] font-black leading-tight tracking-tight text-[#289e90]">
+              CHALLENGE Partners
+            </h2>
+            <div className="mt-9 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-[#289e90]/40 bg-[#289e90]/40 md:grid-cols-4">
+              {[...Array(4)].map((_, i) => (
                 <div
                   key={i}
-                  className="partner-skel relative flex min-h-[92px] items-center justify-center overflow-hidden bg-[var(--binary)] p-7 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-[var(--faint)]"
+                  className="partner-skel partner-skel-eco relative flex min-h-[92px] items-center justify-center overflow-hidden bg-[#144146] p-7 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-[#8fb6ad]"
                 >
                   coming soon
                 </div>
               ))}
             </div>
-            <p className="mt-7 max-w-[56ch] text-base font-medium text-[var(--muted)]">
-              We&apos;re locking in our 2026 challenge partners now, real startups with real
-              problems to solve.{' '}
-              <span className="font-bold text-[var(--maledives)]">Join the waitlist</span> to hear
-              who first.
-            </p>
           </div>
         </section>
 
         {/* ECOSYSTEM PARTNERS */}
         <section className="px-5 pb-20 sm:px-8 lg:px-12">
           <div className="mx-auto max-w-[1100px]">
-            <h2 className="text-[clamp(1.9rem,4vw,2.8rem)] font-black leading-tight tracking-tight text-[var(--ivy)]">
+            <h2 className="text-[clamp(1.9rem,4vw,2.8rem)] font-black leading-tight tracking-tight text-[#289e90]">
               Ecosystem Partners
             </h2>
-            <div className="border-[var(--ivy)]/40 bg-[var(--ivy)]/40 mt-9 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border md:grid-cols-4">
+            <div className="mt-9 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-[#289e90]/40 bg-[#289e90]/40 md:grid-cols-4">
               {[...Array(4)].map((_, i) => (
                 <div
                   key={i}
-                  className="partner-skel partner-skel-eco relative flex min-h-[92px] items-center justify-center overflow-hidden bg-[var(--teekay)] p-7 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-[var(--faint)]"
+                  className="partner-skel partner-skel-eco relative flex min-h-[92px] items-center justify-center overflow-hidden bg-[#144146] p-7 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-[#8fb6ad]"
                 >
                   coming soon
                 </div>
@@ -337,13 +314,10 @@ export default function RtshPage() {
         {/* FAQ */}
         <section className="px-5 pb-20 sm:px-8 lg:px-12">
           <div className="mx-auto max-w-4xl">
-            <div className="text-center">
-              <span className="kicker">Good to know</span>
-              <h2 className="text-[clamp(1.9rem,4vw,2.8rem)] font-black leading-tight tracking-tight text-[var(--maledives)]">
-                Frequently Asked Questions
-              </h2>
-            </div>
-            <div className="divide-[var(--maledives)]/15 border-[var(--maledives)]/15 mt-10 divide-y rounded-2xl border">
+            <h2 className="text-[clamp(1.9rem,4vw,2.8rem)] font-black leading-tight tracking-tight text-[#34e1b8]">
+              Frequently Asked Questions
+            </h2>
+            <div className="mt-10 divide-y divide-[#34e1b8]/15 rounded-2xl border border-[#34e1b8]/15">
               {[
                 {
                   q: "What's the waitlist?",
@@ -375,32 +349,27 @@ export default function RtshPage() {
                 },
               ].map((faq, i) => (
                 <details key={i} className="group" open={i === 0}>
-                  <summary className="flex cursor-pointer list-none items-start gap-5 px-7 py-6 text-left">
-                    <span className="mt-1 text-xl font-bold text-[var(--maledives)] transition group-open:rotate-45">
+                  <summary className="flex cursor-pointer list-none items-center gap-5 px-5 py-6 text-left sm:px-7">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center text-center text-xl font-bold leading-none text-[#34e1b8] transition group-open:rotate-45">
                       +
                     </span>
-                    <span className="text-lg font-black leading-tight text-[var(--ink)]">
-                      {faq.q}
-                    </span>
+                    <span className="text-lg font-black leading-tight text-[#e4f3ee]">{faq.q}</span>
                   </summary>
-                  <div className="pb-6 pl-[4.6rem] pr-7">
+                  <div className="pb-6 pl-[3.4rem] pr-5 sm:pl-[4.6rem] sm:pr-7">
                     {faq.a.includes('@') ? (
-                      <p className="max-w-[66ch] text-base font-medium leading-relaxed text-[var(--muted)]">
+                      <p className="max-w-[66ch] text-base font-medium leading-relaxed text-[#8fb6ad]">
                         Talk to us any time:{' '}
-                        <a
-                          href="mailto:s.nalliboyana@startmunich.de"
-                          className="text-[var(--maledives)]"
-                        >
+                        <a href="mailto:s.nalliboyana@startmunich.de" className="text-[#34e1b8]">
                           s.nalliboyana@startmunich.de
                         </a>{' '}
                         or{' '}
-                        <a href="mailto:s.park@startmunich.de" className="text-[var(--maledives)]">
+                        <a href="mailto:s.park@startmunich.de" className="text-[#34e1b8]">
                           s.park@startmunich.de
                         </a>
                         .
                       </p>
                     ) : (
-                      <p className="max-w-[66ch] text-base font-medium leading-relaxed text-[var(--muted)]">
+                      <p className="max-w-[66ch] text-base font-medium leading-relaxed text-[#8fb6ad]">
                         {faq.a}
                       </p>
                     )}
@@ -413,22 +382,12 @@ export default function RtshPage() {
 
         {/* WAITLIST FORM */}
         <section id="waitlist" className="scroll-mt-24 px-5 pb-24 sm:px-8 lg:px-12">
-          <div className="border-[var(--maledives)]/16 mx-auto max-w-[1100px] rounded-3xl border bg-gradient-to-br from-[var(--teekay)] to-[var(--binary)] px-11 py-16 text-center shadow-2xl shadow-black/20">
+          <div className="mx-auto max-w-[1100px] rounded-3xl border border-[#34e1b8]/15 bg-gradient-to-br from-[#1b5a68] to-[#144146] px-6 py-12 text-center shadow-2xl shadow-black/20 sm:px-12 sm:py-16">
             <span className="kicker">Limited to 250 spots</span>
-            <div
-              className="mt-2 inline-flex flex-wrap items-baseline justify-center gap-[0.3em] text-lg font-bold text-[var(--muted)]"
-              aria-hidden="true"
-            >
-              <span>from</span>
-              <span className="text-[var(--ink)]">blank page</span>
-              <span className="relative inline-block h-[0.14em] w-[2.4em] -translate-y-[0.2em] rounded bg-[var(--maledives)]" />
-              <span>to</span>
-              <span className="text-[var(--maledives)]">first users</span>
-            </div>
-            <h2 className="mt-1.5 text-[clamp(2rem,4.4vw,3rem)] font-black leading-tight tracking-tight text-[var(--maledives)]">
+            <h2 className="text-[clamp(1.9rem,4vw,2.8rem)] font-black leading-tight tracking-tight text-[#34e1b8]">
               Save your spot before it&apos;s gone
             </h2>
-            <p className="mx-auto mt-4 max-w-[44ch] text-lg font-medium text-[var(--muted)]">
+            <p className="mx-auto mt-4 max-w-[44ch] text-lg font-medium text-[#8fb6ad]">
               The waitlist gets first pick. Register now, and we&apos;ll bring you in the moment
               applications open.
             </p>
@@ -440,9 +399,9 @@ export default function RtshPage() {
       </main>
 
       {/* FOOTER */}
-      <footer className="border-[var(--maledives)]/16 border-t bg-[var(--batwing)] px-5 py-11 sm:px-8 lg:px-12">
+      <footer className="border-t border-[#34e1b8]/15 bg-[#0c2724] px-5 py-11 sm:px-8 lg:px-12">
         <div className="mx-auto flex max-w-[1100px] flex-wrap items-center justify-between gap-6">
-          <p className="text-sm font-bold text-[var(--faint)]">
+          <p className="text-sm font-bold text-[#69988f]">
             &copy; 2026 START Munich &middot; Road to START Hack
           </p>
           <nav className="flex flex-wrap gap-6">
@@ -450,7 +409,7 @@ export default function RtshPage() {
               href="https://www.startmunich.de/legal-notice"
               target="_blank"
               rel="noopener"
-              className="text-sm font-bold text-[var(--muted)] no-underline transition hover:text-[var(--maledives)]"
+              className="inline-flex min-h-11 items-center text-sm font-bold text-[#8fb6ad] no-underline transition hover:text-[#34e1b8]"
             >
               Legal Notice
             </a>
@@ -458,7 +417,7 @@ export default function RtshPage() {
               href="https://www.startmunich.de/privacy-policy"
               target="_blank"
               rel="noopener"
-              className="text-sm font-bold text-[var(--muted)] no-underline transition hover:text-[var(--maledives)]"
+              className="inline-flex min-h-11 items-center text-sm font-bold text-[#8fb6ad] no-underline transition hover:text-[#34e1b8]"
             >
               Privacy Policy
             </a>
@@ -466,7 +425,7 @@ export default function RtshPage() {
               href="https://www.startmunich.de"
               target="_blank"
               rel="noopener"
-              className="text-sm font-bold text-[var(--muted)] no-underline transition hover:text-[var(--maledives)]"
+              className="inline-flex min-h-11 items-center text-sm font-bold text-[#8fb6ad] no-underline transition hover:text-[#34e1b8]"
             >
               START Munich
             </a>
