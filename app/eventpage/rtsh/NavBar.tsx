@@ -33,8 +33,8 @@ export default function NavBar({ logoSvg }: NavBarProps) {
 
   return (
     <header
-      className={`sticky top-0 z-50 border-b border-[#34e1b8]/10 bg-[#0c2724]/70 backdrop-blur-xl transition-[transform,visibility] duration-300 ${
-        visible ? 'visible translate-y-0' : 'invisible -translate-y-full'
+      className={`fixed inset-x-0 top-0 z-50 border-b border-[#34e1b8]/10 bg-[#0c2724]/70 backdrop-blur-xl transition-[transform,visibility] duration-300 ${
+        visible ? 'visible translate-y-0' : 'pointer-events-none invisible -translate-y-full'
       }`}
       aria-hidden={!visible}
     >
