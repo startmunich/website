@@ -34,7 +34,7 @@
     "lucide-react": "^0.577.0",
     "motion": "^12.43.0",
     "next": "^15.5.25",
-    "posthog-js": "^1.422.5",
+    "posthog-js": "^1.424.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-fast-marquee": "^1.6.5",
@@ -44,7 +44,7 @@
   "devDependencies": {
     "@commitlint/cli": "^21.2.2",
     "@commitlint/config-conventional": "^21.2.2",
-    "@eslint/eslintrc": "^3.3.6",
+    "@eslint/eslintrc": "^3.3.7",
     "@playwright/test": "^1.62.1",
     "@types/node": "^24.13.3",
     "@types/react": "^18.3.31",
