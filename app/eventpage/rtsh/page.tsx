@@ -75,12 +75,11 @@ export default function RtshPage() {
           font-weight: 800;
           letter-spacing: 0.02em;
           white-space: nowrap;
-          transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+          transition: transform 0.18s ease, background 0.18s ease;
         }
         .btn-primary:hover {
           transform: translateY(-2px);
           background: #4bf0c6;
-          box-shadow: 0 16px 40px -12px rgba(52, 225, 184, 0.7);
         }
 
         .chip {
@@ -140,20 +139,6 @@ export default function RtshPage() {
           100% { transform: translateX(101%); }
         }
         .swap-out { opacity: 0; transform: translateY(6px); }
-
-        /* .partner-skel::after {
-          content: "";
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(90deg, transparent, rgba(52, 225, 184, 0.1), transparent);
-          transform: translateX(-100%);
-          animation: shimmer 2.2s infinite;
-        }
-        .partner-skel-eco::after {
-          background: linear-gradient(90deg, transparent, rgba(40, 158, 144, 0.18), transparent);
-        }
-        @keyframes shimmer { 100% { transform: translateX(100%); } } */
-        @keyframes blink { 50% { opacity: 0; } }
 
         @media (prefers-reduced-motion: reduce) {
           *, *::before, *::after {
@@ -270,7 +255,7 @@ export default function RtshPage() {
               {[...Array(4)].map((_, i) => (
                 <div
                   key={i}
-                  className="partner-skel partner-skel-eco relative flex min-h-[92px] items-center justify-center overflow-hidden bg-[#144146] p-7 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-[#8fb6ad]"
+                  className="flex min-h-[92px] items-center justify-center bg-[#144146] p-7 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-[#8fb6ad]"
                 >
                   coming soon
                 </div>
@@ -289,7 +274,7 @@ export default function RtshPage() {
               {[...Array(4)].map((_, i) => (
                 <div
                   key={i}
-                  className="partner-skel partner-skel-eco relative flex min-h-[92px] items-center justify-center overflow-hidden bg-[#144146] p-7 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-[#8fb6ad]"
+                  className="flex min-h-[92px] items-center justify-center bg-[#144146] p-7 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-[#8fb6ad]"
                 >
                   coming soon
                 </div>
