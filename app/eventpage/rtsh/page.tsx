@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 import BrevoForm from './BrevoForm';
 import HeroVideo from './HeroVideo';
-import RotatingJourney from './RotatingJourney';
+// import RotatingJourney from './RotatingJourney';
 
 export const metadata: Metadata = {
   title: 'Join the Waitlist for Road to START Hack 2026',
@@ -75,7 +75,6 @@ export default function RtshPage() {
           font-weight: 800;
           letter-spacing: 0.02em;
           white-space: nowrap;
-          box-shadow: 0 10px 30px -10px rgba(52, 225, 184, 0.5);
           transition: transform 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
         }
         .btn-primary:hover {
@@ -142,7 +141,7 @@ export default function RtshPage() {
         }
         .swap-out { opacity: 0; transform: translateY(6px); }
 
-        .partner-skel::after {
+        /* .partner-skel::after {
           content: "";
           position: absolute;
           inset: 0;
@@ -153,7 +152,7 @@ export default function RtshPage() {
         .partner-skel-eco::after {
           background: linear-gradient(90deg, transparent, rgba(40, 158, 144, 0.18), transparent);
         }
-        @keyframes shimmer { 100% { transform: translateX(100%); } }
+        @keyframes shimmer { 100% { transform: translateX(100%); } } */
         @keyframes blink { 50% { opacity: 0; } }
 
         @media (prefers-reduced-motion: reduce) {
@@ -172,18 +171,17 @@ export default function RtshPage() {
           <div className="hero-scrim absolute inset-0" />
 
           <div className="relative z-10 mx-auto w-full max-w-[1100px]">
-            <span className="chip">Road to START Hack 2026</span>
-            <h1 className="mt-5 max-w-[15ch] text-[clamp(2.7rem,7vw,5rem)] font-black leading-none tracking-tight">
-              From&nbsp;<span className="text-[#34e1b8]">hello world</span> to{' '}
-              <span className="text-[#e4f3ee]">hello users</span>.
+            {/* <span className="chip">Road to START Hack 2026</span> */}
+            <h1 className="mt-5 max-w-[15ch] text-[clamp(2.7rem,7vw,5rem)] font-black leading-none tracking-tight text-[#ffffff]">
+              Road to START Hack 2026
             </h1>
             <p className="mt-[22px] max-w-[46ch] text-lg font-medium leading-relaxed text-[#8fb6ad]">
               Munich&apos;s most entrepreneurial hackathon is back. 250 builders, one weekend, real
               challenges from real startups,{' '}
-              <em className="text-[#e4f3ee]">21–22 November 2026 at the TUM Audimax.</em>
+              <span className="text-[#e4f3ee]">21–22 November 2026 at the TUM Audimax.</span>
             </p>
 
-            <RotatingJourney />
+            {/* <RotatingJourney /> */}
 
             <div className="mt-[34px] flex flex-wrap items-center gap-5">
               <a href="#waitlist" className="btn-primary">
@@ -303,7 +301,7 @@ export default function RtshPage() {
         {/* FAQ */}
         <section className="px-5 pb-20 sm:px-8 lg:px-12">
           <div className="mx-auto max-w-4xl">
-            <h2 className="text-[clamp(1.9rem,4vw,2.8rem)] font-black leading-tight tracking-tight text-[#34e1b8]">
+            <h2 className="text-center text-[clamp(1.9rem,4vw,2.8rem)] font-black leading-tight tracking-tight text-[#34e1b8]">
               Frequently Asked Questions
             </h2>
             <div className="mt-10 divide-y divide-[#34e1b8]/15 rounded-2xl border border-[#34e1b8]/15">
@@ -374,7 +372,7 @@ export default function RtshPage() {
           <div className="mx-auto max-w-[1100px] rounded-3xl border border-[#34e1b8]/15 bg-gradient-to-br from-[#1b5a68] to-[#144146] px-6 py-12 text-center shadow-2xl shadow-black/20 sm:px-12 sm:py-16">
             <span className="kicker">Limited to 250 spots</span>
             <h2 className="text-[clamp(1.9rem,4vw,2.8rem)] font-black leading-tight tracking-tight text-[#34e1b8]">
-              Save your spot before it&apos;s gone
+              Sign up for the waiting list.
             </h2>
             <p className="mx-auto mt-4 max-w-[44ch] text-lg font-medium text-[#8fb6ad]">
               The waitlist gets first pick. Register now, and we&apos;ll bring you in the moment
