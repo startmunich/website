@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 
 import BrevoForm from './BrevoForm';
 import HeroVideo from './HeroVideo';
@@ -252,7 +253,24 @@ export default function RtshPage() {
               CHALLENGE Partners
             </h2>
             <div className="mt-9 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-[#289e90]/40 bg-[#289e90]/40 md:grid-cols-4">
-              {[...Array(4)].map((_, i) => (
+              {[
+                { name: 'QuantCo', logo: '/eventpage/rtsh/quantco_logo.svg' },
+                { name: 'revel8', logo: '/eventpage/rtsh/revel8_logo.svg' },
+              ].map((partner) => (
+                <div
+                  key={partner.name}
+                  className="flex min-h-[92px] items-center justify-center bg-[#144146] p-7"
+                >
+                  <Image
+                    src={partner.logo}
+                    alt={partner.name}
+                    width={240}
+                    height={90}
+                    className="max-h-10 w-auto max-w-full object-contain"
+                  />
+                </div>
+              ))}
+              {[...Array(2)].map((_, i) => (
                 <div
                   key={i}
                   className="flex min-h-[92px] items-center justify-center bg-[#144146] p-7 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-[#8fb6ad]"
