@@ -30,7 +30,7 @@ importers:
         specifier: ^15.5.25
         version: 15.5.25(@opentelemetry/api@1.9.1)(@playwright/test@1.63.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       posthog-js:
-        specifier: ^1.428.3
+        specifier: ^1.428.7
         version: 1.429.1(@types/react@18.3.31)(react@18.3.1)
       react:
         specifier: ^18.3.1
