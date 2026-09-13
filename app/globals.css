@@ -2,18 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+@plugin "@tailwindcss/typography";
+
 /* Avenir Next - All weights and styles from TTC v */
 @font-face {
-  font-family: 'Avenirnextltpro';
-  src: url('/fonts/AvenirNext-Heavy-09.ttf') format('truetype');
+  font-family: "Avenirnextltpro";
+  src: url("/fonts/AvenirNext-Heavy-09.ttf") format("truetype");
   font-weight: 900;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Avenirnextltpro';
-  src: url('/fonts/AvenirNext-Medium-06.ttf') format('truetype');
+  font-family: "Avenirnextltpro";
+  src: url("/fonts/AvenirNext-Medium-06.ttf") format("truetype");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -85,11 +87,7 @@
   }
 }
 
-
-
-
 @layer utilities {
-
   .font-black {
     text-transform: uppercase;
   }
@@ -112,8 +110,12 @@
   }
 
   @keyframes dashFlow {
-    0% { stroke-dashoffset: 20; }
-    100% { stroke-dashoffset: 0; }
+    0% {
+      stroke-dashoffset: 20;
+    }
+    100% {
+      stroke-dashoffset: 0;
+    }
   }
 
   @keyframes scroll {
@@ -354,21 +356,20 @@
     --labs-border: rgba(255, 255, 255, 0.1);
 
     /* Text - Only 3 colors */
-    --labs-text-primary: #ffffff;      /* Headings */
-    --labs-text-body: #888888;         /* Body text */
-    --labs-text-meta: #555555;         /* Labels, metadata */
+    --labs-text-primary: #ffffff; /* Headings */
+    --labs-text-body: #888888; /* Body text */
+    --labs-text-meta: #555555; /* Labels, metadata */
 
     /* Accent */
     --labs-accent: #2dd4bf;
 
     /* Font Sizes - Clear hierarchy */
-    --labs-size-meta: 10px;      /* Labels, metadata */
-    --labs-size-body: 14px;      /* Body text */
+    --labs-size-meta: 10px; /* Labels, metadata */
+    --labs-size-body: 14px; /* Body text */
     --labs-size-heading-sm: 24px; /* Small headings */
     --labs-size-heading-md: 32px; /* Medium headings */
     --labs-size-heading-lg: 48px; /* Large headings */
   }
-
 
   /* Labs Utility Classes */
   .labs-card {
@@ -386,13 +387,13 @@
   }
 
   .labs-body {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: "JetBrains Mono", monospace;
     color: var(--labs-text-body);
     font-size: var(--labs-size-body);
   }
 
   .labs-meta {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: "JetBrains Mono", monospace;
     color: var(--labs-text-meta);
     font-size: var(--labs-size-meta);
     text-transform: uppercase;
@@ -401,7 +402,7 @@
 
   /* CTA Button - Reusable component */
   .labs-cta-button {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: "JetBrains Mono", monospace;
     font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
@@ -425,7 +426,6 @@
     padding: 10px 24px;
   }
 
-
   /* Manifesto Lines - Enhanced */
   .labs-manifesto-line {
     padding: 12px 0;
@@ -437,7 +437,7 @@
   }
 
   .labs-manifesto-line::before {
-    content: '';
+    content: "";
     position: absolute;
     left: -20px;
     top: 0;
@@ -489,7 +489,6 @@
   .labs-faq-item {
     position: relative;
   }
-
 
   /* Labs: Carousel scroll */
   .carousel-scroll {

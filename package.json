@@ -28,12 +28,15 @@
   },
   "dependencies": {
     "@radix-ui/react-select": "^2.3.7",
+    "@sanity/image-url": "^2.1.1",
+    "@tailwindcss/typography": "^0.5.20",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.4.2",
     "lucide-react": "^0.577.0",
     "motion": "^12.43.0",
     "next": "^15.5.25",
+"next-sanity": "^13.3.4",
     "posthog-js": "^1.433.7",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -67,10 +70,5 @@
   "packageManager": "pnpm@11.27.0+sha512.ad12821463bb143295f1fa3ecde77a6b9b97a7990386da800ff57bffc3964dc64b7b1c7559d5dbe5c337aea659ed9c8937d4370bd198ca2009bc6fa0249808e7",
   "engines": {
     "node": "24"
-  },
-  "pnpm": {
-    "overrides": {
-      "postcss": "^8.5.28"
-    }
   }
 }

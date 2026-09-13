@@ -11,6 +11,7 @@ data.
 - **Tailwind CSS**
 - **shadcn/ui** components
 - **NocoDB** for database (backend)
+- **Sanity** (`next-sanity`) as CMS for content, e.g. blog posts
 
 ## Environment Variables
 
@@ -72,6 +73,19 @@ For the waitlist table and Turnstile setup, see
 - Open your startups table in NocoDB
 - Check the URL: `https://ndb.startmunich.de/nc/{workspace}/{project}/table/{TABLE_ID}`
 - Or use the NocoDB API to list tables and find the ID
+
+## CMS (Sanity)
+
+Content on the website (e.g. blog posts) is managed through the Sanity Studio.
+
+**For marketing/content team members:**
+
+1. Open the Studio at [https://startmunich.sanity.studio](https://startmunich.sanity.studio)
+2. Log in with the shared START Munich Sanity account
+3. Create or edit content, then publish — published changes appear on the website shortly after
+   (content on the site is periodically revalidated)
+
+No developer involvement is needed for regular content updates.
 
 ## Getting Started
 
