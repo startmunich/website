@@ -102,6 +102,12 @@ const config: Config = {
             strong: {
               color: '#ffffff',
             },
+            'code::before': {
+              content: 'none',
+            },
+            'code::after': {
+              content: 'none',
+            },
             blockquote: {
               fontStyle: 'normal',
             },
