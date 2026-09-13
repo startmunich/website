@@ -1,3 +1,4 @@
+import typography from '@tailwindcss/typography';
 import type { Config } from 'tailwindcss';
 import tailwindcssAnimate from 'tailwindcss-animate';
 
@@ -68,6 +69,48 @@ const config: Config = {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
+      typography: {
+        invert: {
+          css: {
+            '--tw-prose-body': '#9ca3af',
+            '--tw-prose-headings': '#ffffff',
+            '--tw-prose-lead': '#d1d5db',
+            '--tw-prose-links': '#d0006f',
+            '--tw-prose-bold': '#ffffff',
+            '--tw-prose-counters': '#9ca3af',
+            '--tw-prose-bullets': '#9ca3af',
+            '--tw-prose-hr': 'rgba(255,255,255,0.1)',
+            '--tw-prose-quotes': '#d1d5db',
+            '--tw-prose-quote-borders': '#d0006f',
+            '--tw-prose-captions': '#6b7280',
+            '--tw-prose-code': '#ffffff',
+            '--tw-prose-pre-code': '#d1d5db',
+            '--tw-prose-pre-bg': 'rgba(255,255,255,0.05)',
+            '--tw-prose-th-borders': 'rgba(255,255,255,0.1)',
+            '--tw-prose-td-borders': 'rgba(255,255,255,0.05)',
+            color: '#9ca3af',
+            a: {
+              '&:hover': {
+                textDecoration: 'underline',
+              },
+            },
+            'h1, h2, h3, h4, h5, h6': {
+              color: '#ffffff',
+              fontWeight: 900,
+              letterSpacing: '-0.02em',
+            },
+            strong: {
+              color: '#ffffff',
+            },
+            blockquote: {
+              fontStyle: 'normal',
+            },
+            'ul > li::marker, ol > li::marker': {
+              color: '#6b7280',
+            },
+          },
+        },
+      },
       keyframes: {
         'accordion-down': {
           from: { height: '0' },
@@ -84,6 +127,6 @@ const config: Config = {
       },
     },
   },
-  plugins: [tailwindcssAnimate],
+  plugins: [tailwindcssAnimate, typography],
 };
 export default config;
