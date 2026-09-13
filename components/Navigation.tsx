@@ -427,7 +427,7 @@ export default function Navigation() {
                             d="M9 5l7 7-7 7"
                           />
                         </svg>
-                        Road to START Hack
+                        Start Hack Munich
                       </span>
                     </Link>
                     <Link
