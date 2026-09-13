@@ -6,22 +6,22 @@ import HeroVideo from './HeroVideo';
 // import RotatingJourney from './RotatingJourney';
 
 export const metadata: Metadata = {
-  title: 'Join the Waitlist for Road to START Hack 2026',
+  title: 'Join the Waitlist for START Hack Munich 2026',
   description:
     "Munich's most entrepreneurial hackathon. From hello world to hello users in 24 hours, built small and shown proud. 250 builders, one weekend. Join the 2026 waitlist.",
   alternates: { canonical: 'https://www.startmunich.de/eventpage/rtsh' },
   openGraph: {
     url: 'https://www.startmunich.de/eventpage/rtsh',
-    title: 'Road to START Hack 2026 | START Munich',
+    title: 'START Hack Munich 2026 | START Munich',
     description:
-      'From hello world to hello users in 24 hours. 250 builders, one weekend at TU München. Join the 2026 waitlist.',
+      'From hello world to hello users in 24 hours. 250 builders, one weekend at TU Munich. Join the 2026 waitlist.',
     type: 'website',
     images: [
       {
         url: '/eventpage/rtsh/og-image.jpg',
         width: 1200,
         height: 800,
-        alt: 'Road to START Hack 2026 — 24 hours from idea to demo',
+        alt: 'START Hack Munich 2026 — 24 hours from idea to demo',
       },
     ],
   },
@@ -157,9 +157,9 @@ export default function RtshPage() {
           <div className="hero-scrim absolute inset-0" />
 
           <div className="relative z-10 mx-auto w-full max-w-[1100px]">
-            {/* <span className="chip">Road to START Hack 2026</span> */}
+            {/* <span className="chip">START Hack Munich 2026</span> */}
             <h1 className="mt-5 max-w-[15ch] text-[clamp(2.7rem,7vw,5rem)] font-black leading-none tracking-tight text-[#ffffff]">
-              Road to START Hack 2026
+              START Hack Munich 2026
             </h1>
             <p className="mt-[22px] max-w-[46ch] text-lg font-medium leading-relaxed text-[#8fb6ad]">
               Munich&apos;s most entrepreneurial hackathon is back. 250 builders, one weekend, real
@@ -181,7 +181,7 @@ export default function RtshPage() {
             <div className="grid grid-cols-2 sm:grid-cols-4">
               {[
                 { k: 'When', v: '21–22 Nov', sub: '2026 · Sat–Sun' },
-                { k: 'Where', v: 'Audimax', sub: 'TU München' },
+                { k: 'Where', v: 'Audimax', sub: 'TU Munich' },
                 { k: 'Who', v: '250 builders', sub: 'all fields welcome' },
                 { k: 'Format', v: '24h build', sub: 'demo on stage' },
               ].map((f, i) => (
@@ -212,12 +212,12 @@ export default function RtshPage() {
             <div className="max-w-[62ch]">
               <h2 className="h2">Turn a simple idea into something people can click.</h2>
               <p className="mt-[18px] max-w-[52ch] text-lg font-medium leading-relaxed text-[#8fb6ad]">
-                Road to START Hack brings 250 innovators from all fields and backgrounds together to
-                solve real-world challenges in just 24 hours. We help you keep the scope tight,
-                mentors jump in when you are stuck, and the room stays friendly and focused. You
-                prototype, test with people nearby, and polish just enough to show it. No experience
-                required. Bring your laptop and curiosity. By the end you can say hello users for
-                real, with a demo you are proud to share and a path to keep going.
+                START Hack Munich brings together 250 innovators from all fields and backgrounds
+                together to solve real-world challenges in just 24 hours. We help you keep the scope
+                tight, mentors jump in when you are stuck, and the room stays friendly and focused.
+                You prototype, test with people nearby, and polish just enough to show it. No
+                experience required. Bring your laptop and curiosity. By the end you can say hello
+                users for real, with a demo you are proud to share and a path to keep going.
               </p>
             </div>
           </div>
@@ -271,25 +271,6 @@ export default function RtshPage() {
                 </div>
               ))}
               {[...Array(2)].map((_, i) => (
-                <div
-                  key={i}
-                  className="flex min-h-[92px] items-center justify-center bg-[#144146] p-7 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-[#8fb6ad]"
-                >
-                  coming soon
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ECOSYSTEM PARTNERS */}
-        <section className="px-5 pb-20 sm:px-8 lg:px-12">
-          <div className="mx-auto max-w-[1100px]">
-            <h2 className="text-[clamp(1.9rem,4vw,2.8rem)] font-black leading-tight tracking-tight text-[#289e90]">
-              Ecosystem Partners
-            </h2>
-            <div className="mt-9 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-[#289e90]/40 bg-[#289e90]/40 md:grid-cols-4">
-              {[...Array(4)].map((_, i) => (
                 <div
                   key={i}
                   className="flex min-h-[92px] items-center justify-center bg-[#144146] p-7 text-[0.72rem] font-bold uppercase tracking-[0.08em] text-[#8fb6ad]"
@@ -392,7 +373,7 @@ export default function RtshPage() {
       <footer className="border-t border-[#34e1b8]/15 bg-[#0c2724] px-5 py-11 sm:px-8 lg:px-12">
         <div className="mx-auto flex max-w-[1100px] flex-wrap items-center justify-between gap-6">
           <p className="text-sm font-bold text-[#69988f]">
-            &copy; 2026 START Munich &middot; Road to START Hack
+            &copy; 2026 START Munich &middot; START Hack Munich
           </p>
           <nav className="flex flex-wrap gap-6">
             <a
