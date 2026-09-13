@@ -1,4 +1,5 @@
 import { createImageUrlBuilder, type SanityImageSource } from '@sanity/image-url';
+import Image from 'next/image';
 import Link from 'next/link';
 import { PortableText, type SanityDocument } from 'next-sanity';
 
@@ -14,27 +15,42 @@ const options = { next: { revalidate: 30 } };
 
 export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
   const post = await client.fetch<SanityDocument>(POST_QUERY, await params, options);
-  const postImageUrl = post.image ? urlFor(post.image)?.width(550).height(310).url() : null;
+  const postImage = post.image ? urlFor(post.image)?.width(550).height(310) : null;
 
   return (
-    <main className="container mx-auto flex min-h-screen max-w-3xl flex-col gap-4 p-8">
-      <Link href="/" className="hover:underline">
-        ← Back to posts
-      </Link>
-      {postImageUrl && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={postImageUrl}
-          alt={post.title}
-          className="aspect-video rounded-xl"
-          width="550"
-          height="310"
-        />
-      )}
-      <h1 className="mb-8 text-4xl font-bold">{post.title}</h1>
-      <div className="prose">
-        <p>Published: {new Date(post.publishedAt).toLocaleDateString()}</p>
-        {Array.isArray(post.body) && <PortableText value={post.body} />}
+    <main className="min-h-screen bg-brand-dark-blue text-white">
+      <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 lg:px-8">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-white/70 transition-colors hover:text-brand-pink"
+        >
+          <span aria-hidden>←</span>
+          Back to posts
+        </Link>
+
+        {postImage && (
+          <div className="mt-10 overflow-hidden rounded-2xl border border-white/10">
+            <Image
+              src={postImage.url()}
+              alt={post.title}
+              className="aspect-video w-full object-cover"
+              width="550"
+              height="310"
+              priority
+            />
+          </div>
+        )}
+
+        <p className="mt-10 text-xs font-bold uppercase tracking-[0.2em] text-brand-pink">
+          Published: {new Date(post.publishedAt).toLocaleDateString()}
+        </p>
+        <h1 className="mt-4 text-4xl font-black uppercase tracking-tight text-white sm:text-5xl">
+          {post.title}
+        </h1>
+
+        <div className="prose prose-invert mt-10">
+          {Array.isArray(post.body) && <PortableText value={post.body} />}
+        </div>
       </div>
     </main>
   );

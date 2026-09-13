@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@plugin "@tailwindcss/typography";
-
 /* Avenir Next - All weights and styles from TTC v */
 @font-face {
   font-family: "Avenirnextltpro";
