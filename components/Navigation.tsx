@@ -359,7 +359,7 @@ export default function Navigation() {
                       </span>
                     </a>
                     <a
-                      href="https://www.munich-startup.de/veranstaltung/isar-unfiltered/"
+                      href="https://www.isarunfiltered.eu"
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={() => events.close()}
@@ -744,7 +744,7 @@ export default function Navigation() {
                       Munich Hacking Legal
                     </a>
                     <a
-                      href="https://www.munich-startup.de/veranstaltung/isar-unfiltered/"
+                      href="https://www.isarunfiltered.eu"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="block py-2 pl-4 text-sm font-medium text-white/50 transition-colors hover:text-brand-pink"

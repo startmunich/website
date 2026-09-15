@@ -22,6 +22,23 @@ interface LumaEventWrapper {
 
 const EVENTS_PER_PAGE = 12;
 
+const STATIC_PAST_EVENTS: LumaEventWrapper[] = [
+  {
+    api_id: 'static-start-goes-stockholm',
+    event: {
+      id: 'start-goes-stockholm-2026',
+      name: 'START goes Stockholm',
+      start_at: '2026-09-16T00:00:00Z',
+      end_at: '2026-06-17T18:00:00Z',
+      url: 'https://luma.com/bdpjmq9n',
+      cover_url:
+        'https://images.lumacdn.com/cdn-cgi/image/format=auto,fit=cover,dpr=2,background=white,quality=75,width=300,height=300/event-covers/a9/bce41002-705f-452e-9e5a-5442fea4e67b.png',
+      timezone: 'Europe/Stockholm',
+    },
+    tags: [],
+  },
+];
+
 export default function PastEventsGrid() {
   const [events, setEvents] = useState<LumaEventWrapper[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,12 +56,20 @@ export default function PastEventsGrid() {
 
         const data = await response.json();
 
+        // Merge static past events with fetched ones, deduplicating by event URL
+        const mergedEvents = [...STATIC_PAST_EVENTS];
+        const seenUrls = new Set(STATIC_PAST_EVENTS.map((entry) => entry.event.url));
+        for (const entry of (data.entries || []) as LumaEventWrapper[]) {
+          if (!seenUrls.has(entry.event.url)) {
+            mergedEvents.push(entry);
+            seenUrls.add(entry.event.url);
+          }
+        }
+
         // Sort events by date (most recent first)
-        const sortedEvents = (data.entries || []).sort(
-          (a: LumaEventWrapper, b: LumaEventWrapper) => {
-            return new Date(b.event.start_at).getTime() - new Date(a.event.start_at).getTime();
-          },
-        );
+        const sortedEvents = mergedEvents.sort((a: LumaEventWrapper, b: LumaEventWrapper) => {
+          return new Date(b.event.start_at).getTime() - new Date(a.event.start_at).getTime();
+        });
 
         setEvents(sortedEvents);
       } catch {
