@@ -429,17 +429,17 @@ export default function HomeClient({
         {/* ═══════════════════════════ FACTS & STARTUPS ═══════════════════════════ */}
         <section
           ref={factsView.ref}
-          className="relative overflow-hidden bg-white px-4 py-28 sm:px-6 lg:px-8"
+          className="relative overflow-hidden px-4 py-28 sm:px-6 lg:px-8"
         >
           <div className="relative mx-auto max-w-7xl">
             {/* Section header */}
             <div
               className={`mb-10 transition-all duration-700 ${factsView.visible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}
             >
-              <span className="text-sm font-medium uppercase tracking-[0.3em] text-black">
-                Already built by STARTies
+              <span className="text-sm font-bold uppercase tracking-[0.3em] text-brand-pink">
+                Our Startups
               </span>
-              <h2 className="mt-3 text-5xl font-black text-black sm:text-6xl">OUR TRACK RECORD</h2>
+              <h2 className="mt-3 text-5xl font-black text-white sm:text-6xl">THE FACTS</h2>
             </div>
 
             {/* Facts - Modern asymmetric grid */}
@@ -448,10 +448,7 @@ export default function HomeClient({
               <div
                 className={`group relative transition-all delay-100 duration-700 md:col-span-7 ${factsView.visible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}
               >
-                <div
-                  style={{ backgroundColor: '#00002c' }}
-                  className="relative h-full overflow-hidden rounded-[2rem] border border-brand-pink/20 bg-gradient-to-br from-brand-pink/20 via-brand-pink/10 to-transparent p-10 sm:p-14"
-                >
+                <div className="relative h-full overflow-hidden rounded-[2rem] border border-brand-pink/20 bg-gradient-to-br from-brand-pink/20 via-brand-pink/10 to-transparent p-10 sm:p-14">
                   {/* Decorative corner accent */}
                   <div className="absolute right-0 top-0 h-32 w-32 rounded-bl-[80px] bg-brand-pink/10" />
                   <div className="absolute -bottom-4 -left-4 h-24 w-24 rounded-full border-2 border-brand-pink/20" />
@@ -479,10 +476,7 @@ export default function HomeClient({
                 <div
                   className={`group relative flex-1 transition-all delay-200 duration-700 ${factsView.visible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}
                 >
-                  <div
-                    style={{ backgroundColor: '#00002c' }}
-                    className="relative h-full rounded-[1.5rem] border border-white/10 bg-white/5 p-8 transition-all duration-300 hover:border-brand-pink/30 hover:bg-white/[0.07]"
-                  >
+                  <div className="relative h-full rounded-[1.5rem] border border-white/10 bg-white/5 p-8 transition-all duration-300 hover:border-brand-pink/30 hover:bg-white/[0.07]">
                     <div className="flex items-end justify-between">
                       <div>
                         <div className="mb-2 text-xs font-medium uppercase tracking-[0.2em] text-gray-500">
@@ -518,10 +512,7 @@ export default function HomeClient({
                   <div
                     className={`flex-1 transition-all delay-300 duration-700 ${factsView.visible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}
                   >
-                    <div
-                      style={{ backgroundColor: '#00002c' }}
-                      className="relative h-full rounded-[1.5rem] border border-white/10 bg-white/5 p-6 transition-all duration-300 hover:border-brand-pink/30 hover:bg-white/[0.07]"
-                    >
+                    <div className="relative h-full rounded-[1.5rem] border border-white/10 bg-white/5 p-6 transition-all duration-300 hover:border-brand-pink/30 hover:bg-white/[0.07]">
                       <div className="mb-2 text-xs font-medium uppercase tracking-[0.2em] text-gray-500">
                         YC & other programs
                       </div>
@@ -544,10 +535,7 @@ export default function HomeClient({
                   <div
                     className={`delay-400 flex-1 transition-all duration-700 ${factsView.visible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}
                   >
-                    <div
-                      style={{ backgroundColor: '#00002c' }}
-                      className="relative h-full rounded-[1.5rem] border border-white/10 bg-white/5 p-6 transition-all duration-300 hover:border-brand-pink/30 hover:bg-white/[0.07]"
-                    >
+                    <div className="relative h-full rounded-[1.5rem] border border-white/10 bg-white/5 p-6 transition-all duration-300 hover:border-brand-pink/30 hover:bg-white/[0.07]">
                       <div className="mb-2 text-xs font-medium uppercase tracking-[0.2em] text-gray-500">
                         Unicorn
                       </div>
@@ -565,8 +553,8 @@ export default function HomeClient({
 
             {/* Startup logos */}
             <div className="relative overflow-hidden">
-              <div className="absolute bottom-0 left-0 top-0 z-10 w-24 bg-gradient-to-r from-white to-transparent" />
-              <div className="absolute bottom-0 right-0 top-0 z-10 w-24 bg-gradient-to-l from-white to-transparent" />
+              <div className="absolute bottom-0 left-0 top-0 z-10 w-24 bg-gradient-to-r from-brand-dark-blue to-transparent" />
+              <div className="absolute bottom-0 right-0 top-0 z-10 w-24 bg-gradient-to-l from-brand-dark-blue to-transparent" />
               <div className="animate-scroll-nonstop">
                 {[...featuredStartups, ...featuredStartups].map((startup, i) => (
                   <Link
@@ -606,7 +594,7 @@ export default function HomeClient({
             <div className="mt-10 text-center">
               <Link
                 href="/startups"
-                className="group inline-flex items-center gap-2 font-medium text-black transition-colors hover:text-brand-pink"
+                className="group inline-flex items-center gap-2 font-medium text-white/70 transition-colors hover:text-brand-pink"
               >
                 View all our startups{' '}
                 <span className="transition-transform group-hover:translate-x-1">→</span>
