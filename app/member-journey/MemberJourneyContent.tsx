@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import Script from 'next/script';
 import { useEffect, useRef, useState } from 'react';
 
@@ -8,7 +9,7 @@ import CTA from '@/components/CTA';
 import { ScrollIndicator } from '@/components/EventComponents';
 import Hero from '@/components/Hero';
 import HeroCard from '@/components/HeroCard';
-import TestimonialsSection from '@/components/TestimonialsSection';
+import TestimonialsSection, { type TestimonialItem } from '@/components/TestimonialsSection';
 import { useAnimatedNumber } from '@/lib/hooks';
 
 export const dynamic = 'force-dynamic';
@@ -39,16 +40,21 @@ interface StartEvent {
   images: string[];
 }
 
-interface MemberStory {
-  id: string;
-  name: string;
-  role: string;
-  company: string;
-  image: string;
-  story: string;
-  department: string;
-  logos?: { src: string; url?: string }[];
-}
+/*
+ * Hardcoded member stories replaced by Sanity-driven content
+ * (new "Member Story" CMS type, fetched in app/member-journey/page.tsx).
+ * Kept below for reference / offline fallback.
+ */
+// interface MemberStory {
+//   id: string;
+//   name: string;
+//   role: string;
+//   company: string;
+//   image: string;
+//   story: string;
+//   department: string;
+//   logos?: { src: string; url?: string }[];
+// }
 
 const placeholderImage = '/internalevents-opt.png';
 
@@ -238,62 +244,71 @@ const startEvents: StartEvent[] = [
   },
 ];
 
-const memberStories: MemberStory[] = [
-  {
-    id: 'story-1',
-    name: 'Felix Haas',
-    role: 'Founder & Investor',
-    company: 'IDNow | Bits & Pretzels',
-    image: '/memberJourney/alumni/FelixHaas-opt.png',
-    story:
-      'At START Munich, I laid the foundation for my current network. From this starting point, I built several companies, invested in more than 80 start-ups and helped set up Bits & Pretzels.',
-    department: 'Alumni',
-    logos: [
-      {
-        src: 'https://cdn.prod.website-files.com/65f98ea7c70b10b668ccbeb3/65f98ea7c70b10b668ccbeea_Vectors-Wrapper.svg',
-        url: 'https://www.idnow.io/',
-      },
-      {
-        src: 'https://cdn.prod.website-files.com/65f98ea7c70b10b668ccbeb3/65f98ea7c70b10b668ccbece_logo.svg',
-        url: 'https://www.bitsandpretzels.com/',
-      },
-    ],
-  },
-  {
-    id: 'story-3',
-    name: 'Elisabeth Goebel',
-    role: 'Early Operator',
-    company: 'ZeitAI | CDTM',
-    image: '/memberJourney/alumni/Elisa-opt.png',
-    story:
-      'START is where things actually happen. I co-founded ISAR Unfiltered, met people who think and move the way I do, and built a network that directly led me to where I am today: Early Operator at a YC-backed AI startup.',
-    department: 'People',
-    logos: [
-      {
-        src: 'https://cdn.prod.website-files.com/6902359088cc8683c4db0171/69249d98617b1b96682cca65_44a5d2ba9e6004a1281eed9068c62a95_zeitai-logo-opt.png',
-        url: 'https://www.zeit.ai/',
-      },
-    ],
-  },
-  {
-    id: 'story-2',
-    name: 'Joshua Cornelius',
-    role: 'Co-Founder',
-    company: 'Freeletics | CDTM',
-    image: '/memberJourney/alumni/JoshuaCornelius-opt.png',
-    story:
-      'Before we founded Freeletics, START Munich - in addition to CDTM - gave my co-founder and me the ideal opportunity to make first contacts in the Munich startup scene.',
-    department: 'Alumni',
-    logos: [
-      {
-        src: 'https://cdn.prod.website-files.com/65f98ea7c70b10b668ccbeb3/65f98ea7c70b10b668ccbeef_5eb3c929c8c4590004435152-opt.png',
-        url: 'https://www.freeletics.com/',
-      },
-    ],
-  },
-];
+/*
+ * Hardcoded member stories replaced by Sanity-driven content
+ * (new "Member Story" CMS type, fetched in app/member-journey/page.tsx).
+ * Kept below for reference / offline fallback.
+ */
+// const memberStories: MemberStory[] = [
+//   {
+//     id: 'story-1',
+//     name: 'Felix Haas',
+//     role: 'Founder & Investor',
+//     company: 'IDNow | Bits & Pretzels',
+//     image: '/memberJourney/alumni/FelixHaas-opt.png',
+//     story:
+//       'At START Munich, I laid the foundation for my current network. From this starting point, I built several companies, invested in more than 80 start-ups and helped set up Bits & Pretzels.',
+//     department: 'Alumni',
+//     logos: [
+//       {
+//         src: 'https://cdn.prod.website-files.com/65f98ea7c70b10b668ccbeb3/65f98ea7c70b10b668ccbeea_Vectors-Wrapper.svg',
+//         url: 'https://www.idnow.io/',
+//       },
+//       {
+//         src: 'https://cdn.prod.website-files.com/65f98ea7c70b10b668ccbeb3/65f98ea7c70b10b668ccbece_logo.svg',
+//         url: 'https://www.bitsandpretzels.com/',
+//       },
+//     ],
+//   },
+//   {
+//     id: 'story-3',
+//     name: 'Elisabeth Goebel',
+//     role: 'Early Operator',
+//     company: 'ZeitAI | CDTM',
+//     image: '/memberJourney/alumni/Elisa-opt.png',
+//     story:
+//       'START is where things actually happen. I co-founded ISAR Unfiltered, met people who think and move the way I do, and built a network that directly led me to where I am today: Early Operator at a YC-backed AI startup.',
+//     department: 'People',
+//     logos: [
+//       {
+//         src: 'https://cdn.prod.website-files.com/6902359088cc8683c4db0171/69249d98617b1b96682cca65_44a5d2ba9e6004a1281eed9068c62a95_zeitai-logo-opt.png',
+//         url: 'https://www.zeit.ai/',
+//       },
+//     ],
+//   },
+//   {
+//     id: 'story-2',
+//     name: 'Joshua Cornelius',
+//     role: 'Co-Founder',
+//     company: 'Freeletics | CDTM',
+//     image: '/memberJourney/alumni/JoshuaCornelius-opt.png',
+//     story:
+//       'Before we founded Freeletics, START Munich - in addition to CDTM - gave my co-founder and me the ideal opportunity to make first contacts in the Munich startup scene.',
+//     department: 'Alumni',
+//     logos: [
+//       {
+//         src: 'https://cdn.prod.website-files.com/65f98ea7c70b10b668ccbeb3/65f98ea7c70b10b668ccbeef_5eb3c929c8c4590004435152-opt.png',
+//         url: 'https://www.freeletics.com/',
+//       },
+//     ],
+//   },
+// ];
 
-export default function MemberJourneyPage() {
+export default function MemberJourneyPage({
+  memberStories = [],
+}: {
+  memberStories: TestimonialItem[];
+}) {
   const [loading, setLoading] = useState(true);
   const [activeDeptId, setActiveDeptId] = useState<string | null>(departments[0].id);
   const [eventImageIndex, setEventImageIndex] = useState(0);
@@ -994,7 +1009,7 @@ export default function MemberJourneyPage() {
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
               {/* Bay Area */}
-              <a
+              <Link
                 href="/start-goes-bay-area"
                 className="group relative block overflow-hidden rounded-3xl border border-white/10 bg-white/[0.06] backdrop-blur-sm transition-all duration-500 hover:border-brand-pink/40"
               >
@@ -1031,7 +1046,7 @@ export default function MemberJourneyPage() {
                     </svg>
                   </span>
                 </div>
-              </a>
+              </Link>
 
               {/* Cambridge */}
               <div className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.06] backdrop-blur-sm transition-all duration-500 hover:border-brand-pink/30">
@@ -1100,15 +1115,7 @@ export default function MemberJourneyPage() {
               </>
             }
             description="Real stories from our members who built successful startups with START Munich"
-            items={memberStories.map((story) => ({
-              id: story.id,
-              name: story.name,
-              role: story.role,
-              company: story.company,
-              image: story.image,
-              story: story.story,
-              logos: story.logos,
-            }))}
+            items={memberStories}
           />
 
           {/* CTA */}
