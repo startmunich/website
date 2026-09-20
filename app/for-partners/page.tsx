@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
+import Link from 'next/link';
 import Script from 'next/script';
 
 import Hero from '@/components/Hero';
@@ -34,9 +35,9 @@ const faqs = [
     answer: (
       <>
         We can move fast and sometimes launch within days. Please check our event{' '}
-        <a href="/domain/events" className="text-brand-pink hover:underline">
+        <Link href="/domain/events" className="text-brand-pink hover:underline">
           calendar
-        </a>{' '}
+        </Link>{' '}
         first. If you want to join a specific event, contact us as early as possible so we can plan
         it with you.
       </>
@@ -242,12 +243,12 @@ export default async function ForPartnersPage() {
                   Trusted by leading companies and organizations
                 </p>
               </div>
-              <a
+              <Link
                 href="/partners"
                 className="hidden whitespace-nowrap rounded-full border-2 border-brand-pink px-6 py-2.5 text-center font-bold text-brand-pink transition-all duration-300 hover:bg-brand-pink hover:text-white md:inline-flex"
               >
                 View All Partners →
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -278,13 +279,13 @@ export default async function ForPartnersPage() {
           </div>
         </section>
         <div className="mb-16 text-center md:hidden">
-          <a
+          <Link
             href="/partners"
             className="group inline-flex items-center gap-2 font-medium text-white/70 transition-colors hover:text-brand-pink"
           >
             View all our partners{' '}
             <span className="transition-transform group-hover:translate-x-1">→</span>
-          </a>
+          </Link>
         </div>
 
         {/* Content Below Hero */}
