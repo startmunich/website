@@ -67,8 +67,22 @@ export default function Footer() {
       </div>
 
       {/* Bottom bar */}
-      <div className="mx-auto flex flex-col items-center justify-between gap-1 px-6 py-4 text-xs text-white/40 sm:flex-row md:px-20">
-        <span>© {new Date().getFullYear()} START Munich. All rights reserved.</span>
+      <div className="flex flex-wrap items-center justify-between px-12">
+        <div className="flex flex-col items-center justify-between gap-1 px-6 py-4 text-sm text-white/40 sm:flex-row">
+          <span>© {new Date().getFullYear()} START Munich. All rights reserved.</span>
+        </div>
+        <div className="flex flex-col items-center justify-between gap-1 px-6 py-4 text-sm text-white/40 sm:flex-row">
+          <span>
+            {'This website is hosted at our Technological Partner: '}
+            <a
+              target="_blank"
+              rel="noopener noreferrer"
+              href="https://www.hetzner.com/de?mtm_campaign=START-Munich&mtm_medium=referral&mtm_content=sponsoring_link"
+            >
+              Hetzner
+            </a>
+          </span>
+        </div>
       </div>
     </footer>
   );

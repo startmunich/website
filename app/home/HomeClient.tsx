@@ -237,9 +237,9 @@ export default function HomeClient({
               >
                 <span className="text-white drop-shadow-lg">DARE.</span>
                 <br />
-                <span className="outline-text drop-shadow-lg">BUILD.</span>
+                <span className="text-brand-pink drop-shadow-lg">BUILD.</span>
                 <br />
-                <span className="text-white drop-shadow-lg">BELONG.</span>
+                <span className="outline-text text-white drop-shadow-lg">BELONG.</span>
               </h1>
 
               <p
