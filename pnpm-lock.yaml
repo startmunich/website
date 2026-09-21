@@ -30,8 +30,8 @@ importers:
         specifier: ^15.5.25
         version: 15.5.25(@opentelemetry/api@1.9.1)(@playwright/test@1.63.0)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       posthog-js:
-        specifier: ^1.433.7
-        version: 1.433.7(@types/react@18.3.31)(react@18.3.1)
+        specifier: ^1.434.0
+        version: 1.434.2(@types/react@18.3.31)(react@18.3.1)
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -94,7 +94,7 @@ importers:
         specifier: ^8.5.28
         version: 8.5.28
       prettier:
-        specifier: ^3.9.7
+        specifier: ^3.9.8
         version: 3.9.8
       prettier-plugin-tailwindcss:
         specifier: ^0.8.1
@@ -564,8 +564,14 @@ packages:
   '@posthog/core@1.54.2':
     resolution: {integrity: sha512-p0NuMjiZkploKG/aASj4nw4QDuhF87SIFWkelaFRrr3G0Myb7KWWUZot2hm5qXpPx7zKozVZJrJkGzC2kGBqbg==}
 
+  '@posthog/core@1.55.0':
+    resolution: {integrity: sha512-x+0FR+uHsK3uJeofd5X4S2YS7hjaWkzkPN0X1GROHm9SvKw2RJ91kfQ7gT1bPtFwZSHNiRtteB7fX/xEMRN0IQ==}
+
   '@posthog/types@1.412.1':
     resolution: {integrity: sha512-FxXsb9YOOME8bJI5K09qKeSvLjnZQ2dPV7wZpI7a8sERQtXkAuhBcPB/balCnVE7TYwhgtHj5NQss9BgQ5bAfQ==}
+
+  '@posthog/types@1.412.2':
+    resolution: {integrity: sha512-taxTh8o6n7ZVlC8qBypZvF+6w7/18yNkS9XDiGCbutGTKqIljfzYi/7pumgwN3mcnl/n0e9A+JhF05+nLd4Xaw==}
 
   '@radix-ui/number@1.1.3':
     resolution: {integrity: sha512-Road2bidD0uu/1BGDOWNdPI06g0lIRy6IF9GZcIrDK2KGItfor8IQwQa+yM2ERgHM1MmHxaxpTzk0/Jp42lNfA==}
@@ -2258,8 +2264,8 @@ packages:
     resolution: {integrity: sha512-RRuzqDtt5Y9h3quz5hWhK+TPnsmVs6WwSU6LkJMeY4HstUEDuYTG8UJSdawMRzmzAtV+KEoG8N3Qg2qLy5vM/A==}
     engines: {node: ^10 || ^12 || >=14}
 
-  posthog-js@1.433.7:
-    resolution: {integrity: sha512-AUZWqx85NtrRoFZUZzdU5eBsHdC7swcZq/Vd+NH9yZL1jaKJlfxbdJyHXrRZXFFd0c3bzvc5w9YbmqGrESWoIw==}
+  posthog-js@1.434.2:
+    resolution: {integrity: sha512-xyvjj88U2Cp1JfDzmifLvNbdiY/z+YbTT1DaRRKRZ+qzaF9IKqMLumpv8jTKGh6y3m4vc3xz0ku8h5Tw0XU9zQ==}
     peerDependencies:
       '@types/react': '>=16.8.0'
       react: '>=16.8.0'
@@ -3241,7 +3247,13 @@ snapshots:
     dependencies:
       '@posthog/types': 1.412.1
 
+  '@posthog/core@1.55.0':
+    dependencies:
+      '@posthog/types': 1.412.2
+
   '@posthog/types@1.412.1': {}
+
+  '@posthog/types@1.412.2': {}
 
   '@radix-ui/number@1.1.3': {}
 
@@ -4989,11 +5001,11 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
-  posthog-js@1.433.7(@types/react@18.3.31)(react@18.3.1):
+  posthog-js@1.434.2(@types/react@18.3.31)(react@18.3.1):
     dependencies:
       '@posthog/browser-common': 0.9.0
-      '@posthog/core': 1.54.2
-      '@posthog/types': 1.412.1
+      '@posthog/core': 1.55.0
+      '@posthog/types': 1.412.2
       core-js: 3.49.0
       dompurify: 3.4.13
       fflate: 0.4.8
