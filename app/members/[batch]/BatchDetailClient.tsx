@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import Script from 'next/script';
 import { useEffect, useState } from 'react';
 
@@ -79,7 +78,6 @@ function isPlaceholderImage(url?: string) {
 }
 
 export default function BatchDetailClient({ batchSlug }: BatchDetailClientProps) {
-  const router = useRouter();
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
 
