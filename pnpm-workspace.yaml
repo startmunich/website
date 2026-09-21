@@ -3,3 +3,12 @@ allowBuilds:
   protobufjs: true
   sharp: true
   unrs-resolver: true
+
+overrides:
+  brace-expansion: ^1.1.21
+  fast-uri: ^3.1.8
+  fflate: ^0.4.9
+  js-yaml: ^4.3.2
+  postcss: ^8.5.28
+  postcss-selector-parser: ^6.1.4
+  sharp: ^0.35.4
