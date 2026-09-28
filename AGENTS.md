@@ -152,8 +152,9 @@ the suite runs against a Vercel preview via `PLAYWRIGHT_TEST_BASE_URL`.
   bumps are the only exemption (`chore(deps)`, `fix(deps)`, and the `build`/`ci`/`*-dev` variants).
 - Husky's `pre-commit` runs lint-staged (ESLint `--fix` + Prettier) on staged files only — unstaged
   breakage will still fail CI.
-- Open PRs against `main`. Branch protection requires one approval, which
-  `.github/workflows/renovate-auto-approve.yml` satisfies automatically for Renovate PRs.
+- Open PRs against `main`. The `main branch protection` ruleset gates it: the required checks are
+  `quality`, `e2e`, and `Vercel`, and merge commits are disallowed — use squash or rebase. No human
+  review is required (`required_approving_review_count` is 0), so don't wait on an approval.
 - Native build permissions and CVE pins for transitive deps go in `pnpm-workspace.yaml`
   (`allowBuilds` / `overrides`), **not** `package.json`.
 
