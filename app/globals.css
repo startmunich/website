@@ -167,8 +167,10 @@
     }
   }
 
-  .animate-scroll-vertical {
-    animation: scroll-vertical 20s linear infinite;
+  @media (prefers-reduced-motion: no-preference) {
+    .animate-scroll-vertical {
+      animation: scroll-vertical 20s linear infinite;
+    }
   }
 
   @keyframes scroll-vertical {
