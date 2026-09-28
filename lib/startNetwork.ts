@@ -50,8 +50,13 @@ export const START_CHAPTER_COUNT = START_CHAPTERS.length;
 /** Number of unique countries with at least one START chapter. */
 export const START_COUNTRY_COUNT = new Set(START_CHAPTERS.map((chapter) => chapter.country)).size;
 
-/** Total network members across all chapters. */
-export const START_NETWORK_MEMBERS = 1800;
+/**
+ * Total network members across all chapters.
+ *
+ * Figure per START Innsbruck's site (2026) — the network's current publicly
+ * cited member count ("Network members: 4,000+").
+ */
+export const START_NETWORK_MEMBERS = 4000;
 
 /** Uppercase city names for display (e.g. the home page rolling marquee). */
 export const START_CHAPTER_CITIES = START_CHAPTERS.map((chapter) => chapter.city.toUpperCase());
