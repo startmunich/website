@@ -10,6 +10,7 @@ import Hero from '@/components/Hero';
 import HeroCard from '@/components/HeroCard';
 import TestimonialsSection from '@/components/TestimonialsSection';
 import { useAnimatedNumber } from '@/lib/hooks';
+import { START_CHAPTER_COUNT } from '@/lib/startNetwork';
 
 export const dynamic = 'force-dynamic';
 
@@ -104,7 +105,7 @@ const timelineEvents: TimelineEvent[] = [
     details: [
       'Join the Bay Area trip, 2 weeks, 20+ curated visits to top startups, VCs, and labs',
       'Research Stay @ Cambridge through direct research collaboration',
-      'Become part of the START Network, 20+ chapters worldwide',
+      `Become part of the START Network, ${START_CHAPTER_COUNT}+ chapters worldwide`,
       'Find co-founders or start your own venture within a community of 100+ startups, including teams backed by Y Combinator',
     ],
   },
