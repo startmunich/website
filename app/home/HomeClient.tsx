@@ -938,7 +938,7 @@ export default function HomeClient({
                   </div>
                   <div>
                     <div className="text-5xl font-black text-white sm:text-6xl">
-                      +{START_NETWORK_MEMBERS}
+                      {START_NETWORK_MEMBERS}+
                     </div>
                     <div className="text-sm text-gray-400">Members</div>
                   </div>
