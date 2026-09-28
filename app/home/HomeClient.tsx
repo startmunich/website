@@ -13,9 +13,9 @@ import Link from 'next/link';
 import Script from 'next/script';
 import { useEffect, useRef, useState } from 'react';
 
+import MunichEasterEgg from '@/components/home/MunichEasterEgg';
 import { useAnimatedNumber, useInView } from '@/lib/hooks';
 import {
-  START_CHAPTER_CITIES,
   START_CHAPTER_COUNT,
   START_COUNTRY_COUNT,
   START_NETWORK_MEMBERS,
@@ -945,31 +945,8 @@ export default function HomeClient({
                 </div>
               </div>
 
-              {/* Right side - City names rolling */}
-              <div className="relative h-[400px] overflow-hidden">
-                {/* Fade overlays */}
-                <div className="absolute left-0 right-0 top-0 z-10 h-20 bg-gradient-to-b from-brand-dark-blue to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 z-10 h-20 bg-gradient-to-t from-brand-dark-blue to-transparent" />
-
-                <div className="animate-scroll-vertical mt-12 text-right">
-                  {[...START_CHAPTER_CITIES, ...START_CHAPTER_CITIES].map((city, i) => (
-                    <div
-                      key={`${city}-${i}`}
-                      className={`text-5xl font-black leading-[1.2] sm:text-6xl lg:text-7xl ${
-                        city === 'MUNICH' || (i % START_CHAPTER_COUNT) % 4 === 3
-                          ? 'text-brand-pink'
-                          : (i % START_CHAPTER_COUNT) % 4 === 0
-                            ? 'bg-gradient-to-r from-gray-400 to-gray-200 bg-clip-text text-transparent'
-                            : (i % START_CHAPTER_COUNT) % 4 === 1
-                              ? 'text-white'
-                              : 'bg-gradient-to-r from-gray-500 to-gray-300 bg-clip-text text-transparent'
-                      }`}
-                    >
-                      {city}
-                    </div>
-                  ))}
-                </div>
-              </div>
+              {/* Right side - City names rolling. Munich gets the spotlight. */}
+              <MunichEasterEgg />
             </div>
           </div>
         </section>

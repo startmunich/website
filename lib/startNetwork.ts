@@ -7,6 +7,7 @@
  *
  * Used by:
  *  - Home page "START NETWORK" section (`app/home/HomeClient.tsx`)
+ *  - Home page chapter marquee (`components/home/ChapterMarquee.tsx`)
  *  - Member journey page (`app/member-journey/MemberJourneyContent.tsx`)
  */
 
@@ -60,3 +61,14 @@ export const START_NETWORK_MEMBERS = 4000;
 
 /** Uppercase city names for display (e.g. the home page rolling marquee). */
 export const START_CHAPTER_CITIES = START_CHAPTERS.map((chapter) => chapter.city.toUpperCase());
+
+/**
+ * The chapter this site belongs to.
+ *
+ * Munich is the home chapter, so it earns a different treatment in the home
+ * page marquee than the 22 cities that merely host a START chapter.
+ */
+export const HOME_CHAPTER = 'Munich';
+
+/** Uppercase label of the home chapter, matching `START_CHAPTER_CITIES`. */
+export const HOME_CHAPTER_LABEL = HOME_CHAPTER.toUpperCase();
