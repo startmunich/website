@@ -105,7 +105,7 @@ const timelineEvents: TimelineEvent[] = [
     details: [
       'Join the Bay Area trip, 2 weeks, 20+ curated visits to top startups, VCs, and labs',
       'Research Stay @ Cambridge through direct research collaboration',
-      `Become part of the START Network, ${START_CHAPTER_COUNT}+ chapters worldwide`,
+      `Become part of the START Network, ${START_CHAPTER_COUNT} chapters worldwide`,
       'Find co-founders or start your own venture within a community of 100+ startups, including teams backed by Y Combinator',
     ],
   },
