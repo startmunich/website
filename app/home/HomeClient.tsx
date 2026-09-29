@@ -58,6 +58,7 @@ interface HomeClientProps {
   initialNews: NewsItem[];
 }
 
+/** Renders the interactive homepage from server-provided partners, startups, and news. */
 export default function HomeClient({
   initialPartners,
   initialStartups,

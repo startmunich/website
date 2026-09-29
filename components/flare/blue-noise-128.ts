@@ -230,6 +230,7 @@ const DATA =
   'Db/XF/kDvZm/xQN4vEqB1N5dGe2vk50RKKDmiPfVSqHL1bfECmiW3sMM/BF7EnwTi8MDdDM4ORCYCR8eF6sN5V4jW5lhNp37' +
   'NQDrzKr1yRcXiO8r46WUuov1DjSoo81Vc221eJICrlQ1A2/4I/lhHA==';
 
+/** Decodes the embedded 128 × 128 blue-noise texture into one byte per pixel. */
 export function blueNoiseBytes(): Uint8Array<ArrayBuffer> {
   const binary = atob(DATA);
   const bytes = new Uint8Array(binary.length);

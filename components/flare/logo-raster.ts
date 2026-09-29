@@ -12,6 +12,10 @@
  */
 import { LOGO_PAD, type LogoVariant } from './pipeline';
 
+/**
+ * Rasterizes the selected SVG at the requested pixel dimensions with transparent padding.
+ * Rejects on cancellation, image decoding failure, or an unavailable 2D context.
+ */
 export async function rasterizeLogo(
   width: number,
   height: number,

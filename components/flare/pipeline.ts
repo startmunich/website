@@ -153,6 +153,7 @@ export class FlarePipeline {
   private supersample = 1;
   private disposed = false;
 
+  /** Creates the shared sampler, blue-noise texture, and effects for the output target. */
   constructor(
     private readonly gpu: Gpu,
     private readonly output: Target,
@@ -178,6 +179,10 @@ export class FlarePipeline {
     }
   }
 
+  /**
+   * Replaces the logo texture and rebuilds targets when size or supersampling changes.
+   * Releases uncommitted resources and returns no placement if disposed or stale.
+   */
   async replace(
     size: Point,
     supersample: number,
@@ -241,6 +246,7 @@ export class FlarePipeline {
     }
   }
 
+  /** Updates placement, lighting, blur, and pulse uniforms for the next frame. */
   setFrameUniforms(
     placement: FlarePlacement,
     light: Point,
@@ -297,6 +303,7 @@ export class FlarePipeline {
     });
   }
 
+  /** Draws the flare passes, refreshing the cached logo scene only when marked dirty. */
   draw(staticDirty: boolean): void {
     if (!this.targets || this.disposed) return;
     const targets = this.targets;
@@ -309,6 +316,7 @@ export class FlarePipeline {
     });
   }
 
+  /** Releases owned textures and render targets once, attempting every cleanup. */
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
@@ -319,6 +327,7 @@ export class FlarePipeline {
     ]);
   }
 
+  /** Compiles all passes and waits for every attempt before rethrowing the first rejection. */
   private async compile(targets: FlareTargets): Promise<void> {
     const attempts = [
       () => this.effects.logo.compile(targets.scene),
@@ -338,6 +347,7 @@ export class FlarePipeline {
     if (failure?.status === 'rejected') throw failure.reason;
   }
 
+  /** Connects each effect to the textures produced by earlier rendering passes. */
   private bindTargets(targets: FlareTargets): void {
     this.effects.rim.set({
       linearSampler: this.sampler,
@@ -360,6 +370,7 @@ export class FlarePipeline {
     });
   }
 
+  /** Binds the logo texture and placement, accounting for its transparent raster padding. */
   private bindLogo(logo: BoundLogo): void {
     this.effects.logo.set({
       logoSampler: this.sampler,
@@ -375,6 +386,7 @@ export class FlarePipeline {
   }
 }
 
+/** Converts CSS dimensions to positive backing pixels, capping DPR at 1.75 and width at 1920. */
 export function backingDimensions(width: number, height: number, dpr: number): Point {
   const pixelRatio = Math.min(Math.max(dpr, 1), 1.75, MAX_RENDER_WIDTH / Math.max(width, 1));
   return [
@@ -383,6 +395,7 @@ export function backingDimensions(width: number, height: number, dpr: number): P
   ];
 }
 
+/** Fits the logo aspect ratio within its width and height limits, returning positive pixel sizes. */
 export function logoPixelSize(width: number, height: number, logo: LogoVariant): [number, number] {
   let logoWidth = width * logo.widthRatio;
   let logoHeight = logoWidth / logo.aspect;
@@ -394,6 +407,7 @@ export function logoPixelSize(width: number, height: number, logo: LogoVariant):
   return [Math.max(1, Math.round(logoWidth)), Math.max(1, Math.round(logoHeight))];
 }
 
+/** Computes centered logo scaling and aspect correction from the canvas pixel dimensions. */
 export function centeredPlacement(
   width: number,
   height: number,
@@ -408,6 +422,7 @@ export function centeredPlacement(
   };
 }
 
+/** Maps elapsed seconds to an orbiting light position in normalized canvas coordinates. */
 export function mapAutonomousLight(timeSeconds: number, placement: FlarePlacement): Point {
   const phase = timeSeconds * 0.32;
   const radius = 0.34 + 0.09 * Math.sin(phase * 0.83);
@@ -421,6 +436,7 @@ export function mapAutonomousLight(timeSeconds: number, placement: FlarePlacemen
   ];
 }
 
+/** Smoothly approaches the target light position with the elapsed seconds clamped to 0–0.05. */
 export function followLight(current: Point, target: Point, dt: number): Point {
   const alpha = 1 - Math.exp(-Math.min(Math.max(dt, 0), 0.05) / 0.3);
   return [
@@ -429,10 +445,12 @@ export function followLight(current: Point, target: Point, dt: number): Point {
   ];
 }
 
+/** Wraps a canvas as a logo raster that can upload its pixels to a GPU texture. */
 export function canvasRaster(canvas: HTMLCanvasElement): LogoRaster {
   return {
     width: canvas.width,
     height: canvas.height,
+    /** Copies the canvas pixels into the supplied GPU texture. */
     upload(gpu, texture) {
       gpu.gpu.queue.copyExternalImageToTexture({ source: canvas }, { texture }, [
         canvas.width,
@@ -442,12 +460,14 @@ export function canvasRaster(canvas: HTMLCanvasElement): LogoRaster {
   };
 }
 
+/** Allocates scene and rim targets, registering each texture for cleanup as it is created. */
 function createTargets(
   gpu: Gpu,
   size: Point,
   supersample: number,
   owned: Array<() => void>,
 ): FlareTargets {
+  /** Registers a target texture for cleanup and returns the target. */
   const own = (value: Target) => {
     owned.push(() => value.color.destroy());
     return value;
@@ -466,6 +486,7 @@ function createTargets(
   };
 }
 
+/** Uploads the embedded noise to an R8 texture, destroying it if upload fails. */
 function createBlueNoiseTexture(gpu: Gpu): GPUTexture {
   const texture = gpu.gpu.createTexture({
     label: 'start-flare-blue-noise-128',
@@ -488,6 +509,7 @@ function createBlueNoiseTexture(gpu: Gpu): GPUTexture {
   }
 }
 
+/** Copies packed texture rows into a zero-filled buffer with the requested destination stride. */
 function padTextureRows(
   data: Uint8Array<ArrayBuffer>,
   sourceBytesPerRow: number,
@@ -505,6 +527,7 @@ function padTextureRows(
   return padded;
 }
 
+/** Computes a repeating eased light pulse with deterministic hold durations from elapsed seconds. */
 function lightPulse(timeSeconds: number): number {
   let remaining = Math.max(timeSeconds, 0);
   let index = 0;
@@ -525,20 +548,24 @@ function lightPulse(timeSeconds: number): number {
   }
 }
 
+/** Maps a pulse index to a deterministic value in [0, 1) for varying hold durations. */
 function pulseHash(index: number): number {
   const value = Math.sin(index * 127.1 + 311.7) * 43758.5453;
   return value - Math.floor(value);
 }
 
+/** Prepends the shared fullscreen vertex shader to a raw or loader-wrapped WGSL shader. */
 function fullscreen(shader: string | { readonly wgsl: string }): string {
   const source = typeof shader === 'string' ? shader : shader.wgsl;
   return `${TOP_LEFT_FULLSCREEN_VERTEX}\n${source}`;
 }
 
+/** Returns cleanup callbacks for every color texture in the target set. */
 function targetCleanups(targets: FlareTargets): Array<() => void> {
   return Object.values(targets).map((value) => () => value.color.destroy());
 }
 
+/** Runs every cleanup callback, then rethrows the first error if any callback failed. */
 export function runCleanups(cleanups: readonly (() => void)[]): void {
   let primary: unknown;
   let failed = false;
@@ -553,6 +580,7 @@ export function runCleanups(cleanups: readonly (() => void)[]): void {
   if (failed) throw primary;
 }
 
+/** Attempts cleanup while suppressing errors so an existing failure is preserved. */
 function bestEffort(cleanup: () => void): void {
   try {
     cleanup();

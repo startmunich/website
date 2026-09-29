@@ -44,6 +44,7 @@ const PULSE_HOLD_SECONDS = 0.35;
  */
 const WORDMARK_QUERY = '(min-width: 640px)';
 
+/** Selects the wordmark when the media query matches, otherwise defaulting to the icon. */
 function logoVariantFor(query: MediaQueryList | undefined): LogoVariant {
   return query?.matches ? WORDMARK_LOGO : ICON_LOGO;
 }
@@ -53,6 +54,10 @@ export interface FlareRendererOptions {
   readonly onStatus?: (status: 'ready' | 'unsupported' | 'error') => void;
 }
 
+/**
+ * Starts asynchronous GPU initialization and returns readiness, resize, and disposal controls.
+ * Reports unsupported environments or failures through onStatus; initialization failures reject ready.
+ */
 export function createRenderer({ canvas, onStatus }: FlareRendererOptions) {
   let disposed = false;
   let failed = false;
@@ -82,6 +87,7 @@ export function createRenderer({ canvas, onStatus }: FlareRendererOptions) {
   let appliedBacking: Point = [0, 0];
   let appliedSupersample = 0;
 
+  /** Rasterizes and installs the requested size and logo variant unless the resize becomes stale. */
   const applySize = async (size: RenderSize, generation: number) => {
     if (!pipeline) return;
     const backing = backingDimensions(size.width, size.height, size.dpr);
@@ -128,6 +134,7 @@ export function createRenderer({ canvas, onStatus }: FlareRendererOptions) {
     staticDirty = true;
   };
 
+  /** Applies queued sizes serially, consuming the latest pending size on each iteration. */
   const drainResizes = async () => {
     while (pendingSize && !disposed) {
       const size = pendingSize;
@@ -136,6 +143,7 @@ export function createRenderer({ canvas, onStatus }: FlareRendererOptions) {
     }
   };
 
+  /** Queues a valid size, aborts stale rasterization, and shares the active resize task. */
   const resize = (size: RenderSize): Promise<void> => {
     if (disposed || size.width <= 0 || size.height <= 0) return Promise.resolve();
     pendingSize = size;
@@ -152,6 +160,7 @@ export function createRenderer({ canvas, onStatus }: FlareRendererOptions) {
     return resizeTask;
   };
 
+  /** Measures the canvas CSS box and queues a resize using the current device pixel ratio. */
   const measure = () =>
     guard(() => {
       const rect = canvas.getBoundingClientRect();
@@ -162,6 +171,7 @@ export function createRenderer({ canvas, onStatus }: FlareRendererOptions) {
       });
     });
 
+  /** Tracks non-touch pointers as clamped, normalized positions inside the canvas. */
   const handlePointerMove = (event: PointerEvent) => {
     if (event.pointerType === 'touch') return;
     guard(() => {
@@ -173,10 +183,12 @@ export function createRenderer({ canvas, onStatus }: FlareRendererOptions) {
     });
   };
 
+  /** Clears the pointer target so the light resumes its autonomous orbit. */
   const handlePointerLeave = () => {
     pointer = undefined;
   };
 
+  /** Schedules frames and renders visible canvases with throttled timing and reduced-motion lighting. */
   const frameLoop = (now: number) => {
     if (disposed) return;
     guard(() => {
@@ -206,6 +218,7 @@ export function createRenderer({ canvas, onStatus }: FlareRendererOptions) {
     });
   };
 
+  /** Stops rendering, aborts pending rasterization, and releases observers, listeners, and GPU resources once. */
   const dispose = () => {
     if (disposed) return;
     disposed = true;
@@ -226,6 +239,7 @@ export function createRenderer({ canvas, onStatus }: FlareRendererOptions) {
     ]);
   };
 
+  /** Updates the motion preference and requests a refreshed static scene. */
   function handleMotionChange(event: MediaQueryListEvent) {
     reduceMotion = event.matches;
     // Repaint the held frame under the new setting.
@@ -233,6 +247,7 @@ export function createRenderer({ canvas, onStatus }: FlareRendererOptions) {
     staticDirty = true;
   }
 
+  /** Selects the responsive logo variant and remeasures the canvas to refresh its texture. */
   function handleVariantChange(event: MediaQueryListEvent) {
     variant = event.matches ? WORDMARK_LOGO : ICON_LOGO;
     // The panel also changes shape across this breakpoint, so the
@@ -242,6 +257,7 @@ export function createRenderer({ canvas, onStatus }: FlareRendererOptions) {
     measure();
   }
 
+  /** Disposes the renderer, reports an error status, and rethrows the rendering or initialization error. */
   function fail(error: unknown): never {
     failed = true;
     try {
@@ -253,6 +269,7 @@ export function createRenderer({ canvas, onStatus }: FlareRendererOptions) {
     throw error;
   }
 
+  /** Runs synchronous work and routes any thrown error through renderer failure cleanup. */
   function guard<T>(work: () => T): T {
     try {
       return work();
@@ -261,6 +278,7 @@ export function createRenderer({ canvas, onStatus }: FlareRendererOptions) {
     }
   }
 
+  /** Creates GPU resources, applies the initial size, and attaches observers before starting frames. */
   const initialize = async () => {
     if (typeof navigator === 'undefined' || !('gpu' in navigator)) {
       onStatus?.('unsupported');

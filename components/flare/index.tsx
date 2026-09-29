@@ -46,6 +46,7 @@ interface FlareHandle {
   readonly dispose: () => void;
 }
 
+/** Renders responsive static marks and reveals the decorative canvas when the renderer is ready. */
 export function LogoFlare() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [live, setLive] = useState(false);

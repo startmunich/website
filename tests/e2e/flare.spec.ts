@@ -63,6 +63,7 @@ test('flare panel shows the icon on phones, the wordmark from tablet width up', 
   // `naturalWidth > 0` asserts the mark actually decoded, not merely that the
   // element is in the tree: a renamed or 404ing asset still leaves an attached
   // <img> with the right alt text, and `toBeVisible()` would not notice.
+  /** Reads each fallback mark’s source, rendered dimensions, and image decoding state. */
   const markState = () =>
     page.evaluate(() =>
       [...document.querySelectorAll('[data-flare-mark]')].map((img) => {
@@ -80,12 +81,14 @@ test('flare panel shows the icon on phones, the wordmark from tablet width up', 
   // The panel has a 2px border, so measure the inner box: that is the containing
   // block the mark is sized against, and `boundingBox()` would report the border
   // box and put the "half the panel" assertion out by 2px a side.
+  /** Measures the panel content and padding box, excluding its border. */
   const innerBox = () =>
     page.locator('[data-flare-panel]').evaluate((node) => ({
       width: node.clientWidth,
       height: node.clientHeight,
     }));
 
+  /** Sets the viewport, allows layout to settle, and returns panel and mark measurements. */
   const at = async (width: number, height: number) => {
     await page.setViewportSize({ width, height });
     await page.waitForTimeout(500);

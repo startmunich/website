@@ -12,6 +12,7 @@ const nextConfig = {
       },
     },
   },
+  /** Adds the WGSL loader with shader minification outside development and returns the config. */
   webpack(config, { dev }) {
     config.module.rules.push({
       test: /\.wgsl$/,
