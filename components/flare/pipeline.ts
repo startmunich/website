@@ -2,11 +2,14 @@
  * Flare pipeline — adapted from the vgpu `nextjs-flare` example.
  *
  * Differences from the upstream example, all of them brand/layout driven:
- *  - The rasterised logo is the START Munich wordmark (aspect 80:36) instead of
- *    the Next.js mark (aspect 514:624), so placement is sized from the canvas
- *    width and capped by its height rather than derived from one edge.
- *  - `GLYPH_CENTER_IN_BOX` is gone: the wordmark is centred in its own viewBox,
+ *  - The rasterised logo is a START Munich mark instead of the Next.js mark
+ *    (aspect 514:624), so placement is sized from the canvas width and capped by
+ *    its height rather than derived from one edge.
+ *  - `GLYPH_CENTER_IN_BOX` is gone: both marks are centred in their own viewBox,
  *    so `logoCenter` is exactly `[0.5, 0.5]`.
+ *  - Which mark is drawn is a `LogoVariant`, not a constant, because the panel
+ *    is a wide rectangle on desktop and a 1:1 square on mobile and the 80:36
+ *    wordmark reads as a sliver once the canvas is square.
  *  - The flare tint and the vignette base are the `brand-pink` and
  *    `brand-dark-blue` tokens from `tailwind.config.ts`.
  *
@@ -80,12 +83,41 @@ fn flare_fullscreen_vs(@builtin(vertex_index) vertexIndex: u32) -> FlareFullscre
 }
 `;
 
-/** `public/startlogo.svg` is `viewBox="0 0 80 36"`. */
-const LOGO_ASPECT = 80 / 36;
-/** Share of the canvas width the wordmark spans before the height cap applies. */
-const LOGO_WIDTH_RATIO = 0.62;
-/** The wordmark never grows past this share of the canvas height. */
-const LOGO_MAX_HEIGHT_RATIO = 0.4;
+/**
+ * Which mark the flare draws, and how it is sized inside the canvas.
+ *
+ * The panel is a wide rectangle on desktop and a 1:1 square on mobile (see the
+ * container in `HomeClient.tsx`), and the 80:36 wordmark reads as a sliver once
+ * the canvas is square, so mobile draws the round icon instead. `FlareRenderer`
+ * picks the variant from the same 1024px breakpoint the container uses, which
+ * keeps the GPU texture and the CSS fallback showing the same mark.
+ */
+export interface LogoVariant {
+  /** Public path of the SVG, used as the GPU source and as the fallback. */
+  readonly src: string;
+  /** `viewBox` aspect (width / height) of the asset. */
+  readonly aspect: number;
+  /** Share of the canvas width the mark spans before the height cap applies. */
+  readonly widthRatio: number;
+  /** The mark never grows past this share of the canvas height. */
+  readonly maxHeightRatio: number;
+}
+
+/** Desktop: the wordmark, `public/startlogo.svg` (`viewBox="0 0 80 36"`). */
+export const WORDMARK_LOGO: LogoVariant = {
+  src: '/startlogo.svg',
+  aspect: 80 / 36,
+  widthRatio: 0.62,
+  maxHeightRatio: 0.4,
+};
+
+/** Mobile: the round icon, `public/start-munich-icon.svg` (`viewBox="0 0 61 61"`). */
+export const ICON_LOGO: LogoVariant = {
+  src: '/start-munich-icon.svg',
+  aspect: 1,
+  widthRatio: 0.5,
+  maxHeightRatio: 0.5,
+};
 /** Transparent margin baked into the raster so edge sampling never clamps. */
 export const LOGO_PAD = 3;
 const MAX_RENDER_WIDTH = 1920;
@@ -147,6 +179,7 @@ export class FlarePipeline {
   async replace(
     size: Point,
     supersample: number,
+    logo: LogoVariant,
     raster: LogoRaster,
     isStale: () => boolean = () => false,
   ): Promise<FlarePlacement | undefined> {
@@ -174,7 +207,7 @@ export class FlarePipeline {
       if (!this.targets) await this.compile(nextTargets);
       if (this.disposed || isStale()) return;
 
-      const placement = centeredPlacement(nextSize[0], nextSize[1]);
+      const placement = centeredPlacement(nextSize[0], nextSize[1], logo);
       const nextLogo: BoundLogo = { ...raster, texture: nextTexture, placement };
       const previousTargets = this.targets;
       const previousLogo = this.logo;
@@ -348,19 +381,23 @@ export function backingDimensions(width: number, height: number, dpr: number): P
   ];
 }
 
-export function logoPixelSize(width: number, height: number): [number, number] {
-  let logoWidth = width * LOGO_WIDTH_RATIO;
-  let logoHeight = logoWidth / LOGO_ASPECT;
-  const maxHeight = height * LOGO_MAX_HEIGHT_RATIO;
+export function logoPixelSize(width: number, height: number, logo: LogoVariant): [number, number] {
+  let logoWidth = width * logo.widthRatio;
+  let logoHeight = logoWidth / logo.aspect;
+  const maxHeight = height * logo.maxHeightRatio;
   if (logoHeight > maxHeight) {
     logoHeight = maxHeight;
-    logoWidth = logoHeight * LOGO_ASPECT;
+    logoWidth = logoHeight * logo.aspect;
   }
   return [Math.max(1, Math.round(logoWidth)), Math.max(1, Math.round(logoHeight))];
 }
 
-export function centeredPlacement(width: number, height: number): FlarePlacement {
-  const [logoWidth, logoHeight] = logoPixelSize(width, height);
+export function centeredPlacement(
+  width: number,
+  height: number,
+  logo: LogoVariant,
+): FlarePlacement {
+  const [logoWidth, logoHeight] = logoPixelSize(width, height, logo);
   const reference = Math.min(width, height);
   return {
     logoCenter: LOGO_CENTER,

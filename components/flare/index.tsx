@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * LogoFlare — the START Munich wordmark rendered through the vgpu flare example.
+ * LogoFlare — the START Munich mark rendered through the vgpu flare example.
  *
  * Adapted from the vgpu `nextjs-flare` example, which drew the Next.js mark on a
  * black canvas. The differences are all about dropping into this site:
@@ -9,11 +9,14 @@
  *    full-viewport hero, so it sizes from its container;
  *  - the vignette blends into `brand-dark-blue` (the page background) instead of
  *    black, so the panel has no hard edge;
+ *  - the mark is the round icon below the `lg` breakpoint and the wordmark above
+ *    it, because the panel is a 1:1 square on mobile and the 80:36 wordmark reads
+ *    as a sliver there;
  *  - `renderer.ts` is imported lazily from the effect, which keeps `vgpu` and the
  *    four WGSL shader chunks out of the homepage's critical path.
  *
  * The renderer owns the canvas and its GPU resources; this component only decides
- * whether the flare is visible or the plain wordmark is. `renderer.ts` already
+ * whether the flare is visible or the static mark is. `renderer.ts` already
  * pauses the frame loop when the canvas scrolls out of view and holds a static
  * frame for `prefers-reduced-motion`, so neither is duplicated here.
  */
@@ -22,16 +25,20 @@ import { useEffect, useRef, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 
-/** Must match `LOGO_SRC` in `logo-raster.ts` — the same asset the GPU pipeline uploads. */
-const LOGO_SRC = '/startlogo.svg';
+import { ICON_LOGO, WORDMARK_LOGO } from './pipeline';
 
 /**
- * The static wordmark is sized with the same ratios the pipeline uses for the GPU
- * placement (`LOGO_WIDTH_RATIO` / `LOGO_MAX_HEIGHT_RATIO` in `pipeline.ts`) so the
- * hand-off from fallback to flare does not jump. Tailwind cannot build class names
- * from variables, so the numbers are duplicated here — change both together.
+ * The static marks are sized with the same ratios the pipeline uses for the GPU
+ * placement (`widthRatio` / `maxHeightRatio` in `pipeline.ts`) so the hand-off
+ * from fallback to flare does not jump. Tailwind cannot build class names from
+ * the variant table, so the numbers are duplicated here — change both together.
+ *
+ * Both are rendered at all times and swapped on the `lg` breakpoint rather than
+ * picked in JS, so the correct mark is in the server HTML and needs no effect.
+ * Only the visible one reaches the accessibility tree; the canvas is decorative.
  */
-const FALLBACK_LOGO_CLASSES = 'aspect-[80/36] w-[62%] max-h-[40%]';
+const FALLBACK_WORDMARK_CLASSES = 'relative hidden aspect-[80/36] w-[62%] max-h-[40%] lg:block';
+const FALLBACK_ICON_CLASSES = 'relative aspect-square w-1/2 max-h-1/2 lg:hidden';
 
 /** Subset of the renderer handle that the component lifecycle actually uses. */
 interface FlareHandle {
@@ -84,14 +91,26 @@ export function LogoFlare() {
           live ? 'opacity-0' : 'opacity-100',
         )}
       >
-        <div className={cn('relative', FALLBACK_LOGO_CLASSES)}>
+        <div className={FALLBACK_ICON_CLASSES}>
           <Image
-            src={LOGO_SRC}
+            src={ICON_LOGO.src}
             alt="START Munich"
+            data-flare-mark="icon"
             fill
             loading="lazy"
             className="object-contain"
-            sizes="(max-width: 1024px) 62vw, 31vw"
+            sizes="(max-width: 1024px) 50vw, 0px"
+          />
+        </div>
+        <div className={FALLBACK_WORDMARK_CLASSES}>
+          <Image
+            src={WORDMARK_LOGO.src}
+            alt="START Munich"
+            data-flare-mark="wordmark"
+            fill
+            loading="lazy"
+            className="object-contain"
+            sizes="(max-width: 1024px) 0px, 31vw"
           />
         </div>
       </div>

@@ -9,6 +9,8 @@
  *  - Rendering pauses while the canvas is off screen, so the 30fps loop does not
  *    burn battery for a section most visitors never scroll to.
  *  - `prefers-reduced-motion` is honoured by holding a static, fully lit frame.
+ *  - The mark is chosen from the same 1024px breakpoint the panel uses, because
+ *    the panel is a 1:1 square below it and the wordmark reads as a sliver there.
  */
 import type { Gpu } from 'vgpu';
 
@@ -19,17 +21,27 @@ import {
   FlarePipeline,
   type FlarePlacement,
   followLight,
+  ICON_LOGO,
   LOGO_CENTER,
   logoPixelSize,
+  type LogoVariant,
   mapAutonomousLight,
   type Point,
   runCleanups,
+  WORDMARK_LOGO,
 } from './pipeline';
 
 type RenderSize = Readonly<{ width: number; height: number; dpr: number }>;
 
 const FRAME_INTERVAL_MS = 33;
 const PULSE_HOLD_SECONDS = 0.35;
+
+/** Tailwind's `lg`, the breakpoint where the panel stops being a 1:1 square. */
+const WORDMARK_QUERY = '(min-width: 1024px)';
+
+function logoVariantFor(query: MediaQueryList | undefined): LogoVariant {
+  return query?.matches ? WORDMARK_LOGO : ICON_LOGO;
+}
 
 export interface FlareRendererOptions {
   readonly canvas: HTMLCanvasElement;
@@ -55,6 +67,9 @@ export function createRenderer({ canvas, onStatus }: FlareRendererOptions) {
   let visible = true;
   let reduceMotion = false;
   let motionQuery: MediaQueryList | undefined;
+  let variantQuery: MediaQueryList | undefined;
+  let variant: LogoVariant = ICON_LOGO;
+  let appliedVariant: LogoVariant | undefined;
   let pendingSize: RenderSize | undefined;
   let resizeTask: Promise<void> | undefined;
   let resizeGeneration = 0;
@@ -69,7 +84,8 @@ export function createRenderer({ canvas, onStatus }: FlareRendererOptions) {
     if (
       backing[0] === appliedBacking[0] &&
       backing[1] === appliedBacking[1] &&
-      supersample === appliedSupersample
+      supersample === appliedSupersample &&
+      variant === appliedVariant
     ) {
       return;
     }
@@ -79,10 +95,11 @@ export function createRenderer({ canvas, onStatus }: FlareRendererOptions) {
     const [logoWidth, logoHeight] = logoPixelSize(
       backing[0] * supersample,
       backing[1] * supersample,
+      variant,
     );
     let logo: HTMLCanvasElement;
     try {
-      logo = await rasterizeLogo(logoWidth, logoHeight, controller.signal);
+      logo = await rasterizeLogo(logoWidth, logoHeight, variant, controller.signal);
     } catch (error) {
       if (controller.signal.aborted) return;
       throw error;
@@ -94,6 +111,7 @@ export function createRenderer({ canvas, onStatus }: FlareRendererOptions) {
     const nextPlacement = await pipeline.replace(
       backing,
       supersample,
+      variant,
       canvasRaster(logo),
       () => disposed || generation !== resizeGeneration,
     );
@@ -101,6 +119,7 @@ export function createRenderer({ canvas, onStatus }: FlareRendererOptions) {
     placement = nextPlacement;
     appliedBacking = backing;
     appliedSupersample = supersample;
+    appliedVariant = variant;
     staticDirty = true;
   };
 
@@ -194,6 +213,7 @@ export function createRenderer({ canvas, onStatus }: FlareRendererOptions) {
       () => observer?.disconnect(),
       () => visibility?.disconnect(),
       () => motionQuery?.removeEventListener('change', handleMotionChange),
+      () => variantQuery?.removeEventListener('change', handleVariantChange),
       () => canvas.removeEventListener('pointermove', handlePointerMove),
       () => canvas.removeEventListener('pointerleave', handlePointerLeave),
       () => canvas.removeEventListener('pointercancel', handlePointerLeave),
@@ -206,6 +226,15 @@ export function createRenderer({ canvas, onStatus }: FlareRendererOptions) {
     // Repaint the held frame under the new setting.
     lastRender = -Infinity;
     staticDirty = true;
+  }
+
+  function handleVariantChange(event: MediaQueryListEvent) {
+    variant = event.matches ? WORDMARK_LOGO : ICON_LOGO;
+    // The panel also changes shape across this breakpoint, so the
+    // ResizeObserver usually fires on its own — but re-measuring keeps the
+    // texture correct even when the backing store happens not to change.
+    // `getBoundingClientRect` forces layout, so this reads the new box size.
+    measure();
   }
 
   function fail(error: unknown): never {
@@ -250,6 +279,9 @@ export function createRenderer({ canvas, onStatus }: FlareRendererOptions) {
       format: 'bgra8unorm',
     });
     pipeline = new FlarePipeline(gpu, output);
+    variantQuery = window.matchMedia?.(WORDMARK_QUERY);
+    variant = logoVariantFor(variantQuery);
+    variantQuery?.addEventListener('change', handleVariantChange);
     const rect = canvas.getBoundingClientRect();
     await resize({
       width: Math.max(1, rect.width),

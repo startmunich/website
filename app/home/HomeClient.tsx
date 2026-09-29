@@ -996,9 +996,15 @@ export default function HomeClient({
                 </Link>
               </div>
 
-              {/* Right side - WebGPU logo flare */}
+              {/* Right side - WebGPU logo flare. Square on mobile, where the
+                  flare draws the round icon; a tall panel from `lg` up, where it
+                  draws the wordmark. Mirrored by WORDMARK_QUERY in
+                  components/flare/renderer.ts. */}
               <div className="relative">
-                <div className="relative h-[500px] overflow-hidden rounded-3xl border-2 border-white/10 lg:h-[600px]">
+                <div
+                  data-flare-panel
+                  className="relative aspect-square overflow-hidden rounded-3xl border-2 border-white/10 lg:aspect-auto lg:h-[600px]"
+                >
                   <LogoFlare />
                 </div>
                 {/* Decorative blob */}

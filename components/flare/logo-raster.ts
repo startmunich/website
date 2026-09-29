@@ -1,21 +1,21 @@
 /**
- * Rasterises the START Munich wordmark into a canvas for upload as a GPU texture.
+ * Rasterises a START Munich mark into a canvas for upload as a GPU texture.
  *
  * Adapted from the vgpu `nextjs-flare` example, which inlined the Next.js mark as
- * a `data:` URI. We point the same `Image` load at `public/startlogo.svg` instead
- * so the logo keeps a single source of truth, and size the canvas from the real
- * 80:36 viewBox rather than the example's 514:624 mark.
+ * a `data:` URI. We point the same `Image` load at the public asset named by the
+ * `LogoVariant` instead, so the mark keeps a single source of truth shared with
+ * the CSS fallback, and size the canvas from that asset's own viewBox rather than
+ * the example's 514:624 mark.
  *
  * The abort protocol is unchanged: an in-flight decode is cancellable and never
  * resolves after the caller has moved on.
  */
-import { LOGO_PAD } from './pipeline';
-
-const LOGO_SRC = '/startlogo.svg';
+import { LOGO_PAD, type LogoVariant } from './pipeline';
 
 export async function rasterizeLogo(
   width: number,
   height: number,
+  logo: LogoVariant,
   signal?: AbortSignal,
 ): Promise<HTMLCanvasElement> {
   if (signal?.aborted) throw new DOMException('Logo rasterization aborted.', 'AbortError');
@@ -28,7 +28,7 @@ export async function rasterizeLogo(
   let abort: (() => void) | undefined;
   const loaded = new Promise<void>((resolve, reject) => {
     image.onload = () => resolve();
-    image.onerror = () => reject(new Error(`Could not decode ${LOGO_SRC}.`));
+    image.onerror = () => reject(new Error(`Could not decode ${logo.src}.`));
     abort = () => {
       image.onload = null;
       image.onerror = null;
@@ -38,7 +38,7 @@ export async function rasterizeLogo(
     signal?.addEventListener('abort', abort, { once: true });
   });
   if (signal?.aborted) abort?.();
-  else image.src = LOGO_SRC;
+  else image.src = logo.src;
   try {
     await loaded;
   } finally {
