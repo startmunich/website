@@ -5,8 +5,8 @@
  * renderer already established in this repo, deliberately kept identical so the
  * two features can be reasoned about together. What the aura does not need is
  * most of what the flare carries: no logo to rasterize (so resizes are
- * synchronous and need no generation counter or `AbortController`), no pointer
- * input, and no ping-pong targets.
+ * synchronous and need no generation counter or `AbortController`) and no
+ * ping-pong targets.
  *
  * Two decisions carry the performance story:
  *  - The field is rasterized at a fraction of the canvas's pixel size and left
@@ -14,10 +14,16 @@
  *  - Elapsed time accumulates only by the clamped per-frame delta, so the drift
  *    stays continuous across a backgrounded tab or a dropped frame instead of
  *    jumping to wherever the wall clock now is.
+ *
+ * The pointer light is read from `window`, not from the canvas. The aura is
+ * `pointer-events: none` so it cannot swallow a click on the hero copy, and an
+ * element that ignores pointers also never receives `pointermove`. Listening on
+ * the window preserves both: the layer stays inert to hit-testing, and the hero
+ * still reacts wherever the cursor happens to be over it.
  */
 import type { Gpu } from 'vgpu';
 
-import { runCleanups } from '@/lib/gpu/runtime';
+import { type Point, runCleanups } from '@/lib/gpu/runtime';
 
 import { AuraPipeline } from './pipeline';
 
@@ -39,6 +45,12 @@ const FIELD_LONG_EDGE = 380;
 
 /** Floor that keeps a very small hero from producing a degenerate texture. */
 const MIN_FIELD_EDGE = 24;
+
+/** Time constant, in seconds, for the light easing toward its target position. */
+const LIGHT_EASE_SECONDS = 0.45;
+
+/** Time constant for the light fading in and out as the pointer arrives and leaves. */
+const LIGHT_FADE_SECONDS = 0.6;
 
 export interface AuraRendererOptions {
   readonly canvas: HTMLCanvasElement;
@@ -82,6 +94,14 @@ export function createRenderer({ canvas, onStatus }: AuraRendererOptions): AuraH
   let animationFrame = 0;
   let pendingSize: [number, number] | undefined;
   let resizeTask: Promise<void> | undefined;
+  /** Where the light is heading: the pointer if it is over the hero, else an orbit. */
+  let lightTarget: Point = [0.5, 0.5];
+  /** Where the light actually is, eased toward `lightTarget` each frame. */
+  let light: Point = [0.5, 0.5];
+  /** Eased 0-1 weight for the light, so it fades rather than snapping. */
+  let lightStrength = 0;
+  /** Latest pointer position in page coordinates, or undefined when there is none. */
+  let pointer: readonly [number, number] | undefined;
 
   /** Applies a size, compiling the pass the first time and resizing thereafter. */
   const applySize = async (size: [number, number]) => {
@@ -126,6 +146,40 @@ export function createRenderer({ canvas, onStatus }: AuraRendererOptions): AuraH
       void resize(rect.width, rect.height);
     });
 
+  /**
+   * Maps the latest pointer position into the canvas's 0-1 UV space, or returns
+   * undefined when the pointer is outside the box or absent.
+   */
+  const resolveLightTarget = (): Point | undefined => {
+    if (!pointer) return undefined;
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return undefined;
+    const [clientX, clientY] = pointer;
+    if (clientX < rect.left || clientX > rect.right) return undefined;
+    if (clientY < rect.top || clientY > rect.bottom) return undefined;
+    return [(clientX - rect.left) / rect.width, (clientY - rect.top) / rect.height];
+  };
+
+  /**
+   * A slow orbit used whenever there is no pointer to follow, so touch devices
+   * and a cursor parked off the hero still get the light moving.
+   */
+  const orbitLight = (timeSeconds: number): Point => {
+    const phase = timeSeconds * 0.21;
+    return [0.5 + Math.cos(phase) * 0.3, 0.44 - Math.sin(phase * 0.83) * 0.16];
+  };
+
+  /** Tracks non-touch pointers anywhere in the document; touch is left to the orbit. */
+  const handlePointerMove = (event: PointerEvent) => {
+    if (event.pointerType === 'touch') return;
+    pointer = [event.clientX, event.clientY];
+  };
+
+  /** Drops the pointer so the light falls back to its orbit. */
+  const handlePointerLeave = () => {
+    pointer = undefined;
+  };
+
   /** Draws throttled frames, skipping anything off screen or under reduced motion. */
   const frameLoop = (now: number) => {
     if (disposed) return;
@@ -140,21 +194,46 @@ export function createRenderer({ canvas, onStatus }: AuraRendererOptions): AuraH
       // drift by a step rather than teleporting it.
       const delta = Math.min(Math.max(now - previousTime, 0), FRAME_INTERVAL_MS * 4);
       previousTime = now;
+      const dt = Math.min(delta / 1000, 0.05);
+      const time = elapsed / 1000;
 
       if (reduceMotion) {
         // One still frame at t=0. The uniforms are then constant, so re-running
         // the pass every tick would burn GPU forever to produce an identical
         // image. A resize is the only thing that invalidates it.
         if (staticDrawn) return;
-        activePipeline.draw({ timeSeconds: 0, frameSeed: 0 });
+        activePipeline.draw({
+          timeSeconds: 0,
+          frameSeed: 0,
+          light: orbitLight(0),
+          lightStrength: 0,
+        });
         staticDrawn = true;
         lastRender = now;
         return;
       }
 
+      // Pointer light when there is one, orbiting otherwise. The orbit counts as
+      // a partial-strength light so the network is revealed either way, just
+      // more strongly when the visitor is actually driving it.
+      const followed = resolveLightTarget();
+      lightTarget = followed ?? orbitLight(time);
+      const ease = 1 - Math.exp(-dt / LIGHT_EASE_SECONDS);
+      light = [
+        light[0] + (lightTarget[0] - light[0]) * ease,
+        light[1] + (lightTarget[1] - light[1]) * ease,
+      ];
+      const wanted = followed ? 1 : 0.45;
+      lightStrength += (wanted - lightStrength) * (1 - Math.exp(-dt / LIGHT_FADE_SECONDS));
+
       elapsed += delta;
       lastRender = now;
-      activePipeline.draw({ timeSeconds: elapsed / 1000, frameSeed: frameIndex });
+      activePipeline.draw({
+        timeSeconds: elapsed / 1000,
+        frameSeed: frameIndex,
+        light,
+        lightStrength,
+      });
       frameIndex += 1;
       staticDrawn = false;
     });
@@ -184,6 +263,11 @@ export function createRenderer({ canvas, onStatus }: AuraRendererOptions): AuraH
       () => observer?.disconnect(),
       () => visibility?.disconnect(),
       () => motionQuery?.removeEventListener('change', handleMotionChange),
+      () => window.removeEventListener('pointermove', handlePointerMove),
+      () => window.removeEventListener('pointerdown', handlePointerMove),
+      // A window-level listener outlives the element, so it has to come off on
+      // teardown or a client-side navigation would leave the old one running.
+      () => document.documentElement.removeEventListener('pointerleave', handlePointerLeave),
       // Before `gpu.dispose()`: the pipeline frees its own texture here, and
       // `gpu.dispose()` is the backstop for anything the runtime registered.
       () => pipeline?.dispose(),
@@ -247,6 +331,12 @@ export function createRenderer({ canvas, onStatus }: AuraRendererOptions): AuraH
     motionQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)');
     reduceMotion = motionQuery?.matches ?? false;
     motionQuery?.addEventListener('change', handleMotionChange);
+
+    // `pointerdown` as well as `pointermove` so the light responds immediately
+    // on the first interaction instead of waiting for the cursor to move.
+    window.addEventListener('pointermove', handlePointerMove, { passive: true });
+    window.addEventListener('pointerdown', handlePointerMove, { passive: true });
+    document.documentElement.addEventListener('pointerleave', handlePointerLeave);
 
     observer =
       typeof ResizeObserver === 'undefined'

@@ -17,6 +17,10 @@
 //     significant-bit of blue noise is added before quantising, decorrelated
 //     per frame so it reads as film grain rather than a fixed screen door.
 //
+// The motif is a drifting cellular web with lit nodes, which is the site's own
+// subject: a network of chapters and members. A pointer adds a soft light that
+// reveals the web where it passes.
+//
 // Everything is 8-bit `rgba8unorm` and pre-scaled on the CPU, so the pass is a
 // single fullscreen fragment with no intermediate targets.
 struct Params {
@@ -24,6 +28,8 @@ struct Params {
   blue: vec4f,
   field: vec4f,
   shape: vec4f,
+  light: vec4f,
+  net: vec4f,
 }
 
 @group(0) @binding(0) var blueNoiseTexture: texture_2d<f32>;
@@ -70,6 +76,45 @@ fn fbm(point: vec2f) -> f32 {
   return total;
 }
 
+/**
+ * Two nearest feature-point distances over the surrounding 3x3 cells, as
+ * `(nearest, second)`.
+ *
+ * The gap between them, `second - nearest`, is what draws the network: it is
+ * near zero exactly on the boundary between two cells and grows toward each
+ * cell's centre, so thresholding it low yields a web of thin lines rather than
+ * the blobs `worley` usually gives. The `nearest` term separately marks the
+ * feature points themselves, which become the nodes.
+ *
+ * This is the one part of the pass that justifies more than a plain gradient:
+ * it is the only thing here that could not be done with a CSS radial-gradient,
+ * and it is what ties the layer to the network the site is actually about.
+ */
+fn cellular(point: vec2f) -> vec2f {
+  let base = floor(point);
+  let local = fract(point);
+  var nearest = 8.0;
+  var second = 8.0;
+  for (var y = -1; y <= 1; y += 1) {
+    for (var x = -1; x <= 1; x += 1) {
+      let offset = vec2f(f32(x), f32(y));
+      let feature = vec2f(
+        hash21(base + offset),
+        hash21(base + offset + vec2f(37.7, 11.3)),
+      );
+      let delta = offset + feature - local;
+      let distance = dot(delta, delta);
+      if (distance < nearest) {
+        second = nearest;
+        nearest = distance;
+      } else if (distance < second) {
+        second = distance;
+      }
+    }
+  }
+  return sqrt(vec2f(nearest, second));
+}
+
 @fragment fn fs_main(@location(0) uv: vec2f) -> @location(0) vec4f {
   let aspect = params.shape.xy;
   let time = params.field.x;
@@ -81,9 +126,11 @@ fn fbm(point: vec2f) -> f32 {
 
   // Domain warp: sampling a second, slower field and displacing by it folds the
   // blobs into filaments, which is what makes this read as light rather than fog.
+  // Single octave — a warp is a displacement, and extra octaves here only cost
+  // fragments without changing the silhouette.
   let warp = vec2f(
-    fbm(centered * 0.85 + drift * 0.5),
-    fbm(centered * 0.85 + vec2f(5.2, 1.3) - drift * 0.4),
+    value_noise(centered * 0.85 + drift * 0.5),
+    value_noise(centered * 0.85 + vec2f(5.2, 1.3) - drift * 0.4),
   );
   // Deliberately low frequency. The field is rasterized around 380px wide and
   // the compositor scales it up roughly four times, so only the broad shapes
@@ -91,7 +138,7 @@ fn fbm(point: vec2f) -> f32 {
   let warped = centered * 0.82 + (warp - vec2f(0.5)) * 1.05;
 
   let densityField = fbm(warped * 1.15 + drift * 0.25);
-  let tintField = fbm(warped * 0.85 - drift * 0.18 + vec2f(3.7, -1.1));
+  let tintField = value_noise(warped * 0.85 - drift * 0.18 + vec2f(3.7, -1.1));
 
   let density = smoothstep(params.field.z, params.field.z + params.field.w, densityField);
   let tint = smoothstep(0.28, 0.74, tintField);
@@ -101,25 +148,62 @@ fn fbm(point: vec2f) -> f32 {
   // toward the pink keeps it on-brand while letting it carry light.
   let color = mix(params.blue.rgb, params.pink.rgb, tint) + params.pink.rgb * 0.12 * (1.0 - tint);
 
-  // The calm ellipse tracks the headline: offset left when the copy is beside
-  // the stat cards, centred and wider when the hero stacks.
-  let wide = step(1.25, aspect.x / max(aspect.y, 0.001));
-  let calmCenter = mix(vec2f(0.5, 0.46), vec2f(0.36, 0.5), wide);
-  let calmRadius = mix(vec2f(0.62, 0.3), vec2f(0.4, 0.38), wide);
-  let calmDistance = length((uv - calmCenter) / calmRadius);
-  let presence = smoothstep(0.5, 1.15, calmDistance);
+  // The network is sampled through the *same* warped coordinate as the light,
+  // so the cells inherit the flow field and come out as curved, stretched
+  // shapes following the current rather than as flat convex polygons. That is
+  // the difference between a network and a wireframe mesh. It drifts on its own
+  // axis and faster, so the two layers slide across each other instead of
+  // moving as one object.
+  let cell = cellular(warped * params.net.z + drift * 0.9);
+  let web = (1.0 - smoothstep(0.0, params.net.y, cell.y - cell.x)) * params.net.x;
+  let node = 1.0 - smoothstep(0.0, params.net.w, cell.x);
 
-  // Fade at the left, right and bottom so the layer never shows a seam against
-  // the page. The top is left open: the hero runs to the top of the viewport,
-  // under an opaque navigation bar, so there is no edge to hide there.
+  // A soft light that follows the pointer, and orbits on its own when there is
+  // no pointer — so touch visitors and anyone who leaves the cursor parked
+  // somewhere still get a moving light rather than a static frame.
+  let lightDelta = (uv - params.light.xy) * aspect;
+  let lightFall = exp(-dot(lightDelta, lightDelta) / max(params.light.w * params.light.w, 1e-4));
+
+  // The calm ellipse tracks the headline: offset left when the copy is beside
+  // the stat cards, centred and wider when the hero stacks. Looser than a pure
+  // legibility mask, because the network is the thing being protected here and
+  // clipping it to nothing would cost the layer its motif.
+  let wide = step(1.25, aspect.x / max(aspect.y, 0.001));
+  let calmCenter = mix(vec2f(0.5, 0.44), vec2f(0.37, 0.47), wide);
+  let calmRadius = mix(vec2f(0.66, 0.32), vec2f(0.47, 0.4), wide);
+  let calmDistance = length((uv - calmCenter) / calmRadius);
+  let calm = smoothstep(0.4, 1.05, calmDistance);
+
+  // Fade at the left and right so the layer never shows a seam against the page.
   let sideFade = smoothstep(0.0, 0.12, uv.x) * smoothstep(0.0, 0.12, 1.0 - uv.x);
-  let baseFade = smoothstep(0.0, 0.16, uv.y);
+  // UV origin is top-left, so `uv.y` grows downward. The top fade is small and
+  // sits behind the opaque navigation bar; it only exists so the layer would
+  // still not start at a hard edge if that bar were ever made translucent.
+  let topFade = smoothstep(0.0, 0.1, uv.y);
+  // The bottom fade is the one that matters: it tracks the lengthened CSS
+  // gradient under the photograph, so the picture, the field and the page
+  // background all reach solid over the same span, instead of the aura cutting
+  // out early and leaving a visible band where it stopped.
+  let baseFade = 1.0 - smoothstep(0.6, 1.0, uv.y);
+  let presence = calm * sideFade * topFade * baseFade;
 
   // A very slow luminance breath, 30s per cycle, so the layer never looks
   // frozen on a long dwell.
   let breath = 0.88 + 0.12 * sin(time * 0.21);
 
-  var alpha = density * presence * sideFade * baseFade * breath * params.pink.w;
+  // The light lifts the glow around it and reveals the network it passes over,
+  // which is what makes moving the cursor feel like it is doing something.
+  let reveal = 1.0 + lightFall * params.light.z * 2.4;
+  let illumination = density * reveal
+    + web * (0.45 + lightFall * params.light.z * 2.0)
+    + node * (0.5 + lightFall * params.light.z * 1.5);
+
+  // Filaments read as light only if they are lighter than the wash behind them,
+  // so the network is mixed toward white rather than tinted like the field.
+  let lit = mix(color, vec3f(1.0), 0.28);
+  let litColor = mix(color, lit, clamp(web * 2.2 + node * 1.6, 0.0, 1.0));
+
+  var alpha = illumination * presence * breath * params.pink.w;
 
   let dimensions = textureDimensions(blueNoiseTexture);
   let pixel = vec2u(clamp(uv * vec2f(dimensions), vec2f(0.0), vec2f(dimensions) - vec2f(1.0)));
@@ -128,5 +212,5 @@ fn fbm(point: vec2f) -> f32 {
   alpha = clamp(alpha + (noise - 0.5) * (2.0 / 255.0), 0.0, 1.0);
 
   // Pre-scaled, to match the premultiplied surface the canvas is configured with.
-  return vec4f(color * alpha, alpha);
+  return vec4f(litColor * alpha, alpha);
 }

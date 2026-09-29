@@ -121,3 +121,27 @@ test('the hero field renders well below the canvas pixel size', async ({ page })
   expect(state.backing).toBeLessThan(state.css * 0.2);
   expect(state.backing).toBeGreaterThan(0);
 });
+
+/**
+ * The renderer reads the pointer from `window`, which outlives the element it is
+ * reading for. A client-side navigation therefore has to dispose the old
+ * renderer and its listeners before the next one mounts, and this is the only
+ * place that remount actually happens on a multi-page session. It also guards
+ * against a second aura surviving the swap, which would mean two live canvases
+ * stacked on the same hero.
+ */
+test('the aura survives a client-side navigation between hero pages', async ({ page }) => {
+  const pageErrors: string[] = [];
+  page.on('pageerror', (error) => pageErrors.push(error.message));
+
+  await page.goto(HERO_PAGE);
+  await page.waitForTimeout(2000);
+
+  // Same chrome on both pages, so this is a real client-side route change.
+  await page.getByRole('link', { name: 'OUR STARTUPS' }).click();
+  await page.waitForURL('**/startups');
+  await page.waitForTimeout(2000);
+
+  await expect(page.locator('[data-aura]')).toHaveCount(1);
+  expect(pageErrors, `uncaught errors: ${pageErrors.join('; ')}`).toEqual([]);
+});

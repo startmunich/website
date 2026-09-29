@@ -220,31 +220,62 @@ more pages and carries no detail worth resolving:
 - **The pass is pre-scaled for a premultiplied surface**, so the compositor's blend needs no divide,
   and there are no intermediate render targets.
 - **The field is authored at low frequency on purpose.** Upscaled ~4x, anything finer than the broad
-  shapes would be paid for and then thrown away by the interpolator.
+  shapes would be paid for and then thrown away by the interpolator. The cellular network is the one
+  exception, at roughly six cells across the hero.
 - **It is invisible in the critical path.** `index.tsx` imports nothing but React and `cn`; the
   renderer, the pipeline, `vgpu` and the `.wgsl` chunk all arrive from a dynamic
   `import('./renderer')` in an effect. Same rule as the flare: **`index.tsx` must not import from
   `pipeline.ts`.**
+
+### The motif, and the light
+
+The layer is not a gradient. It is a drifting cellular web with lit nodes: a Worley field
+thresholded on the gap between its two nearest feature points, so the cell _boundaries_ become thin
+filaments, sampled through the same domain-warped coordinate as the light so the cells stretch along
+the flow instead of tiling as flat polygons. It is the site's own subject — a network of chapters
+and members. `NETWORK_STRENGTH` in `pipeline.ts` is the dial, and the reason the layer exists at all
+is that a CSS radial-gradient cannot express it.
+
+A soft light follows the pointer and lifts both the glow and the network where it passes, so moving
+the cursor reveals the web rather than just brightening a tint. Two details make it behave:
+
+- **The light reads from `window`, not the canvas.** The aura is `pointer-events: none` so it cannot
+  swallow a click on the hero copy — and an element that ignores pointers never receives
+  `pointermove` either. Listening on the window keeps both properties. The listeners are removed on
+  teardown, because a window-level listener outlives a client-side navigation.
+- **With no pointer it orbits** on a slow path, at reduced strength, so touch devices and a cursor
+  parked outside the hero still get a moving light rather than a frozen frame.
+
+### The hero's bottom fade
+
+`Hero`'s gradient from the photograph to the page background is `h-2/5` with a `via` stop. At the
+original `h-1/6` with two stops the ramp was steep enough that the photo visibly _stopped_ rather
+than dissolved. `field.wgsl` fades its own layer over the same span, so picture, field and page
+background all reach solid together — change one and the other has to follow.
 
 Behaviour worth preserving:
 
 - **The fallback is server-rendered DOM, not a canvas snapshot.** `FALLBACK_CLASSES` is a Tailwind
   `radial-gradient` built from the same brand tokens and the same arrangement as the shader, so a
   browser without WebGPU gets the same design intent in the initial HTML, with no layout shift. The
-  canvas stays `opacity-0` until the renderer reports `ready`, then the two crossfade.
+  canvas stays `opacity-0` until the renderer reports `ready`, then the two crossfade. The fallback
+  cannot reproduce the network, and is not trying to.
 - **It is `pointer-events-none` unconditionally.** The hero's `children` render _inside_ the same
   box on desktop, so a decorative layer that swallowed clicks would break the stat cards and any
   links passed to `Hero` — with nothing visibly wrong.
-- **It never reacts to the pointer**, unlike the flare. That is the point: this layer is on nearly
-  every page, and a cursor-following light is a distraction device at that frequency.
-- **`prefers-reduced-motion` draws exactly one frame.** The uniforms are then constant, so
-  re-running the pass every tick would burn GPU forever to produce an identical image. Elapsed time
-  accumulates by clamped per-frame delta rather than from the wall clock, so the drift stays
-  continuous across a backgrounded tab instead of jumping.
+- **`prefers-reduced-motion` draws exactly one frame**, with the light parked on its orbit at zero
+  strength. The uniforms are then constant, so re-running the pass every tick would burn GPU forever
+  to produce an identical image. Elapsed time accumulates by clamped per-frame delta rather than
+  from the wall clock, so the drift stays continuous across a backgrounded tab instead of jumping.
 - **It is suppressed over the headline.** The shader derives a "calm" ellipse from the canvas aspect
   — offset left when the copy sits beside the stat cards, centred and wider when the hero stacks —
   and fades the field to nothing inside it. Several heroes render the `<h1>` with `outline-text`,
-  whose fill is transparent, so a uniform glow behind it would wreck legibility.
+  whose fill is transparent, so a uniform glow behind it would wreck legibility. The ellipse is
+  deliberately looser than a pure legibility mask, because the network is the thing being protected
+  and clipping it to nothing would cost the layer its motif.
+- **The shader's UV origin is top-left**, so `uv.y` grows _downward_. A fade toward the bottom is
+  `1.0 - smoothstep(...)`, not `smoothstep(...)`. Getting this backwards is invisible while the
+  navigation bar is opaque, and immediately obvious the moment the fade is meant to be visible.
 
 ### Shared GPU code
 

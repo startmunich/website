@@ -53,8 +53,16 @@ export default function Hero({
             style={{ objectPosition: imagePosition }}
           />
           <div className={cn('absolute inset-0', overlayOpacity)}></div>
-          {/* Bottom fade to blue */}
-          <div className="absolute inset-x-0 bottom-0 h-1/6 bg-gradient-to-b from-transparent to-brand-dark-blue"></div>
+          {/*
+            Fade to the page background over the bottom 40%, with a `via` stop
+            that front-loads the darkening. At the previous `h-1/6` with only two
+            stops the ramp was steep enough that the photograph visibly stopped
+            rather than dissolved; widening it and bending the curve keeps the
+            photo readable almost to the bottom edge. `from-transparent` is kept
+            because every current engine interpolates gradients in premultiplied
+            alpha, so there is no grey band on the way down.
+          */}
+          <div className="absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-b from-transparent via-brand-dark-blue/45 to-brand-dark-blue"></div>
         </div>
 
         {/*
