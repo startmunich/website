@@ -40,7 +40,8 @@
     "react-dom": "^18.3.1",
     "react-fast-marquee": "^1.6.5",
     "react-social-media-embed": "^2.5.18",
-    "tailwind-merge": "^3.7.0"
+    "tailwind-merge": "^3.7.0",
+    "vgpu": "^0.5.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.3",
@@ -51,6 +52,8 @@
     "@types/node": "^24.19.0",
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",
+    "@vgpu/wgsl": "0.5.0",
+    "@webgpu/types": "^0.1.74",
     "autoprefixer": "^10.6.1",
     "eslint": "^9.39.5",
     "eslint-config-next": "^15.5.26",

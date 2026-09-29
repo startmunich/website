@@ -1,8 +1,13 @@
 allowBuilds:
+  # vgpu's headless Dawn adapter. We only use vgpu's browser entry point, so the
+  # native build is never needed — keeping it off avoids downloading prebuilts.
+  "@vgpu/adapter-node": false
   core-js: false
   protobufjs: true
   sharp: true
   unrs-resolver: true
+  # Dependency of @vgpu/adapter-node, same reasoning.
+  webgpu: false
 
 overrides:
   brace-expansion: ^1.1.21
