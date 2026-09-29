@@ -25,7 +25,14 @@ on:
 concurrency:
   # One run per deployment. If a newer deployment arrives for the same
   # branch, the older E2E run is cancelled.
-  group: e2e-${{ github.event.deployment.environment }}-${{ github.event.deployment.ref }}
+  #
+  # github.event_name is in the group so manual runs don't land in the same
+  # bucket as deployment runs. Without it, workflow_dispatch has no
+  # deployment payload, so every manual run collapsed into the group "e2e--"
+  # and a manual re-run could cancel a real deployment's run (and vice versa).
+  # Manual runs still collapse among themselves, which is what you want — you
+  # don't want two debug runs racing for the same preview.
+  group: e2e-${{ github.event_name }}-${{ github.event.deployment.environment }}-${{ github.event.deployment.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -50,10 +57,11 @@ jobs:
       contents: read
     env:
       # deployment_status → the Vercel preview URL. workflow_dispatch → the
-      # optional manual override, falling back to empty (the test step is
-      # skipped then, leaving just the cache warm-up). Uses github.event.inputs
-      # rather than the bare `inputs` context because `inputs` is null for
-      # non-dispatch events, whereas github.event is always an object.
+      # optional manual override, falling back to empty, in which case the test
+      # step is skipped and the job just verifies setup works. Uses
+      # github.event.inputs rather than the bare `inputs` context because
+      # `inputs` is null for non-dispatch events, whereas github.event is
+      # always an object.
       TARGET_URL: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.base_url || github.event.deployment_status.environment_url }}
     steps:
       - name: Setup - checkout

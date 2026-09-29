@@ -26,6 +26,13 @@ updates:
       time: "04:00"
       timezone: "Europe/Berlin"
     open-pull-requests-limit: 5
+    # Don't rebase open PRs just because main moved. The default ("auto")
+    # rebases on every base-branch update, and each rebase push re-triggers a
+    # Vercel preview build plus a full e2e run — real CI spend for a diff
+    # nobody re-reviewed. Grouped action bumps touch the same file as each
+    # other anyway, so there is nothing to keep in sync. If a PR does go
+    # stale, rebase it by hand.
+    rebase-strategy: "disabled"
     labels:
       - "dependencies"
       - "github-actions"

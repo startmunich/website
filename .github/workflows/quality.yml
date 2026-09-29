@@ -31,6 +31,11 @@ permissions:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    # GitHub's default job timeout is 360 minutes. These checks normally
+    # finish in well under two, so a run that reaches ten minutes is wedged —
+    # capping it stops a hung tsc/eslint from burning a runner for six hours
+    # while the PR sits in a pointless wait.
+    timeout-minutes: 10
     permissions:
       contents: read
       pull-requests: read
