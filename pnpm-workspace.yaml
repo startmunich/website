@@ -10,5 +10,5 @@ overrides:
   fflate: ^0.8.3
   js-yaml: ^4.3.2
   postcss: ^8.5.28
-  postcss-selector-parser: ^6.1.4
+  postcss-selector-parser: ^7.1.6
   sharp: ^0.35.4
