@@ -29,25 +29,3 @@ export function useInView(threshold = 0.2) {
   }, [threshold]);
   return { ref, visible };
 }
-
-/**
- * Tracks the user's `prefers-reduced-motion` setting and keeps it in sync.
- *
- * Used to switch decorative animation off entirely rather than merely slowing
- * it down. Returns `false` during SSR so the server and first client render
- * agree, then corrects itself in the effect.
- */
-export function usePrefersReducedMotion() {
-  const [reduced, setReduced] = useState(false);
-
-  useEffect(() => {
-    const query = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setReduced(query.matches);
-
-    const onChange = (event: MediaQueryListEvent) => setReduced(event.matches);
-    query.addEventListener('change', onChange);
-    return () => query.removeEventListener('change', onChange);
-  }, []);
-
-  return reduced;
-}

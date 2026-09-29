@@ -13,7 +13,7 @@ import Link from 'next/link';
 import Script from 'next/script';
 import { useEffect, useRef, useState } from 'react';
 
-import MunichEasterEgg from '@/components/home/MunichEasterEgg';
+import ChapterMarquee from '@/components/home/ChapterMarquee';
 import { useAnimatedNumber, useInView } from '@/lib/hooks';
 import {
   START_CHAPTER_COUNT,
@@ -945,8 +945,8 @@ export default function HomeClient({
                 </div>
               </div>
 
-              {/* Right side - City names rolling. Munich gets the spotlight. */}
-              <MunichEasterEgg />
+              {/* Right side - City names rolling. Munich gets a Prost chip. */}
+              <ChapterMarquee />
             </div>
           </div>
         </section>
