@@ -52,7 +52,7 @@
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",
     "autoprefixer": "^10.6.1",
-    "eslint": "^9.39.5",
+    "eslint": "^10.11.0",
     "eslint-config-next": "^15.5.26",
     "eslint-plugin-simple-import-sort": "^13.0.0",
     "eslint-plugin-unused-imports": "^4.4.1",
