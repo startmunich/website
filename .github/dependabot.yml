@@ -1,0 +1,55 @@
+# Dependabot config — https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+version: 2
+updates:
+  # Keep GitHub Actions pinned to latest SHAs
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+      timezone: "Europe/Berlin"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
+      prefix-development: "ci"
+      include: "scope"
+    # Group minor/patch updates together
+    groups:
+      github-actions-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    # Auto-merge when CI passes (requires "Allow auto-merge" in repo settings)
+    # and branch protection to not require reviews
+    automerged-updates:
+      - match:
+          update_type: "version-update:semver-patch"
+      - match:
+          update_type: "version-update:semver-minor"
+
+  # Keep npm dependencies updated
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+      timezone: "Europe/Berlin"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "npm"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps"
+      include: "scope"
+    # Let Renovate handle npm (it's more sophisticated for monorepos)
+    # This is a fallback; Renovate runs via its own bot
+    # ignore:
+    #   - dependency-name: "*"
