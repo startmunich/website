@@ -45,7 +45,7 @@ jobs:
       # only install to warm the cache, and cloning the full history there is
       # pure latency. Default shallow depth for those runs.
       - name: Setup - checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v7.5.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.5.0
         with:
           fetch-depth: ${{ github.event_name == 'pull_request' && 0 || 1 }}
       # Skip-on-push rationale: PRs must be up-to-date with main before
@@ -57,15 +57,15 @@ jobs:
       # Order by speed: fastest checks first to fail-fast.
       - name: Check - commit messages
         if: github.event_name == 'pull_request'
-        uses: wagoid/commitlint-github-action@fb61414b06a823fd4fd881543db76d4c2fc95636 # v6.2.0
+        uses: wagoid/commitlint-github-action@0184f5a228ee06430bb9e67d65f73a1a6767496a # v6.2.0
         with:
           configFile: commitlint.config.mjs
       - name: Setup - pnpm
-        uses: pnpm/action-setup@f3d73ada1fa6e5c0c19973ff70a3f5cabf225cc5 # v6.0.0
+        uses: pnpm/action-setup@08c4be7e2e672a47d11bd04269e27e5f3e8529cb # v6.0.0
         with:
           run_install: false
       - name: Setup - Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v7.5.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.5.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
