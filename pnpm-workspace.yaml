@@ -8,7 +8,7 @@ overrides:
   brace-expansion: ^1.1.21
   fast-uri: ^3.1.8
   fflate: ^0.8.3
-  js-yaml: ^4.3.2
+  js-yaml: ^5.4.2
   postcss: ^8.5.28
   postcss-selector-parser: ^6.1.4
   sharp: ^0.35.4
