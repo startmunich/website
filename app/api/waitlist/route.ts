@@ -7,6 +7,9 @@ const TURNSTILE_SECRET_KEY = process.env.TURNSTILE_SECRET_KEY;
 
 const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// RFC 5321 §4.5.3.1.1 caps a forward-path (mailbox) at 254 octets. Anything
+// longer is not a deliverable address, so rejecting it costs nothing.
+const MAX_EMAIL_LENGTH = 254;
 const TURNSTILE_TIMEOUT_MS = 5_000;
 const NOCODB_TIMEOUT_MS = 8_000;
 
@@ -65,7 +68,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
   }
 
-  if (!email || !EMAIL_REGEX.test(email)) {
+  // Length is checked *before* the regex on purpose. EMAIL_REGEX is flagged by
+  // CodeQL (js/polynomial-redos) because the second `[^\s@]+` can also consume
+  // `.`, so a failing input leaves the engine many equivalent ways to split the
+  // string — O(n²) backtracking. Measured on this pattern: ~75ms at 16KB,
+  // ~271ms at 32KB, ~1.1s at 64KB, ~4.3s at 128KB.
+  //
+  // That was reachable by anyone: this check runs before Turnstile verification,
+  // so the request needs no captcha token and no auth — just a long `email` in
+  // the JSON body. Capping the length bounds n at 254, which makes the
+  // quadratic term irrelevant (254² is sub-microsecond) while keeping the
+  // existing pattern and its behaviour for real addresses.
+  if (!email || email.length > MAX_EMAIL_LENGTH || !EMAIL_REGEX.test(email)) {
     return NextResponse.json({ error: 'Please provide a valid email address.' }, { status: 400 });
   }
 
