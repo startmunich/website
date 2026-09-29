@@ -1,0 +1,63 @@
+# Dependabot config — https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+#
+# SCOPE — read before adding an ecosystem here.
+#
+# Dependabot and Renovate both run on this repo. They must not manage the
+# same ecosystem, or they open duplicate PRs for the same update, edit the
+# same file, and race each other's auto-merge. The split is:
+#
+#   Dependabot → github-actions   (this file)
+#   Renovate   → npm + .nvmrc     (.github/renovate.json5)
+#
+# If you add an ecosystem below, remove it from Renovate's `enabledManagers`
+# in the same commit, or you reintroduce the conflict.
+version: 2
+updates:
+  # Keep GitHub Actions pinned to latest SHAs. Dependabot is the GitHub-native
+  # tool for this and is very good at digest bumps on SHA-pinned `uses:`.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      # Deliberately Monday 04:00 Europe/Berlin. Renovate's schedule is set to
+      # Sunday so the two bots never wake up in the same window and stampede
+      # the PR queue / Vercel preview / e2e pipeline.
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+      timezone: "Europe/Berlin"
+    open-pull-requests-limit: 5
+    # Don't rebase open PRs just because main moved. The default ("auto")
+    # rebases on every base-branch update, and each rebase push re-triggers a
+    # Vercel preview build plus a full e2e run — real CI spend for a diff
+    # nobody re-reviewed. Grouped action bumps touch the same file as each
+    # other anyway, so there is nothing to keep in sync. If a PR does go
+    # stale, rebase it by hand.
+    rebase-strategy: "disabled"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
+      prefix-development: "ci"
+      include: "scope"
+    groups:
+      # One PR for all action bumps rather than one per action — fewer runs,
+      # fewer Vercel previews, fewer e2e invocations.
+      github-actions:
+        patterns:
+          - "*"
+    # Auto-merge is deliberately NOT configured here.
+    #
+    # There is no per-update-type auto-merge key in Dependabot's schema. An
+    # `automerged-updates:` block (which this file previously carried) is not
+    # a valid property, and because the schema sets additionalProperties:false
+    # it invalidates the whole file — Dependabot then stops running entirely
+    # rather than degrading. That is why this config failed validation.
+    #
+    # Dependabot auto-merge is a repository setting (Settings → General →
+    # "Allow auto-merge"), and once enabled it merges *every* Dependabot PR
+    # that clears required checks — it cannot be narrowed to digest bumps only.
+    # Given this repo has already been broken by an action SHA that didn't
+    # resolve, and action MINOR bumps can change runner base images or action
+    # defaults, leaving it off (human review) is the safe default. Turn it on
+    # in repo settings if that trade-off stops being worth it.
