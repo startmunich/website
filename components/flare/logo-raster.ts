@@ -10,7 +10,7 @@
  * The abort protocol is unchanged: an in-flight decode is cancellable and never
  * resolves after the caller has moved on.
  */
-import { LOGO_PAD, type LogoVariant } from './pipeline';
+import { LOGO_PAD, type LogoVariant } from './logo-variants';
 
 /**
  * Rasterizes the selected SVG at the requested pixel dimensions with transparent padding.

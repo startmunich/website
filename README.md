@@ -184,9 +184,16 @@ Three things to know before changing it:
   shader edits with `npx vgpu check components/flare/<file>.wgsl --require-validation`.
 - **It always degrades.** `navigator.gpu` missing, `requestAdapter()` returning null, or a device
   loss all fall back to the server-rendered wordmark in `components/flare/index.tsx`. `renderer.ts`
-  also pauses the frame loop off screen and holds a static frame for `prefers-reduced-motion`.
-  `tests/e2e/flare.spec.ts` pins the fallback contract; it cannot assert that the flare paints,
-  because most CI runners have no GPU adapter.
+  also pauses the frame loop off screen and redraws a static frame only when the scene changes for
+  `prefers-reduced-motion`. `tests/e2e/flare.spec.ts` pins the fallback contract; it cannot assert
+  that the flare paints, because most CI runners have no GPU adapter.
+- **`index.tsx` must not import from `pipeline.ts`.** That module pulls in `vgpu` and all four
+  `.wgsl` chunks; the mark constants the component actually needs live in `logo-variants.ts` so the
+  lazy `import('./renderer')` keeps the GPU bundle (~50 kB gzipped) out of the homepage's initial
+  chunks. Re-exporting them from `pipeline.ts` would silently undo the split.
+- **Don't put `touch-action: none` on the canvas.** It covers the whole panel, which is a full-width
+  square on phones, so it would make a finger drag over that area stop scrolling the page. The
+  renderer ignores touch pointers anyway.
 
 `@vgpu/wgsl` and `@webgpu/types` are **dev**Dependencies — the loader is a build-time concern, and
 pnpm's isolated `node_modules` would not otherwise expose the loader to `next.config.js`.

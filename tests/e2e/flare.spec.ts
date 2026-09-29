@@ -131,3 +131,43 @@ test('flare panel shows the icon on phones, the wordmark from tablet width up', 
   });
   expect(desktop.marks.find((m) => m.mark === 'icon')!.width).toBe(0);
 });
+
+/**
+ * The canvas covers the whole panel, and on phones that panel is a full-width
+ * square. Any `touch-action` other than `auto`/`pan-y` therefore makes a finger
+ * drag over it fail to scroll the page — a large dead zone in the middle of the
+ * homepage. Nothing else in this suite would catch it: the flare is decorative,
+ * so a broken canvas only ever looks like "the animation doesn't work here".
+ */
+test('the flare canvas does not block touch scrolling', async ({ page }) => {
+  await page.goto('/');
+  const canvas = page.locator('[data-flare-panel] canvas');
+  await page.locator('[data-flare-panel]').scrollIntoViewIfNeeded();
+
+  // `pointer-events: none` is applied until the GPU is ready, and a disabled
+  // element never swallows a gesture — so assert the post-ready state, where
+  // the canvas is genuinely interactive.
+  await canvas.evaluate((node) => node.classList.remove('pointer-events-none'));
+
+  const touchAction = await canvas.evaluate((node) => getComputedStyle(node).touchAction);
+  expect(['auto', 'pan-y', 'pan', 'manipulation']).toContain(touchAction);
+
+  // And prove the page actually moves under a finger drag that starts on it.
+  const start = await page.evaluate(() => window.scrollY);
+  const box = (await canvas.boundingBox())!;
+  const x = box.x + box.width / 2;
+  const y = box.y + box.height / 2;
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+  for (let step = 1; step <= 8; step += 1) {
+    await cdp.send('Input.dispatchTouchEvent', {
+      type: 'touchMove',
+      touchPoints: [{ x, y: y - step * 30 }],
+    });
+  }
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+
+  await expect
+    .poll(() => page.evaluate(() => window.scrollY), { timeout: 2000 })
+    .toBeGreaterThan(start);
+});

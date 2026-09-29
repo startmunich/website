@@ -15,20 +15,17 @@
 import type { Gpu } from 'vgpu';
 
 import { rasterizeLogo } from './logo-raster';
+import { ICON_LOGO, LOGO_CENTER, type LogoVariant, WORDMARK_LOGO } from './logo-variants';
 import {
   backingDimensions,
   canvasRaster,
   FlarePipeline,
   type FlarePlacement,
   followLight,
-  ICON_LOGO,
-  LOGO_CENTER,
   logoPixelSize,
-  type LogoVariant,
   mapAutonomousLight,
   type Point,
   runCleanups,
-  WORDMARK_LOGO,
 } from './pipeline';
 
 type RenderSize = Readonly<{ width: number; height: number; dpr: number }>;
@@ -164,11 +161,15 @@ export function createRenderer({ canvas, onStatus }: FlareRendererOptions) {
   const measure = () =>
     guard(() => {
       const rect = canvas.getBoundingClientRect();
+      // The observer has nowhere to await, and `fail` rethrows so that callers
+      // awaiting `ready` see the rejection. Without a terminal handler here a
+      // resize failure would surface as an unhandled rejection; the status has
+      // already been reported through `onStatus` by then.
       void resize({
         width: rect.width,
         height: rect.height,
         dpr: window.devicePixelRatio || 1,
-      });
+      }).catch(() => undefined);
     });
 
   /** Tracks non-touch pointers as clamped, normalized positions inside the canvas. */
@@ -202,10 +203,15 @@ export function createRenderer({ canvas, onStatus }: FlareRendererOptions) {
       const dt = Math.min(Math.max(time - lastTime, 0), 0.05);
       lastTime = time;
       if (reduceMotion) {
-        // Fully lit, still frame — the flare at rest.
-        activePipeline.setFrameUniforms(placement, LOGO_CENTER, 0, 0, 1);
-        activePipeline.draw(staticDirty);
-        staticDirty = false;
+        // Fully lit, still frame — the flare at rest. Redraw only when the scene
+        // itself changed: the uniforms are constant here, so re-running the four
+        // full-screen passes on every tick would burn GPU forever to reproduce an
+        // identical image.
+        if (staticDirty) {
+          activePipeline.setFrameUniforms(placement, LOGO_CENTER, 0, 0, 1);
+          activePipeline.draw(true);
+          staticDirty = false;
+        }
         return;
       }
       const target = pointer ?? mapAutonomousLight(time, placement);
@@ -235,6 +241,9 @@ export function createRenderer({ canvas, onStatus }: FlareRendererOptions) {
       () => canvas.removeEventListener('pointermove', handlePointerMove),
       () => canvas.removeEventListener('pointerleave', handlePointerLeave),
       () => canvas.removeEventListener('pointercancel', handlePointerLeave),
+      // Before `gpu.dispose()`: the pipeline's own textures are freed here, and
+      // `gpu.dispose()` is the backstop for anything the kernel registered.
+      () => pipeline?.dispose(),
       () => gpu?.dispose(),
     ]);
   };

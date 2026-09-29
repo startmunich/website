@@ -12,8 +12,10 @@
  *  - the mark is the round icon below the `sm` breakpoint and the wordmark from
  *    tablet width up, because the panel is still a 1:1 square there and the 80:36
  *    wordmark reads as a sliver in a phone-sized one;
- *  - `renderer.ts` is imported lazily from the effect, which keeps `vgpu` and the
- *    four WGSL shader chunks out of the homepage's critical path.
+ *  - the mark constants come from `./logo-variants`, which imports neither `vgpu`
+ *    nor the shaders, so the lazy `./renderer` import really does keep the GPU
+ *    bundle out of the homepage's critical path. Importing them from `./pipeline`
+ *    instead would pull `vgpu` and all four WGSL chunks into the page bundle.
  *
  * The renderer owns the canvas and its GPU resources; this component only decides
  * whether the flare is visible or the static mark is. `renderer.ts` already
@@ -25,7 +27,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import { cn } from '@/lib/utils';
 
-import { ICON_LOGO, WORDMARK_LOGO } from './pipeline';
+import { ICON_LOGO, WORDMARK_LOGO } from './logo-variants';
 
 /**
  * The static marks are sized with the same ratios the pipeline uses for the GPU
@@ -119,7 +121,10 @@ export function LogoFlare() {
         ref={canvasRef}
         aria-hidden
         className={cn(
-          'block h-full w-full touch-none transition-opacity duration-700 motion-reduce:transition-none',
+          // No `touch-none` here: the canvas covers the whole panel, and
+          // `touch-action: none` would stop a finger drag from scrolling the page
+          // across the whole square. The renderer ignores touch pointers anyway.
+          'block h-full w-full transition-opacity duration-700 motion-reduce:transition-none',
           live ? 'opacity-100' : 'pointer-events-none opacity-0',
         )}
       />
