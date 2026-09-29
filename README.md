@@ -200,6 +200,113 @@ pnpm's isolated `node_modules` would not otherwise expose the loader to `next.co
 `@vgpu/adapter-node` and `webgpu` are in `allowBuilds: false` in `pnpm-workspace.yaml` because the
 site only ever runs the browser adapter; the native Dawn prebuilids are not needed.
 
+## WebGPU hero aura
+
+`components/aura` is the second vgpu surface. Where the flare is a logo _spotlight_, the aura is a
+slow ambient light field over every page's hero, rendered from a single fullscreen fragment pass. It
+is mounted by `components/Hero.tsx`, so one insertion point lights up all ten pages that use the
+shared hero (`/about-us`, `/events`, `/startups`, `/members`, `/partners`, `/member-journey`,
+`/member-network`, `/for-partners`, `/start-goes-bay-area`, `/join-start/2026`). Pass `aura={false}`
+to `Hero` to opt a specific hero out.
+
+It is intentionally the opposite of the flare in its performance posture, because it runs on far
+more pages and carries no detail worth resolving:
+
+- **It rasterizes well below the canvas size.** `fieldDimensions()` caps the field's long edge at
+  720 px regardless of device pixel ratio, and the compositor interpolates it up to fill the hero —
+  a 1440x560 hero rasters at 720x315, roughly 4x fewer fragments than a full-res pass. It is not
+  derived from the DPR: the aura carries no detail a retina panel could resolve, and the long-edge
+  cap holds the cost flat on ultrawide viewports too. `tests/e2e/aura.spec.ts` asserts the ratio so
+  a future "just use the DPR" change cannot slip in unnoticed.
+- **The network is antialiased analytically, not by supersampling.** A thin bright line is the worst
+  thing to hand to bilinear interpolation — it comes back stair-stepped, which reads as a rendering
+  bug rather than as texture. `fwidth` reports how fast the cell gap changes per raster texel, and
+  widening the smoothstep by it keeps every filament edge at least one texel wide however small the
+  raster is. This is why the raster could be raised without the lines getting heavier.
+- **The pass is pre-scaled for a premultiplied surface**, so the compositor's blend needs no divide,
+  and there are no intermediate render targets.
+- **The light field is authored at low frequency on purpose.** Upscaled ~2x, anything finer than the
+  broad shapes would be paid for and then thrown away by the interpolator. The cellular network is
+  the one exception, and is what the raster size and the antialiasing above exist to serve.
+- **It is invisible in the critical path.** `index.tsx` imports nothing but React and `cn`; the
+  renderer, the pipeline, `vgpu` and the `.wgsl` chunk all arrive from a dynamic
+  `import('./renderer')` in an effect. Same rule as the flare: **`index.tsx` must not import from
+  `pipeline.ts`.**
+
+### The motif, and the light
+
+The layer is not a gradient. It is a drifting cellular web with lit nodes: a Worley field
+thresholded on the gap between its two nearest feature points, so the cell _boundaries_ become thin
+filaments, sampled through the same domain-warped coordinate as the light so the cells stretch along
+the flow instead of tiling as flat polygons. It is the site's own subject — a network of chapters
+and members — and the reason the layer exists at all, since a CSS radial-gradient cannot express it.
+
+`NETWORK_STRENGTH` is the dial, and it is deliberately low. The web is texture, not subject: it
+should be the thing you notice on the second look rather than the first, and it sits behind an `h1`
+that has to stay readable. `NETWORK_WIDTH` is likewise wider than a hairline on purpose — a
+soft-edged line reads as light rather than as ink, and has more texels to land on. Raising either is
+the fastest way to make the web shout.
+
+A soft light follows the pointer and lifts both the glow and the network where it passes, so moving
+the cursor reveals the web rather than just brightening a tint. Two details make it behave:
+
+- **The light reads from `window`, not the canvas.** The aura is `pointer-events: none` so it cannot
+  swallow a click on the hero copy — and an element that ignores pointers never receives
+  `pointermove` either. Listening on the window keeps both properties. The listeners are removed on
+  teardown, because a window-level listener outlives a client-side navigation.
+- **With no pointer it orbits** on a slow path, at reduced strength, so touch devices and a cursor
+  parked outside the hero still get a moving light rather than a frozen frame.
+
+### The hero's bottom fade
+
+`Hero`'s gradient from the photograph to the page background is `h-2/5` with a `via` stop. At the
+original `h-1/6` with two stops the ramp was steep enough that the photo visibly _stopped_ rather
+than dissolved. `field.wgsl` fades its own layer over the same span, so picture, field and page
+background all reach solid together — change one and the other has to follow.
+
+Behaviour worth preserving:
+
+- **The fallback is server-rendered DOM, not a canvas snapshot.** `FALLBACK_CLASSES` is a Tailwind
+  `radial-gradient` built from the same brand tokens and the same arrangement as the shader, so a
+  browser without WebGPU gets the same design intent in the initial HTML, with no layout shift. The
+  canvas stays `opacity-0` until the renderer reports `ready`, then the two crossfade. The fallback
+  cannot reproduce the network, and is not trying to.
+- **It is `pointer-events-none` unconditionally.** The hero's `children` render _inside_ the same
+  box on desktop, so a decorative layer that swallowed clicks would break the stat cards and any
+  links passed to `Hero` — with nothing visibly wrong.
+- **`prefers-reduced-motion` draws exactly one frame**, with the light parked on its orbit at zero
+  strength. The uniforms are then constant, so re-running the pass every tick would burn GPU forever
+  to produce an identical image. Elapsed time accumulates by clamped per-frame delta rather than
+  from the wall clock, so the drift stays continuous across a backgrounded tab instead of jumping.
+- **It is suppressed over the headline.** The shader derives a "calm" ellipse from the canvas aspect
+  — offset left when the copy sits beside the stat cards, centred and wider when the hero stacks —
+  and fades the field to nothing inside it. Several heroes render the `<h1>` with `outline-text`,
+  whose fill is transparent, so a uniform glow behind it would wreck legibility. The ellipse is
+  deliberately looser than a pure legibility mask, because the network is the thing being protected
+  and clipping it to nothing would cost the layer its motif.
+- **The shader's UV origin is top-left**, so `uv.y` grows _downward_. A fade toward the bottom is
+  `1.0 - smoothstep(...)`, not `smoothstep(...)`. Getting this backwards is invisible while the
+  navigation bar is opaque, and immediately obvious the moment the fade is meant to be visible.
+
+### Shared GPU code
+
+`lib/gpu/runtime.ts` holds what the two features genuinely share: the fullscreen vertex stage, the
+blue-noise texture upload (128x128 R8, row-repacked to the 256-byte `writeTexture` stride), and the
+`runCleanups` / `bestEffort` teardown discipline. The 128x128 blue-noise asset moved there from
+`components/flare/`.
+
+Keep that module free of _value_ imports from `vgpu` — it has one type-only import, which TypeScript
+erases. A runtime import there would defeat the lazy-chunk split for both features. It also must not
+import from `components/flare` or `components/aura`; the dependency runs one way.
+
+`next.config.js` registers the `.wgsl` loader for both bundlers, which covers `components/aura`
+automatically — no change is needed there for a new shader. **Next still never validates WGSL**, so
+gate shader edits with:
+
+```bash
+npx vgpu check components/aura/field.wgsl --require-validation
+```
+
 ## CI/CD
 
 - **`.github/workflows/quality.yml`** — runs on every PR to `main` and on pushes to `main`:
