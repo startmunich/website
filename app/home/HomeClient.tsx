@@ -996,9 +996,12 @@ export default function HomeClient({
                 </Link>
               </div>
 
-              {/* Right side - WebGPU logo flare. Square on mobile, where the
-                  flare draws the round icon; a tall panel from `lg` up, where it
-                  draws the wordmark. Mirrored by WORDMARK_QUERY in
+              {/* Right side - WebGPU logo flare. Two independent breakpoints:
+                  the panel's SHAPE switches at `lg` (1:1 square up to it, tall
+                  600px above), while the MARK switches earlier, at `sm` (round
+                  icon on phones, wordmark from tablet width up). That is why a
+                  640-1023px screen gets a large square panel with the wordmark
+                  in it. Mirrored by WORDMARK_QUERY in
                   components/flare/renderer.ts. */}
               <div className="relative">
                 <div

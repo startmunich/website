@@ -9,9 +9,9 @@
  *    full-viewport hero, so it sizes from its container;
  *  - the vignette blends into `brand-dark-blue` (the page background) instead of
  *    black, so the panel has no hard edge;
- *  - the mark is the round icon below the `lg` breakpoint and the wordmark above
- *    it, because the panel is a 1:1 square on mobile and the 80:36 wordmark reads
- *    as a sliver there;
+ *  - the mark is the round icon below the `sm` breakpoint and the wordmark from
+ *    tablet width up, because the panel is still a 1:1 square there and the 80:36
+ *    wordmark reads as a sliver in a phone-sized one;
  *  - `renderer.ts` is imported lazily from the effect, which keeps `vgpu` and the
  *    four WGSL shader chunks out of the homepage's critical path.
  *
@@ -33,12 +33,12 @@ import { ICON_LOGO, WORDMARK_LOGO } from './pipeline';
  * from fallback to flare does not jump. Tailwind cannot build class names from
  * the variant table, so the numbers are duplicated here — change both together.
  *
- * Both are rendered at all times and swapped on the `lg` breakpoint rather than
+ * Both are rendered at all times and swapped on the `sm` breakpoint rather than
  * picked in JS, so the correct mark is in the server HTML and needs no effect.
  * Only the visible one reaches the accessibility tree; the canvas is decorative.
  */
-const FALLBACK_WORDMARK_CLASSES = 'relative hidden aspect-[80/36] w-[62%] max-h-[40%] lg:block';
-const FALLBACK_ICON_CLASSES = 'relative aspect-square w-1/2 max-h-1/2 lg:hidden';
+const FALLBACK_WORDMARK_CLASSES = 'relative hidden aspect-[80/36] w-[62%] max-h-[40%] sm:block';
+const FALLBACK_ICON_CLASSES = 'relative aspect-square w-1/2 max-h-1/2 sm:hidden';
 
 /** Subset of the renderer handle that the component lifecycle actually uses. */
 interface FlareHandle {
@@ -99,7 +99,7 @@ export function LogoFlare() {
             fill
             loading="lazy"
             className="object-contain"
-            sizes="(max-width: 1024px) 50vw, 0px"
+            sizes="(max-width: 640px) 50vw, 0px"
           />
         </div>
         <div className={FALLBACK_WORDMARK_CLASSES}>
@@ -110,7 +110,7 @@ export function LogoFlare() {
             fill
             loading="lazy"
             className="object-contain"
-            sizes="(max-width: 1024px) 0px, 31vw"
+            sizes="(max-width: 640px) 0px, 31vw"
           />
         </div>
       </div>

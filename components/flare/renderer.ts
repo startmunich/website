@@ -9,8 +9,8 @@
  *  - Rendering pauses while the canvas is off screen, so the 30fps loop does not
  *    burn battery for a section most visitors never scroll to.
  *  - `prefers-reduced-motion` is honoured by holding a static, fully lit frame.
- *  - The mark is chosen from the same 1024px breakpoint the panel uses, because
- *    the panel is a 1:1 square below it and the wordmark reads as a sliver there.
+ *  - The mark is chosen from Tailwind's `sm` breakpoint: the round icon on
+ *    phones, the wordmark from tablet width up.
  */
 import type { Gpu } from 'vgpu';
 
@@ -36,8 +36,13 @@ type RenderSize = Readonly<{ width: number; height: number; dpr: number }>;
 const FRAME_INTERVAL_MS = 33;
 const PULSE_HOLD_SECONDS = 0.35;
 
-/** Tailwind's `lg`, the breakpoint where the panel stops being a 1:1 square. */
-const WORDMARK_QUERY = '(min-width: 1024px)';
+/**
+ * Tailwind's `sm`: below it the panel shows the round icon, at and above it the
+ * wordmark. This is deliberately *earlier* than the `lg` at which the panel
+ * stops being a 1:1 square, so a tablet gets a large square panel with the
+ * wordmark in it rather than a phone-sized one with the icon.
+ */
+const WORDMARK_QUERY = '(min-width: 640px)';
 
 function logoVariantFor(query: MediaQueryList | undefined): LogoVariant {
   return query?.matches ? WORDMARK_LOGO : ICON_LOGO;

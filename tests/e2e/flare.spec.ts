@@ -46,12 +46,14 @@ test('flare panel falls back to the server-rendered wordmark', async ({ page }) 
 });
 
 /**
- * Below Tailwind's `lg` the panel is a 1:1 square and shows the round icon; from
- * `lg` up it is a tall panel and shows the wordmark. The breakpoint is duplicated
- * in CSS (HomeClient), in the renderer (WORDMARK_QUERY) and here, so this test
- * is what keeps the three from drifting apart.
+ * Three tiers, from two *independent* breakpoints: the panel's shape switches at
+ * `lg` (1:1 square up to it, tall 600px above) while the mark switches earlier, at
+ * `sm` (round icon on phones, wordmark from tablet width up). So 640-1023px gets a
+ * large square panel with the wordmark in it. Both breakpoints are duplicated in
+ * CSS (HomeClient), in the renderer (WORDMARK_QUERY) and here, so this test is
+ * what keeps the three from drifting apart.
  */
-test('flare panel is square with the icon on mobile, and the wordmark from lg up', async ({
+test('flare panel shows the icon on phones, the wordmark from tablet width up', async ({
   page,
 }) => {
   await page.goto('/');
@@ -75,9 +77,6 @@ test('flare panel is square with the icon on mobile, and the wordmark from lg up
       }),
     );
 
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.waitForTimeout(500);
-
   // The panel has a 2px border, so measure the inner box: that is the containing
   // block the mark is sized against, and `boundingBox()` would report the border
   // box and put the "half the panel" assertion out by 2px a side.
@@ -87,32 +86,45 @@ test('flare panel is square with the icon on mobile, and the wordmark from lg up
       height: node.clientHeight,
     }));
 
-  const mobileBox = await innerBox();
-  // 1:1 to within a subpixel of rounding.
-  expect(mobileBox.width / mobileBox.height).toBeCloseTo(1, 2);
+  const at = async (width: number, height: number) => {
+    await page.setViewportSize({ width, height });
+    await page.waitForTimeout(500);
+    return { box: await innerBox(), marks: await markState() };
+  };
 
-  const mobile = await markState();
-  expect(mobile.find((m) => m.mark === 'icon')).toMatchObject({
+  // --- Phone: 1:1 panel, icon at half its width, wordmark hidden. ---
+  const phone = await at(390, 844);
+  expect(phone.box.width / phone.box.height).toBeCloseTo(1, 2);
+  expect(phone.marks.find((m) => m.mark === 'icon')).toMatchObject({
     src: '/start-munich-icon.svg',
     loaded: true,
   });
   // Half the panel, and square, since the icon's viewBox is 61:61.
-  const icon = mobile.find((m) => m.mark === 'icon')!;
-  expect(icon.width).toBe(Math.round(mobileBox.width / 2));
-  expect(icon.height).toBe(icon.width);
+  const phoneIcon = phone.marks.find((m) => m.mark === 'icon')!;
+  expect(phoneIcon.width).toBe(Math.round(phone.box.width / 2));
+  expect(phoneIcon.height).toBe(phoneIcon.width);
   // Hidden rather than merely smaller.
-  expect(mobile.find((m) => m.mark === 'wordmark')!.width).toBe(0);
+  expect(phone.marks.find((m) => m.mark === 'wordmark')!.width).toBe(0);
 
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.waitForTimeout(500);
-
-  const desktopBox = await innerBox();
-  expect(desktopBox.height).toBeGreaterThan(mobileBox.width);
-
-  const desktop = await markState();
-  expect(desktop.find((m) => m.mark === 'wordmark')).toMatchObject({
+  // --- Tablet: still a 1:1 panel (shape has not switched yet) but the mark has. ---
+  const tablet = await at(834, 1112);
+  expect(tablet.box.width / tablet.box.height).toBeCloseTo(1, 2);
+  expect(tablet.marks.find((m) => m.mark === 'wordmark')).toMatchObject({
     src: '/startlogo.svg',
     loaded: true,
   });
-  expect(desktop.find((m) => m.mark === 'icon')!.width).toBe(0);
+  expect(tablet.marks.find((m) => m.mark === 'icon')!.width).toBe(0);
+  // 62% of the panel width, per WORDMARK_LOGO.widthRatio.
+  expect(tablet.marks.find((m) => m.mark === 'wordmark')!.width).toBe(
+    Math.round(tablet.box.width * 0.62),
+  );
+
+  // --- Desktop: the panel becomes tall; the mark stays the wordmark. ---
+  const desktop = await at(1440, 900);
+  expect(desktop.box.height).toBeGreaterThan(phone.box.width);
+  expect(desktop.marks.find((m) => m.mark === 'wordmark')).toMatchObject({
+    src: '/startlogo.svg',
+    loaded: true,
+  });
+  expect(desktop.marks.find((m) => m.mark === 'icon')!.width).toBe(0);
 });
