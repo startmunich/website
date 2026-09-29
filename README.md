@@ -131,7 +131,8 @@ API routes (`app/api/`), all read-only and ISR-cached for an hour:
 
 ```
 app/           Routes, layouts, API route handlers
-components/    Shared components; components/ui holds shadcn + registry components
+components/    Shared components; components/ui holds shadcn + registry components,
+               components/flare the WebGPU logo flare (see below)
 lib/           Data fetching (startups, partners, startNetwork), types, metadata, hooks
 scripts/       Repo scripts: pnpm enforcement/hygiene, image compression
 tests/e2e/     Playwright specs
@@ -164,6 +165,33 @@ fail on content changes. More specific assertions belong in per-page specs.
 
 Locally, Playwright expects a server you started yourself (`pnpm dev`). In CI it targets a Vercel
 preview URL via `PLAYWRIGHT_TEST_BASE_URL`.
+
+## WebGPU logo flare
+
+`components/flare` is the [vgpu](https://vgpu.dev) `nextjs-flare` example applied to the START
+Munich wordmark. It renders the logo through a five-pass WebGPU pipeline (logo → rim → separable
+blur → composite) with an animated light source that follows the pointer, and sits in the "About
+START" panel above the footer. Colours come from the brand tokens: the flare is `brand-pink` and the
+vignette fades to `brand-dark-blue` so the panel has no visible edge against the page.
+
+Three things to know before changing it:
+
+- **`.wgsl` needs a build-time loader.** `next.config.js` registers `@vgpu/wgsl/loader-webpack`
+  twice — once under `turbopack.rules`, once in the `webpack()` hook — because `pnpm dev` and
+  `pnpm build` use webpack today but Turbopack is the default going forward. If you add a shader and
+  it fails to resolve, that config is the first thing to check.
+- **Next never validates WGSL.** A malformed shader builds fine and fails in the browser. Gate
+  shader edits with `npx vgpu check components/flare/<file>.wgsl --require-validation`.
+- **It always degrades.** `navigator.gpu` missing, `requestAdapter()` returning null, or a device
+  loss all fall back to the server-rendered wordmark in `components/flare/index.tsx`. `renderer.ts`
+  also pauses the frame loop off screen and holds a static frame for `prefers-reduced-motion`.
+  `tests/e2e/flare.spec.ts` pins the fallback contract; it cannot assert that the flare paints,
+  because most CI runners have no GPU adapter.
+
+`@vgpu/wgsl` and `@webgpu/types` are **dev**Dependencies — the loader is a build-time concern, and
+pnpm's isolated `node_modules` would not otherwise expose the loader to `next.config.js`.
+`@vgpu/adapter-node` and `webgpu` are in `allowBuilds: false` in `pnpm-workspace.yaml` because the
+site only ever runs the browser adapter; the native Dawn prebuilids are not needed.
 
 ## CI/CD
 

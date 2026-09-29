@@ -13,6 +13,7 @@ import Link from 'next/link';
 import Script from 'next/script';
 import { useEffect, useRef, useState } from 'react';
 
+import { LogoFlare } from '@/components/flare';
 import ChapterMarquee from '@/components/home/ChapterMarquee';
 import { useAnimatedNumber, useInView } from '@/lib/hooks';
 import {
@@ -995,18 +996,10 @@ export default function HomeClient({
                 </Link>
               </div>
 
-              {/* Right side - Image */}
+              {/* Right side - WebGPU logo flare */}
               <div className="relative">
                 <div className="relative h-[500px] overflow-hidden rounded-3xl border-2 border-white/10 lg:h-[600px]">
-                  <Image
-                    src="/home/good-opt.png"
-                    alt="START Munich Event"
-                    fill
-                    loading="lazy"
-                    className="object-cover object-right"
-                    sizes="(max-width: 1024px) 100vw, 50vw"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-brand-dark-blue/50 via-transparent to-transparent"></div>
+                  <LogoFlare />
                 </div>
                 {/* Decorative blob */}
                 <div className="absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-brand-pink/20 blur-[60px]" />

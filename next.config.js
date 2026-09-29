@@ -1,5 +1,27 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // The vgpu flare shaders (`components/flare/*.wgsl`) need a loader on both
+  // bundlers. Turbopack handles `next dev --turbopack` / `next build --turbopack`;
+  // the `webpack` hook below covers the default webpack path that `pnpm dev` and
+  // `pnpm build` use today. Keep the two in sync when bumping @vgpu/wgsl.
+  turbopack: {
+    rules: {
+      '*.wgsl': {
+        loaders: ['@vgpu/wgsl/loader-webpack'],
+        as: '*.js',
+      },
+    },
+  },
+  webpack(config, { dev }) {
+    config.module.rules.push({
+      test: /\.wgsl$/,
+      loader: require.resolve('@vgpu/wgsl/loader-webpack'),
+      // Minified shaders ship smaller; the unminified form keeps error messages
+      // and `--require-validation` diagnostics readable in development.
+      options: { minify: !dev },
+    });
+    return config;
+  },
   async redirects() {
     return [
       {
