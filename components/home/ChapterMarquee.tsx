@@ -62,7 +62,7 @@ export default function ChapterMarquee() {
       <div className="absolute left-0 right-0 top-0 z-10 h-20 bg-gradient-to-b from-brand-dark-blue to-transparent" />
       <div className="absolute bottom-0 left-0 right-0 z-10 h-20 bg-gradient-to-t from-brand-dark-blue to-transparent" />
 
-      <div className="animate-scroll-vertical mt-12 text-right">
+      <div className="motion-safe:animate-scroll-vertical mt-12 text-right">
         {[...START_CHAPTER_CITIES, ...START_CHAPTER_CITIES].map((city, index) => {
           const isDuplicate = index >= START_CHAPTER_COUNT;
 
