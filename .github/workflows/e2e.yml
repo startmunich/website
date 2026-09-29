@@ -12,9 +12,9 @@ name: E2E (Vercel preview)
 # 401.
 on:
   deployment_status:
-  # Manual trigger exists purely to warm the Playwright browser cache under
-  # the *default branch* scope. See the cache note below for why that
-  # matters. Safe to run with no inputs — it installs, caches, and stops.
+  # Manual re-run against a specific preview URL, for debugging a deployment
+  # whose automatic run was cancelled by a newer push. With no input it just
+  # runs setup and stops, so it's safe to trigger blindly as a smoke check.
   workflow_dispatch:
     inputs:
       base_url:
@@ -80,47 +80,26 @@ jobs:
       - name: Setup - dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
-      # Resolve the Playwright version AFTER install so the cache key tracks
-      # the thing the browser download actually depends on.
-      - name: Resolve - Playwright version
-        id: playwright
-        run: echo "version=$(node -p "require('./node_modules/@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
-
-      # Cache key is the Playwright version, NOT pnpm-lock.yaml. The browser
-      # revision in ~/.cache/ms-playwright tracks @playwright/test, so keying
-      # on the lockfile meant *every* dependency PR produced a fresh key and
-      # re-downloaded Chromium — a 100% cache miss rate and ~21s burned on
-      # every run.
+      # NOTE: there is deliberately no actions/cache step for the Playwright
+      # browser here. Caching cannot work on this trigger: `deployment_status`
+      # is not tied to a branch or tag ref, so actions/cache logs
+      #   "Event Validation Error: The event type deployment_status is not
+      #    supported because it's not tied to a branch or tag ref"
+      # and then neither restores nor saves. Verified in run 36621399271.
+      # That is the real reason this job re-downloaded Chromium on every run —
+      # not the cache key. A step that silently no-ops is worse than no step,
+      # so it is gone rather than left in place looking meaningful.
       #
-      # This is also why workflow_dispatch exists above: GitHub scopes a
-      # cache to the branch that wrote it, falling back to the default
-      # branch. e2e.yml never runs on main (production is skipped), so the
-      # default-branch entry was never created and PR branches had nothing to
-      # fall back to. One manual run on main populates the fallback that
-      # every branch then restores from.
-      - name: Cache - Playwright browsers
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ steps.playwright.outputs.version }}
-          # Partial hit: a different Playwright version may be cached. That's
-          # fine — `playwright install` below is idempotent and fetches only
-          # the browser revision that's actually missing.
-          restore-keys: |
-            ${{ runner.os }}-playwright-
-
-      # Hosted runners are ephemeral, so the system libraries Playwright's
-      # Chromium links against never survive between runs. This apt pass is
-      # required on every run, cache hit or not.
-      - name: Install - Playwright system deps
-        run: pnpm exec playwright install-deps chromium
-
-      # Idempotent: no-op in ~1s when the cache above restored the right
-      # browser, downloads only what is missing otherwise. Replaces the old
-      # cache-hit/miss conditional, which conflated the browser download
-      # with the apt pass and re-ran the download whenever the key moved.
+      # Fixing this properly means either caching a ref that exists (i.e. a
+      # pull_request/push trigger) or baking the browser into the runner via
+      # the official Playwright container image. Both are architecture
+      # changes, so they are not smuggled in here.
+      #
+      # Kept as a single step deliberately: `install --with-deps` folds the apt
+      # pass and the download into one invocation and measured ~7s faster than
+      # running them as two separate steps.
       - name: Install - Playwright Chromium
-        run: pnpm exec playwright install chromium
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Run Playwright against preview
         if: env.TARGET_URL != ''
