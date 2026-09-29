@@ -73,11 +73,12 @@ export default function Footer() {
         </div>
         <div className="flex flex-col items-center justify-between gap-1 px-6 py-4 text-sm text-white/40 sm:flex-row">
           <span>
-            {'This website is hosted at our Technological Partner: '}
+            {'Hosted by '}
             <a
               target="_blank"
               rel="noopener noreferrer"
               href="https://www.hetzner.com/de?mtm_campaign=START-Munich&mtm_medium=referral&mtm_content=sponsoring_link"
+              className="transition-colors hover:text-brand-pink focus-visible:text-brand-pink"
             >
               Hetzner
             </a>
