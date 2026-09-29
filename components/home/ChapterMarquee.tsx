@@ -5,7 +5,7 @@
  *
  * Every chapter scrolls past in a single uniform list, with a rotating colour
  * pattern for rhythm. The home chapter (Munich) is the exception: it is pink and
- * carries a `Prost! 🍺` chip. Click it — or press Enter on it — and confetti
+ * carries a `Prost 🍺` chip. Click it — or press Enter on it — and confetti
  * sprays out of the word.
  */
 import { type MouseEvent, useCallback } from 'react';
@@ -97,7 +97,7 @@ export default function ChapterMarquee() {
                   aria-hidden
                   className="pointer-events-none absolute left-1 top-1/2 -translate-y-1/2 whitespace-nowrap text-[10px] leading-none text-brand-pink transition-colors duration-300 group-hover:text-white group-focus-visible:text-white sm:rounded-full sm:border sm:border-brand-pink/60 sm:px-3 sm:py-1 sm:tracking-[0.25em] sm:group-hover:bg-brand-pink/10 sm:group-focus-visible:bg-brand-pink/10"
                 >
-                  Prost! 🍺
+                  Prost 🍺
                 </span>
               </button>
             );
