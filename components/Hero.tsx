@@ -1,5 +1,6 @@
 import Image from 'next/image';
 
+import Aura from '@/components/aura';
 import { cn } from '@/lib/utils';
 
 interface HeroProps {
@@ -14,6 +15,13 @@ interface HeroProps {
   hideChildrenOnMobile?: boolean;
   imagePosition?: string;
   childrenWrapperClassName?: string;
+  /**
+   * Renders the vgpu aura over the background image. On by default because the
+   * aura layers between the scrim and the copy, which is the one slot that reads
+   * as depth on every hero; switch it off for a hero whose own art direction
+   * should stay untouched.
+   */
+  aura?: boolean;
 }
 
 export default function Hero({
@@ -28,6 +36,7 @@ export default function Hero({
   hideChildrenOnMobile = false,
   imagePosition = 'center 45%',
   childrenWrapperClassName,
+  aura = true,
 }: HeroProps) {
   return (
     <>
@@ -47,6 +56,15 @@ export default function Hero({
           {/* Bottom fade to blue */}
           <div className="absolute inset-x-0 bottom-0 h-1/6 bg-gradient-to-b from-transparent to-brand-dark-blue"></div>
         </div>
+
+        {/*
+          The aura sits above the scrim and below the copy, so it reads as light
+          falling across the photograph rather than a filter on top of it. Both
+          layers are absolutely positioned with an auto z-index, so paint order
+          here is DOM order: the aura is after the image block and before the
+          content block, which is what puts it between them.
+        */}
+        {aura && <Aura />}
 
         {/* Content Overlay */}
         <div className="relative mx-auto flex w-full max-w-7xl flex-1 items-center px-4 py-14 sm:px-6 lg:px-8">

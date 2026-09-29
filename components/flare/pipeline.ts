@@ -18,14 +18,21 @@
  */
 import { type Effect, effect, frame, type Gpu, sampler, type Target, target } from 'vgpu';
 
-import { BLUE_NOISE_SIZE, blueNoiseBytes } from './blue-noise-128';
+import {
+  bestEffort,
+  createBlueNoiseTexture,
+  type Point,
+  runCleanups,
+  withFullscreenVertex,
+} from '@/lib/gpu/runtime';
+
 import blurWgsl from './blur.wgsl';
 import compositeWgsl from './composite.wgsl';
 import logoWgsl from './logo.wgsl';
 import { LOGO_CENTER, LOGO_PAD, type LogoVariant } from './logo-variants';
 import rimWgsl from './rim.wgsl';
 
-export type Point = readonly [number, number];
+export type { Point } from '@/lib/gpu/runtime';
 
 export interface FlarePlacement {
   readonly logoCenter: Point;
@@ -58,31 +65,6 @@ interface BoundLogo extends LogoRaster {
   readonly texture: GPUTexture;
   readonly placement: FlarePlacement;
 }
-
-const TOP_LEFT_FULLSCREEN_VERTEX = /* wgsl */ `
-struct FlareFullscreenVertexOut {
-  @builtin(position) position: vec4f,
-  @location(0) uv: vec2f,
-};
-
-@vertex
-fn flare_fullscreen_vs(@builtin(vertex_index) vertexIndex: u32) -> FlareFullscreenVertexOut {
-  let positions = array<vec2f, 3>(
-    vec2f(-1.0, -1.0),
-    vec2f(3.0, -1.0),
-    vec2f(-1.0, 3.0),
-  );
-  let uvs = array<vec2f, 3>(
-    vec2f(0.0, 1.0),
-    vec2f(2.0, 1.0),
-    vec2f(0.0, -1.0),
-  );
-  var output: FlareFullscreenVertexOut;
-  output.position = vec4f(positions[vertexIndex], 0.0, 1.0);
-  output.uv = uvs[vertexIndex];
-  return output;
-}
-`;
 
 const MAX_RENDER_WIDTH = 1920;
 const PULSE_TRANSITION_SECONDS = 2;
@@ -124,14 +106,20 @@ export class FlarePipeline {
       addressModeU: 'clamp-to-edge',
       addressModeV: 'clamp-to-edge',
     });
-    this.blueNoise = createBlueNoiseTexture(gpu);
+    this.blueNoise = createBlueNoiseTexture(gpu, 'start-flare-blue-noise-128');
     try {
       this.effects = {
-        logo: effect(gpu, fullscreen(logoWgsl), { label: 'start-flare-logo' }),
-        rim: effect(gpu, fullscreen(rimWgsl), { label: 'start-flare-rim' }),
-        rimBlurH: effect(gpu, fullscreen(blurWgsl), { label: 'start-flare-rim-horizontal' }),
-        rimBlurV: effect(gpu, fullscreen(blurWgsl), { label: 'start-flare-rim-vertical' }),
-        composite: effect(gpu, fullscreen(compositeWgsl), { label: 'start-flare-composite' }),
+        logo: effect(gpu, withFullscreenVertex(logoWgsl), { label: 'start-flare-logo' }),
+        rim: effect(gpu, withFullscreenVertex(rimWgsl), { label: 'start-flare-rim' }),
+        rimBlurH: effect(gpu, withFullscreenVertex(blurWgsl), {
+          label: 'start-flare-rim-horizontal',
+        }),
+        rimBlurV: effect(gpu, withFullscreenVertex(blurWgsl), {
+          label: 'start-flare-rim-vertical',
+        }),
+        composite: effect(gpu, withFullscreenVertex(compositeWgsl), {
+          label: 'start-flare-composite',
+        }),
       };
     } catch (error) {
       bestEffort(() => this.blueNoise.destroy());
@@ -446,47 +434,6 @@ function createTargets(
   };
 }
 
-/** Uploads the embedded noise to an R8 texture, destroying it if upload fails. */
-function createBlueNoiseTexture(gpu: Gpu): GPUTexture {
-  const texture = gpu.gpu.createTexture({
-    label: 'start-flare-blue-noise-128',
-    size: [BLUE_NOISE_SIZE, BLUE_NOISE_SIZE],
-    format: 'r8unorm',
-    usage: 0x02 | 0x04,
-  });
-  try {
-    const bytesPerRow = 256;
-    gpu.gpu.queue.writeTexture(
-      { texture },
-      padTextureRows(blueNoiseBytes(), BLUE_NOISE_SIZE, bytesPerRow, BLUE_NOISE_SIZE),
-      { bytesPerRow, rowsPerImage: BLUE_NOISE_SIZE },
-      [BLUE_NOISE_SIZE, BLUE_NOISE_SIZE],
-    );
-    return texture;
-  } catch (error) {
-    bestEffort(() => texture.destroy());
-    throw error;
-  }
-}
-
-/** Copies packed texture rows into a zero-filled buffer with the requested destination stride. */
-function padTextureRows(
-  data: Uint8Array<ArrayBuffer>,
-  sourceBytesPerRow: number,
-  destinationBytesPerRow: number,
-  height: number,
-): Uint8Array<ArrayBuffer> {
-  const padded = new Uint8Array(destinationBytesPerRow * height);
-  for (let row = 0; row < height; row += 1) {
-    const sourceOffset = row * sourceBytesPerRow;
-    padded.set(
-      data.subarray(sourceOffset, sourceOffset + sourceBytesPerRow),
-      row * destinationBytesPerRow,
-    );
-  }
-  return padded;
-}
-
 /** Computes a repeating eased light pulse with deterministic hold durations from elapsed seconds. */
 function lightPulse(timeSeconds: number): number {
   let remaining = Math.max(timeSeconds, 0);
@@ -514,37 +461,7 @@ function pulseHash(index: number): number {
   return value - Math.floor(value);
 }
 
-/** Prepends the shared fullscreen vertex shader to a raw or loader-wrapped WGSL shader. */
-function fullscreen(shader: string | { readonly wgsl: string }): string {
-  const source = typeof shader === 'string' ? shader : shader.wgsl;
-  return `${TOP_LEFT_FULLSCREEN_VERTEX}\n${source}`;
-}
-
 /** Returns cleanup callbacks for every color texture in the target set. */
 function targetCleanups(targets: FlareTargets): Array<() => void> {
   return Object.values(targets).map((value) => () => value.color.destroy());
-}
-
-/** Runs every cleanup callback, then rethrows the first error if any callback failed. */
-export function runCleanups(cleanups: readonly (() => void)[]): void {
-  let primary: unknown;
-  let failed = false;
-  for (const cleanup of cleanups) {
-    try {
-      cleanup();
-    } catch (error) {
-      if (!failed) primary = error;
-      failed = true;
-    }
-  }
-  if (failed) throw primary;
-}
-
-/** Attempts cleanup while suppressing errors so an existing failure is preserved. */
-function bestEffort(cleanup: () => void): void {
-  try {
-    cleanup();
-  } catch {
-    // Cleanup must not replace the active construction or render failure.
-  }
 }

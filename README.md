@@ -200,6 +200,71 @@ pnpm's isolated `node_modules` would not otherwise expose the loader to `next.co
 `@vgpu/adapter-node` and `webgpu` are in `allowBuilds: false` in `pnpm-workspace.yaml` because the
 site only ever runs the browser adapter; the native Dawn prebuilids are not needed.
 
+## WebGPU hero aura
+
+`components/aura` is the second vgpu surface. Where the flare is a logo _spotlight_, the aura is a
+slow ambient light field over every page's hero, rendered from a single fullscreen fragment pass. It
+is mounted by `components/Hero.tsx`, so one insertion point lights up all ten pages that use the
+shared hero (`/about-us`, `/events`, `/startups`, `/members`, `/partners`, `/member-journey`,
+`/member-network`, `/for-partners`, `/start-goes-bay-area`, `/join-start/2026`). Pass `aura={false}`
+to `Hero` to opt a specific hero out.
+
+It is intentionally the opposite of the flare in its performance posture, because it runs on far
+more pages and carries no detail worth resolving:
+
+- **It rasterizes at a fraction of the canvas size.** `fieldDimensions()` caps the field's long edge
+  at 380 px regardless of device pixel ratio, and the compositor interpolates it up to fill the hero
+  — a full-viewport hero is typically ~4x more pixels than that. This is the single biggest reason
+  it is affordable to run everywhere, and `tests/e2e/aura.spec.ts` asserts the ratio so a future
+  "just use the DPR" change cannot slip in unnoticed.
+- **The pass is pre-scaled for a premultiplied surface**, so the compositor's blend needs no divide,
+  and there are no intermediate render targets.
+- **The field is authored at low frequency on purpose.** Upscaled ~4x, anything finer than the broad
+  shapes would be paid for and then thrown away by the interpolator.
+- **It is invisible in the critical path.** `index.tsx` imports nothing but React and `cn`; the
+  renderer, the pipeline, `vgpu` and the `.wgsl` chunk all arrive from a dynamic
+  `import('./renderer')` in an effect. Same rule as the flare: **`index.tsx` must not import from
+  `pipeline.ts`.**
+
+Behaviour worth preserving:
+
+- **The fallback is server-rendered DOM, not a canvas snapshot.** `FALLBACK_CLASSES` is a Tailwind
+  `radial-gradient` built from the same brand tokens and the same arrangement as the shader, so a
+  browser without WebGPU gets the same design intent in the initial HTML, with no layout shift. The
+  canvas stays `opacity-0` until the renderer reports `ready`, then the two crossfade.
+- **It is `pointer-events-none` unconditionally.** The hero's `children` render _inside_ the same
+  box on desktop, so a decorative layer that swallowed clicks would break the stat cards and any
+  links passed to `Hero` — with nothing visibly wrong.
+- **It never reacts to the pointer**, unlike the flare. That is the point: this layer is on nearly
+  every page, and a cursor-following light is a distraction device at that frequency.
+- **`prefers-reduced-motion` draws exactly one frame.** The uniforms are then constant, so
+  re-running the pass every tick would burn GPU forever to produce an identical image. Elapsed time
+  accumulates by clamped per-frame delta rather than from the wall clock, so the drift stays
+  continuous across a backgrounded tab instead of jumping.
+- **It is suppressed over the headline.** The shader derives a "calm" ellipse from the canvas aspect
+  — offset left when the copy sits beside the stat cards, centred and wider when the hero stacks —
+  and fades the field to nothing inside it. Several heroes render the `<h1>` with `outline-text`,
+  whose fill is transparent, so a uniform glow behind it would wreck legibility.
+
+### Shared GPU code
+
+`lib/gpu/runtime.ts` holds what the two features genuinely share: the fullscreen vertex stage, the
+blue-noise texture upload (128x128 R8, row-repacked to the 256-byte `writeTexture` stride), and the
+`runCleanups` / `bestEffort` teardown discipline. The 128x128 blue-noise asset moved there from
+`components/flare/`.
+
+Keep that module free of _value_ imports from `vgpu` — it has one type-only import, which TypeScript
+erases. A runtime import there would defeat the lazy-chunk split for both features. It also must not
+import from `components/flare` or `components/aura`; the dependency runs one way.
+
+`next.config.js` registers the `.wgsl` loader for both bundlers, which covers `components/aura`
+automatically — no change is needed there for a new shader. **Next still never validates WGSL**, so
+gate shader edits with:
+
+```bash
+npx vgpu check components/aura/field.wgsl --require-validation
+```
+
 ## CI/CD
 
 - **`.github/workflows/quality.yml`** — runs on every PR to `main` and on pushes to `main`:

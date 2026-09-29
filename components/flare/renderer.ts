@@ -14,6 +14,8 @@
  */
 import type { Gpu } from 'vgpu';
 
+import { runCleanups } from '@/lib/gpu/runtime';
+
 import { rasterizeLogo } from './logo-raster';
 import { ICON_LOGO, LOGO_CENTER, type LogoVariant, WORDMARK_LOGO } from './logo-variants';
 import {
@@ -25,7 +27,6 @@ import {
   logoPixelSize,
   mapAutonomousLight,
   type Point,
-  runCleanups,
 } from './pipeline';
 
 type RenderSize = Readonly<{ width: number; height: number; dpr: number }>;
