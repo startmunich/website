@@ -12,11 +12,27 @@ name: E2E (Vercel preview)
 # 401.
 on:
   deployment_status:
+  # Manual re-run against a specific preview URL, for debugging a deployment
+  # whose automatic run was cancelled by a newer push. With no input it just
+  # runs setup and stops, so it's safe to trigger blindly as a smoke check.
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Optional. Full override for the URL under test."
+        required: false
+        type: string
 
 concurrency:
   # One run per deployment. If a newer deployment arrives for the same
   # branch, the older E2E run is cancelled.
-  group: e2e-${{ github.event.deployment.environment }}-${{ github.event.deployment.ref }}
+  #
+  # github.event_name is in the group so manual runs don't land in the same
+  # bucket as deployment runs. Without it, workflow_dispatch has no
+  # deployment payload, so every manual run collapsed into the group "e2e--"
+  # and a manual re-run could cancel a real deployment's run (and vice versa).
+  # Manual runs still collapse among themselves, which is what you want — you
+  # don't want two debug runs racing for the same preview.
+  group: e2e-${{ github.event_name }}-${{ github.event.deployment.environment }}-${{ github.event.deployment.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -28,55 +44,85 @@ jobs:
     # Production deployments are skipped — we don't want to hammer prod from
     # CI, and a prod deploy only happens after main has already been merged
     # (so it's already been vetted by the preview run on the PR).
+    #
+    # deployment_status fires for every state (pending/error/success), so the
+    # non-success ones land here and fall straight through to a skipped job.
     if: |
-      github.event.deployment_status.state == 'success' &&
-      github.event.deployment.environment == 'Preview'
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.deployment_status.state == 'success' &&
+       github.event.deployment.environment == 'Preview')
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
+    env:
+      # deployment_status → the Vercel preview URL. workflow_dispatch → the
+      # optional manual override, falling back to empty, in which case the test
+      # step is skipped and the job just verifies setup works. Uses
+      # github.event.inputs rather than the bare `inputs` context because
+      # `inputs` is null for non-dispatch events, whereas github.event is
+      # always an object.
+      TARGET_URL: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.base_url || github.event.deployment_status.environment_url }}
     steps:
       - name: Setup - checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v7.5.0
         with:
           ref: ${{ github.event.deployment.sha }}
+          persist-credentials: false
 
       - name: Setup - pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@f3d73ada1fa6e5c0c19973ff70a3f5cabf225cc5 # v6.0.0
         with:
           run_install: false
 
       - name: Setup - Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v7.5.0
         with:
           node-version-file: .nvmrc
           cache: pnpm
 
+      # The app is already built and running on Vercel — this job only needs
+      # the Playwright runner, never `next`/`sharp`/`protobufjs`. Their
+      # postinstall build steps are the slowest part of a cold install and
+      # nothing here uses them.
       - name: Setup - dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
-      - name: Cache - Playwright browsers
-        id: playwright-cache
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
-
-      - name: Install Playwright Chromium
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
+      # NOTE: there is deliberately no actions/cache step for the Playwright
+      # browser here. Caching cannot work on this trigger: `deployment_status`
+      # is not tied to a branch or tag ref, so actions/cache logs
+      #   "Event Validation Error: The event type deployment_status is not
+      #    supported because it's not tied to a branch or tag ref"
+      # and then neither restores nor saves. Verified in run 36621399271.
+      # That is the real reason this job re-downloaded Chromium on every run —
+      # not the cache key. A step that silently no-ops is worse than no step,
+      # so it is gone rather than left in place looking meaningful.
+      #
+      # Fixing this properly means either caching a ref that exists (i.e. a
+      # pull_request/push trigger) or baking the browser into the runner via
+      # the official Playwright container image. Both are architecture
+      # changes, so they are not smuggled in here.
+      #
+      # Kept as a single step deliberately: `install --with-deps` folds the apt
+      # pass and the download into one invocation and measured ~7s faster than
+      # running them as two separate steps.
+      - name: Install - Playwright Chromium
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Install Playwright system deps
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
-        run: pnpm exec playwright install-deps chromium
-
       - name: Run Playwright against preview
+        if: env.TARGET_URL != ''
         env:
-          PLAYWRIGHT_TEST_BASE_URL: ${{ github.event.deployment_status.environment_url }}
+          PLAYWRIGHT_TEST_BASE_URL: ${{ env.TARGET_URL }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: pnpm exec playwright test
 
+      - name: Report - nothing to test
+        if: env.TARGET_URL == ''
+        run: echo "No base URL provided; ran setup steps only to warm caches."
+
       - name: Upload Playwright report on failure
-        if: failure()
-        uses: actions/upload-artifact@v7
+        if: failure() && env.TARGET_URL != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v7.0.0
         with:
           name: playwright-report
           path: playwright-report/
