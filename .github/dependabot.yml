@@ -39,11 +39,18 @@ updates:
       github-actions:
         patterns:
           - "*"
-    # Auto-merge patch/digest bumps only. These are pure SHA moves on a tag
-    # that already exists. MINOR bumps change real behaviour (new inputs,
-    # changed defaults, runner base image) and must be reviewed by a human —
-    # this repo has already been bitten by an action SHA that didn't resolve,
-    # which broke every workflow at once.
-    automerged-updates:
-      - match:
-          update_type: "version-update:semver-patch"
+    # Auto-merge is deliberately NOT configured here.
+    #
+    # There is no per-update-type auto-merge key in Dependabot's schema. An
+    # `automerged-updates:` block (which this file previously carried) is not
+    # a valid property, and because the schema sets additionalProperties:false
+    # it invalidates the whole file — Dependabot then stops running entirely
+    # rather than degrading. That is why this config failed validation.
+    #
+    # Dependabot auto-merge is a repository setting (Settings → General →
+    # "Allow auto-merge"), and once enabled it merges *every* Dependabot PR
+    # that clears required checks — it cannot be narrowed to digest bumps only.
+    # Given this repo has already been broken by an action SHA that didn't
+    # resolve, and action MINOR bumps can change runner base images or action
+    # defaults, leaving it off (human review) is the safe default. Turn it on
+    # in repo settings if that trade-off stops being worth it.

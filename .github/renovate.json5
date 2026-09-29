@@ -46,12 +46,13 @@
   // disallows merge commits).
   platformAutomerge: true,
 
-  // Don't rebase open PRs just to be current. Every rebase push re-triggers a
-  // Vercel preview build and a full e2e run, so a rebase-on-every-cycle
-  // policy multiplies CI cost for no review benefit. Renovate still rebases
-  // when it's genuinely required (conflict, or base branch moved and the
-  // status went stale) because "auto-conflict" still covers that.
-  rebaseWhen: 'auto-conflict',
+  // Only rebase when the PR has actually gone conflicted, not every time the
+  // base branch moves. Every rebase push re-triggers a Vercel preview build
+  // and a full e2e run, so a rebase-on-every-cycle policy multiplies CI cost
+  // for no review benefit. `conflicted` is the real enum value here — there is
+  // no "auto-conflict"; the full set is auto | never | conflicted |
+  // behind-base-branch | automerging. Verified against renovate-schema.json.
+  rebaseWhen: 'conflicted',
 
   // Explicit whitelist — only these managers may open PRs. If Renovate later
   // gains support for a new ecosystem it will not silently start opening PRs
