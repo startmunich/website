@@ -1,15 +1,31 @@
 # Dependabot config — https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+#
+# SCOPE — read before adding an ecosystem here.
+#
+# Dependabot and Renovate both run on this repo. They must not manage the
+# same ecosystem, or they open duplicate PRs for the same update, edit the
+# same file, and race each other's auto-merge. The split is:
+#
+#   Dependabot → github-actions   (this file)
+#   Renovate   → npm + .nvmrc     (.github/renovate.json5)
+#
+# If you add an ecosystem below, remove it from Renovate's `enabledManagers`
+# in the same commit, or you reintroduce the conflict.
 version: 2
 updates:
-  # Keep GitHub Actions pinned to latest SHAs
+  # Keep GitHub Actions pinned to latest SHAs. Dependabot is the GitHub-native
+  # tool for this and is very good at digest bumps on SHA-pinned `uses:`.
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
+      # Deliberately Monday 04:00 Europe/Berlin. Renovate's schedule is set to
+      # Sunday so the two bots never wake up in the same window and stampede
+      # the PR queue / Vercel preview / e2e pipeline.
       interval: "weekly"
       day: "monday"
       time: "04:00"
       timezone: "Europe/Berlin"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5
     labels:
       - "dependencies"
       - "github-actions"
@@ -17,39 +33,17 @@ updates:
       prefix: "ci"
       prefix-development: "ci"
       include: "scope"
-    # Group minor/patch updates together
     groups:
-      github-actions-minor-patch:
+      # One PR for all action bumps rather than one per action — fewer runs,
+      # fewer Vercel previews, fewer e2e invocations.
+      github-actions:
         patterns:
           - "*"
-        update-types:
-          - "minor"
-          - "patch"
-    # Auto-merge when CI passes (requires "Allow auto-merge" in repo settings)
-    # and branch protection to not require reviews
+    # Auto-merge patch/digest bumps only. These are pure SHA moves on a tag
+    # that already exists. MINOR bumps change real behaviour (new inputs,
+    # changed defaults, runner base image) and must be reviewed by a human —
+    # this repo has already been bitten by an action SHA that didn't resolve,
+    # which broke every workflow at once.
     automerged-updates:
       - match:
           update_type: "version-update:semver-patch"
-      - match:
-          update_type: "version-update:semver-minor"
-
-  # Keep npm dependencies updated
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "04:00"
-      timezone: "Europe/Berlin"
-    open-pull-requests-limit: 10
-    labels:
-      - "dependencies"
-      - "npm"
-    commit-message:
-      prefix: "deps"
-      prefix-development: "deps"
-      include: "scope"
-    # Let Renovate handle npm (it's more sophisticated for monorepos)
-    # This is a fallback; Renovate runs via its own bot
-    # ignore:
-    #   - dependency-name: "*"

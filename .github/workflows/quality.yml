@@ -35,10 +35,14 @@ jobs:
       contents: read
       pull-requests: read
     steps:
+      # commitlint walks the commit range between the PR base and head, so it
+      # needs real history. Nothing else in this job does — on push-to-main we
+      # only install to warm the cache, and cloning the full history there is
+      # pure latency. Default shallow depth for those runs.
       - name: Setup - checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v7.5.0
         with:
-          fetch-depth: 0
+          fetch-depth: ${{ github.event_name == 'pull_request' && 0 || 1 }}
       # Skip-on-push rationale: PRs must be up-to-date with main before
       # merging, so re-running these checks against main itself doesn't
       # catch anything PR CI didn't already block. We keep only the steps

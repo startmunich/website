@@ -12,6 +12,15 @@ name: E2E (Vercel preview)
 # 401.
 on:
   deployment_status:
+  # Manual trigger exists purely to warm the Playwright browser cache under
+  # the *default branch* scope. See the cache note below for why that
+  # matters. Safe to run with no inputs — it installs, caches, and stops.
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Optional. Full override for the URL under test."
+        required: false
+        type: string
 
 concurrency:
   # One run per deployment. If a newer deployment arrives for the same
@@ -28,13 +37,24 @@ jobs:
     # Production deployments are skipped — we don't want to hammer prod from
     # CI, and a prod deploy only happens after main has already been merged
     # (so it's already been vetted by the preview run on the PR).
+    #
+    # deployment_status fires for every state (pending/error/success), so the
+    # non-success ones land here and fall straight through to a skipped job.
     if: |
-      github.event.deployment_status.state == 'success' &&
-      github.event.deployment.environment == 'Preview'
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.deployment_status.state == 'success' &&
+       github.event.deployment.environment == 'Preview')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       contents: read
+    env:
+      # deployment_status → the Vercel preview URL. workflow_dispatch → the
+      # optional manual override, falling back to empty (the test step is
+      # skipped then, leaving just the cache warm-up). Uses github.event.inputs
+      # rather than the bare `inputs` context because `inputs` is null for
+      # non-dispatch events, whereas github.event is always an object.
+      TARGET_URL: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.base_url || github.event.deployment_status.environment_url }}
     steps:
       - name: Setup - checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v7.5.0
@@ -53,32 +73,68 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
 
+      # The app is already built and running on Vercel — this job only needs
+      # the Playwright runner, never `next`/`sharp`/`protobufjs`. Their
+      # postinstall build steps are the slowest part of a cold install and
+      # nothing here uses them.
       - name: Setup - dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --ignore-scripts
 
+      # Resolve the Playwright version AFTER install so the cache key tracks
+      # the thing the browser download actually depends on.
+      - name: Resolve - Playwright version
+        id: playwright
+        run: echo "version=$(node -p "require('./node_modules/@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      # Cache key is the Playwright version, NOT pnpm-lock.yaml. The browser
+      # revision in ~/.cache/ms-playwright tracks @playwright/test, so keying
+      # on the lockfile meant *every* dependency PR produced a fresh key and
+      # re-downloaded Chromium — a 100% cache miss rate and ~21s burned on
+      # every run.
+      #
+      # This is also why workflow_dispatch exists above: GitHub scopes a
+      # cache to the branch that wrote it, falling back to the default
+      # branch. e2e.yml never runs on main (production is skipped), so the
+      # default-branch entry was never created and PR branches had nothing to
+      # fall back to. One manual run on main populates the fallback that
+      # every branch then restores from.
       - name: Cache - Playwright browsers
-        id: playwright-cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('pnpm-lock.yaml') }}
+          key: ${{ runner.os }}-playwright-${{ steps.playwright.outputs.version }}
+          # Partial hit: a different Playwright version may be cached. That's
+          # fine — `playwright install` below is idempotent and fetches only
+          # the browser revision that's actually missing.
+          restore-keys: |
+            ${{ runner.os }}-playwright-
 
-      - name: Install Playwright Chromium
-        if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install --with-deps chromium
-
-      - name: Install Playwright system deps
-        if: steps.playwright-cache.outputs.cache-hit == 'true'
+      # Hosted runners are ephemeral, so the system libraries Playwright's
+      # Chromium links against never survive between runs. This apt pass is
+      # required on every run, cache hit or not.
+      - name: Install - Playwright system deps
         run: pnpm exec playwright install-deps chromium
 
+      # Idempotent: no-op in ~1s when the cache above restored the right
+      # browser, downloads only what is missing otherwise. Replaces the old
+      # cache-hit/miss conditional, which conflated the browser download
+      # with the apt pass and re-ran the download whenever the key moved.
+      - name: Install - Playwright Chromium
+        run: pnpm exec playwright install chromium
+
       - name: Run Playwright against preview
+        if: env.TARGET_URL != ''
         env:
-          PLAYWRIGHT_TEST_BASE_URL: ${{ github.event.deployment_status.environment_url }}
+          PLAYWRIGHT_TEST_BASE_URL: ${{ env.TARGET_URL }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
         run: pnpm exec playwright test
 
+      - name: Report - nothing to test
+        if: env.TARGET_URL == ''
+        run: echo "No base URL provided; ran setup steps only to warm caches."
+
       - name: Upload Playwright report on failure
-        if: failure()
+        if: failure() && env.TARGET_URL != ''
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v7.0.0
         with:
           name: playwright-report
