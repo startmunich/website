@@ -48,11 +48,11 @@ jobs:
       # Order by speed: fastest checks first to fail-fast.
       - name: Check - commit messages
         if: github.event_name == 'pull_request'
-        uses: wagoid/commitlint-github-action@f25c7d7f6d5e4c3a2b1e8d7c6b5a4f3e2d1c0b9a # v6.2.0
+        uses: wagoid/commitlint-github-action@fb61414b06a823fd4fd881543db76d4c2fc95636 # v6.2.0
         with:
           configFile: commitlint.config.mjs
       - name: Setup - pnpm
-        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d669da4 # v6.0.0
+        uses: pnpm/action-setup@f3d73ada1fa6e5c0c19973ff70a3f5cabf225cc5 # v6.0.0
         with:
           run_install: false
       - name: Setup - Node.js
