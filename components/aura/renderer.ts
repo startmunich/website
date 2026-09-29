@@ -36,12 +36,18 @@ const FRAME_INTERVAL_MS = 33;
 /**
  * Target size of the field's long edge in pixels.
  *
- * The field is smooth by construction, and the compositor upscales it with
- * bilinear filtering, so this bounds the fragment cost without a visible
- * difference. It is deliberately *not* derived from the device pixel ratio: the
- * aura carries no detail that a retina panel could resolve.
+ * The field is smooth by construction and the compositor interpolates it up to
+ * fill the hero, so this bounds the fragment cost without a visible difference
+ * on the broad light. It is *not* derived from the device pixel ratio: the aura
+ * carries no detail a retina panel could resolve.
+ *
+ * The original 380 was fine for the light field alone and too coarse for the
+ * network, because a thin filament is the one thing that does not survive being
+ * scaled up — a 380px field on a 1440px hero stair-stepped the lines. 720 buys
+ * roughly 1.8x the texels for the filaments at a cost that is still a rounding
+ * error, and the shader antialiases them analytically on top of that.
  */
-const FIELD_LONG_EDGE = 380;
+const FIELD_LONG_EDGE = 720;
 
 /** Floor that keeps a very small hero from producing a degenerate texture. */
 const MIN_FIELD_EDGE = 24;

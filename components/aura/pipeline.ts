@@ -54,10 +54,22 @@ const DRIFT_SPEED = 0.035;
 const DENSITY_FLOOR = 0.34;
 const DENSITY_RANGE = 0.3;
 
-/** Strength of the cell-boundary filaments, as a fraction of `PEAK_ALPHA`. */
-const NETWORK_STRENGTH = 0.5;
-/** Half-width of a filament, in cell units. Larger means softer, fewer lines. */
-const NETWORK_WIDTH = 0.075;
+/**
+ * Strength of the cell-boundary filaments, as a fraction of `PEAK_ALPHA`.
+ *
+ * Low on purpose. The web is texture, not subject: it should be the thing you
+ * notice on the second look rather than the first, and it sits behind an `h1`
+ * that has to stay readable. Raising this is the fastest way to make it shout.
+ */
+const NETWORK_STRENGTH = 0.26;
+/**
+ * Half-width of a filament, in cell units, measured from the cell boundary
+ * inward. Wider than a hairline on purpose: a soft-edged line both reads as
+ * light rather than as ink, and has more texels to land on, which is what keeps
+ * it smooth once the raster is scaled up. The shader widens this further by
+ * `fwidth` so the edge never falls under a texel.
+ */
+const NETWORK_WIDTH = 0.11;
 /**
  * Cell density. Applied to the warped field, not to raw centred coordinates, so
  * the cells are stretched by the flow rather than tiling evenly. Too low and the
@@ -66,8 +78,13 @@ const NETWORK_WIDTH = 0.075;
  * the compositor's upscaling.
  */
 const NETWORK_SCALE = 5.5;
-/** Radius of a lit node, in cell units. Kept well under the filament width. */
-const NODE_WIDTH = 0.04;
+/**
+ * Radius of a lit node, in cell units, and how strongly it lights. Kept well
+ * under the filament width and well under its strength, so the nodes read as
+ * faint punctuation rather than as a scatter of bright dots.
+ */
+const NODE_WIDTH = 0.05;
+const NODE_STRENGTH = 0.3;
 
 /**
  * Radius, in aspect-corrected UV, over which the light falls off. Keeping it
@@ -144,9 +161,13 @@ export class AuraPipeline {
         pink: [PINK[0], PINK[1], PINK[2], PEAK_ALPHA],
         blue: [BLUE[0], BLUE[1], BLUE[2], DRIFT_SPEED],
         field: [uniforms.timeSeconds, uniforms.frameSeed, DENSITY_FLOOR, DENSITY_RANGE],
-        shape: [width / reference, height / reference, 0, 0],
         light: [uniforms.light[0], uniforms.light[1], LIGHT_REACH, uniforms.lightStrength],
         net: [NETWORK_STRENGTH, NETWORK_WIDTH, NETWORK_SCALE, NODE_WIDTH],
+        // `shape` is the aspect, so it needs only two of its four lanes. The
+        // spare lane carries the node strength rather than costing a whole
+        // extra vec4 for one scalar — see `field.wgsl` for the other half of
+        // this packing.
+        shape: [width / reference, height / reference, NODE_STRENGTH, 0],
       },
     });
     frame(this.gpu, (currentFrame) => {

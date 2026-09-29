@@ -212,16 +212,22 @@ to `Hero` to opt a specific hero out.
 It is intentionally the opposite of the flare in its performance posture, because it runs on far
 more pages and carries no detail worth resolving:
 
-- **It rasterizes at a fraction of the canvas size.** `fieldDimensions()` caps the field's long edge
-  at 380 px regardless of device pixel ratio, and the compositor interpolates it up to fill the hero
-  — a full-viewport hero is typically ~4x more pixels than that. This is the single biggest reason
-  it is affordable to run everywhere, and `tests/e2e/aura.spec.ts` asserts the ratio so a future
-  "just use the DPR" change cannot slip in unnoticed.
+- **It rasterizes well below the canvas size.** `fieldDimensions()` caps the field's long edge at
+  720 px regardless of device pixel ratio, and the compositor interpolates it up to fill the hero —
+  a 1440x560 hero rasters at 720x315, roughly 4x fewer fragments than a full-res pass. It is not
+  derived from the DPR: the aura carries no detail a retina panel could resolve, and the long-edge
+  cap holds the cost flat on ultrawide viewports too. `tests/e2e/aura.spec.ts` asserts the ratio so
+  a future "just use the DPR" change cannot slip in unnoticed.
+- **The network is antialiased analytically, not by supersampling.** A thin bright line is the worst
+  thing to hand to bilinear interpolation — it comes back stair-stepped, which reads as a rendering
+  bug rather than as texture. `fwidth` reports how fast the cell gap changes per raster texel, and
+  widening the smoothstep by it keeps every filament edge at least one texel wide however small the
+  raster is. This is why the raster could be raised without the lines getting heavier.
 - **The pass is pre-scaled for a premultiplied surface**, so the compositor's blend needs no divide,
   and there are no intermediate render targets.
-- **The field is authored at low frequency on purpose.** Upscaled ~4x, anything finer than the broad
-  shapes would be paid for and then thrown away by the interpolator. The cellular network is the one
-  exception, at roughly six cells across the hero.
+- **The light field is authored at low frequency on purpose.** Upscaled ~2x, anything finer than the
+  broad shapes would be paid for and then thrown away by the interpolator. The cellular network is
+  the one exception, and is what the raster size and the antialiasing above exist to serve.
 - **It is invisible in the critical path.** `index.tsx` imports nothing but React and `cn`; the
   renderer, the pipeline, `vgpu` and the `.wgsl` chunk all arrive from a dynamic
   `import('./renderer')` in an effect. Same rule as the flare: **`index.tsx` must not import from
@@ -233,8 +239,13 @@ The layer is not a gradient. It is a drifting cellular web with lit nodes: a Wor
 thresholded on the gap between its two nearest feature points, so the cell _boundaries_ become thin
 filaments, sampled through the same domain-warped coordinate as the light so the cells stretch along
 the flow instead of tiling as flat polygons. It is the site's own subject — a network of chapters
-and members. `NETWORK_STRENGTH` in `pipeline.ts` is the dial, and the reason the layer exists at all
-is that a CSS radial-gradient cannot express it.
+and members — and the reason the layer exists at all, since a CSS radial-gradient cannot express it.
+
+`NETWORK_STRENGTH` is the dial, and it is deliberately low. The web is texture, not subject: it
+should be the thing you notice on the second look rather than the first, and it sits behind an `h1`
+that has to stay readable. `NETWORK_WIDTH` is likewise wider than a hairline on purpose — a
+soft-edged line reads as light rather than as ink, and has more texels to land on. Raising either is
+the fastest way to make the web shout.
 
 A soft light follows the pointer and lifts both the glow and the network where it passes, so moving
 the cursor reveals the web rather than just brightening a tint. Two details make it behave:

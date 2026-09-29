@@ -151,13 +151,28 @@ fn cellular(point: vec2f) -> vec2f {
   // The network is sampled through the *same* warped coordinate as the light,
   // so the cells inherit the flow field and come out as curved, stretched
   // shapes following the current rather than as flat convex polygons. That is
-  // the difference between a network and a wireframe mesh. It drifts on its own
-  // axis and faster, so the two layers slide across each other instead of
+  // the difference between a network and a wireframe mesh. It drifts on its
+  // own axis and faster, so the two layers slide across each other instead of
   // moving as one object.
   let cell = cellular(warped * params.net.z + drift * 0.9);
-  let web = (1.0 - smoothstep(0.0, params.net.y, cell.y - cell.x)) * params.net.x;
-  let node = 1.0 - smoothstep(0.0, params.net.w, cell.x);
 
+  // Antialias the filaments analytically instead of letting the raster decide.
+  //
+  // The field is drawn small and scaled up by the compositor, and a thin bright
+  // line is the worst possible thing to hand to bilinear interpolation: it comes
+  // back stair-stepped, which reads as a rendering bug rather than as a
+  // texture. `fwidth` reports how fast the gap changes per raster texel, so
+  // widening the smoothstep by it guarantees the edge spans at least one texel
+  // however small the raster is. The lines are then genuinely smooth at any
+  // resolution instead of merely being blurred after the fact.
+  let gap = cell.y - cell.x;
+  let edge = max(fwidth(gap), 1e-5);
+  let web = 1.0 - smoothstep(params.net.y - edge, params.net.y + edge, gap);
+
+  // Same treatment for the nodes, whose falloff is steeper than the filaments'.
+  let nodeDistance = cell.x;
+  let nodeEdge = max(fwidth(nodeDistance), 1e-5);
+  let node = 1.0 - smoothstep(params.net.w - nodeEdge, params.net.w + nodeEdge, nodeDistance);
   // A soft light that follows the pointer, and orbits on its own when there is
   // no pointer — so touch visitors and anyone who leaves the cursor parked
   // somewhere still get a moving light rather than a static frame.
@@ -194,14 +209,20 @@ fn cellular(point: vec2f) -> vec2f {
   // The light lifts the glow around it and reveals the network it passes over,
   // which is what makes moving the cursor feel like it is doing something.
   let reveal = 1.0 + lightFall * params.light.z * 2.4;
-  let illumination = density * reveal
-    + web * (0.45 + lightFall * params.light.z * 2.0)
-    + node * (0.5 + lightFall * params.light.z * 1.5);
+
+  // The network is additive and deliberately secondary: it should be something
+  // you notice on the second look, not the first. The pointer raises it, but
+  // never by enough for it to take over from the light.
+  let webLight = web * params.net.x * (0.5 + lightFall * params.light.z * 1.4);
+  let nodeLight = node * params.shape.z * (0.6 + lightFall * params.light.z * 1.2);
+  let illumination = density * reveal + webLight + nodeLight;
 
   // Filaments read as light only if they are lighter than the wash behind them,
-  // so the network is mixed toward white rather than tinted like the field.
-  let lit = mix(color, vec3f(1.0), 0.28);
-  let litColor = mix(color, lit, clamp(web * 2.2 + node * 1.6, 0.0, 1.0));
+  // so the network is mixed toward white rather than tinted like the field. Kept
+  // low: pushing this is the fastest way to make the web shout.
+  let lit = mix(color, vec3f(1.0), 0.16);
+  let networkMix = clamp(web * 1.8 + node * 1.4, 0.0, 1.0);
+  let litColor = mix(color, lit, networkMix);
 
   var alpha = illumination * presence * breath * params.pink.w;
 

@@ -94,10 +94,12 @@ test('the hero aura never intercepts pointer events', async ({ page }) => {
 });
 
 /**
- * The field is rasterized at a fraction of the canvas size and scaled up by the
- * compositor. That is the whole performance argument, so it is asserted rather
- * than assumed: if `fieldDimensions` ever starts honouring the device pixel
- * ratio, this catches the silent quadrupling of fragment cost.
+ * The field is rasterized well below the canvas pixel size and scaled up by the
+ * compositor, so the glyph edges of the network motif are at the mercy of
+ * bilinear interpolation. Antialiasing the shader and lowering the frame budget
+ * are opposite pulls, and this is what stops either being undone silently: the
+ * bound is loose enough to leave real headroom, and tight enough that switching
+ * to the device pixel ratio fails.
  */
 test('the hero field renders well below the canvas pixel size', async ({ page }) => {
   await page.goto(HERO_PAGE);
@@ -118,7 +120,9 @@ test('the hero field renders well below the canvas pixel size', async ({ page })
   // nothing to assert — the fallback case is covered by the first test.
   if (state.backing === 300 * 150) return;
 
-  expect(state.backing).toBeLessThan(state.css * 0.2);
+  // A 1440x560 hero currently rasters at 720x280, which is 0.25. Honouring the
+  // device pixel ratio would put this at 1.0 or above.
+  expect(state.backing / state.css).toBeLessThan(0.35);
   expect(state.backing).toBeGreaterThan(0);
 });
 
