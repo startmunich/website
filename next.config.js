@@ -82,6 +82,13 @@ const nextConfig = {
         hostname: 'media.licdn.com',
         pathname: '/**',
       },
+      // Event covers are served from Luma's CDN. Without this entry, upcoming-event
+      // images fail to load while past-event cards (which pass `unoptimized`) render fine.
+      {
+        protocol: 'https',
+        hostname: 'images.lumacdn.com',
+        pathname: '/**',
+      },
     ],
   },
 };

@@ -3,17 +3,29 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Script from 'next/script';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 
 import { EventCard, ScrollIndicator, TimelineMarker } from '@/components/EventComponents';
 import Hero from '@/components/Hero';
 import HeroCard from '@/components/HeroCard';
+import type { StartEvent } from '@/lib/events';
 import { useAnimatedNumber } from '@/lib/useAnimatedNumber';
 
-import PastEventsGrid from './PastEventsGrid';
-import UpcomingEventsGrid from './UpcomingEventsGrid';
+import PastEventsList from './PastEventsList';
+import UpcomingEventsList from './UpcomingEventsList';
 
 export const dynamic = 'force-dynamic';
+
+export interface EventSeriesProps {
+  series: RecurringEvent[];
+  /** Distinct categories in the series, for the timeline legend. */
+  categories: Array<{ category: string; color: string }>;
+  /** Already fetched on the server so the grids render without a client-side waterfall. */
+  upcomingEvents: StartEvent[];
+  pastEvents: StartEvent[];
+  /** Hero statistics, derived from the programme so they follow the calendar. */
+  stats: { hackathons: number; events: number };
+}
 
 interface RecurringEvent {
   id: string;
@@ -23,96 +35,45 @@ interface RecurringEvent {
   frequency: string;
   image: string;
   category: string;
+  color: string;
+  tier: 'main' | 'side';
+  href: string | null;
+  occurrences: Array<{ year: number; month: number; day: number; label: string }>;
 }
 
-const recurringEvents: RecurringEvent[] = [
-  {
-    id: 'rtss',
-    name: 'Road to START Summit (RTSS)',
-    description:
-      'Our flagship pitch event where aspiring founders present their startup ideas to a panel of investors, entrepreneurs, and industry experts.',
-    month: 'December',
-    frequency: 'Once per year',
-    image: '/events/eventCards/summit-opt.jpg',
-    category: 'Pitch Event',
-  },
-  {
-    id: 'rtsh',
-    name: 'Road to START Hack (RTSH)',
-    description:
-      'An intensive hackathon bringing together developers, designers, and entrepreneurs to build innovative solutions in 24-48 hours.',
-    month: 'November',
-    frequency: 'Once per year',
-    image: '/events/eventCards/hack-opt.jpg',
-    category: 'Hackathon',
-  },
-  {
-    id: 'legal-hack',
-    name: 'Munich Hacking Legal',
-    description:
-      'A unique hackathon focused on building legal tech solutions that address real challenges in the legal industry, combining technology with regulatory expertise.',
-    month: 'April',
-    frequency: 'Once per year',
-    image: '/events/eventCards/legal-opt.jpg',
-    category: 'Hackathon',
-  },
-  {
-    id: 'start-labs',
-    name: 'START Labs',
-    description:
-      'A hands-on program where students work on real-world challenges from industry partners, developing prototypes and solutions across various tech verticals like GovTech, MedTech, and more.',
-    month: 'May',
-    frequency: 'Once per year',
-    image: '/events/eventCards/labs-opt.jpg',
-    category: 'Incubator',
-  },
-  {
-    id: 'info-event',
-    name: 'Info Event',
-    description:
-      'Join us at the start of each semester to learn about START Munich, meet our community, and discover how you can get involved.',
-    month: 'October & April',
-    frequency: 'Once per semester',
-    image: '/events/eventCards/info-opt.jpg',
-    category: 'Talk',
-  },
-  {
-    id: 'fail-tales',
-    name: 'Founder Fail Tales',
-    description:
-      'Real stories from real founders about their biggest failures and lessons learned.',
-    month: 'October & April',
-    frequency: 'Once per semester',
-    image: '/events/eventCards/fail-opt.jpg',
-    category: 'Talk',
-  },
-  {
-    id: 'pitch-network',
-    name: 'PITCH & NETWORK',
-    description:
-      'Practice your pitch, get feedback from experienced entrepreneurs, and network with fellow founders in an intimate setting.',
-    month: 'January & June',
-    frequency: 'Once per semester',
-    image: '/events/eventCards/pitch-opt.jpg',
-    category: 'Pitch Event',
-  },
-];
+const MONTH_NAMES = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+] as const;
 
-export default function EventsPage() {
+export default function EventsContent({
+  series,
+  categories,
+  upcomingEvents,
+  pastEvents,
+  stats,
+}: EventSeriesProps) {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
   const sliderRef = useRef<HTMLDivElement>(null);
   const sliderSectionRef = useRef<HTMLDivElement>(null);
   const dragState = useRef({ isDragging: false, startX: 0, scrollLeft: 0 });
   const [hoveredEvent, setHoveredEvent] = useState<string | null>(null);
 
-  useEffect(() => {
-    setLoading(false);
-  }, []);
-
-  // Use animated number hook for statistics (faster animation - 800ms)
-  const animatedHackathons = useAnimatedNumber(4, loading, 800);
-  const animatedPublicEvents = useAnimatedNumber(10, loading, 800);
+  // Statistics are derived from the programme rather than hardcoded, so they follow the calendar.
+  // The count-up still animates on mount; there is no loading flag to wait for because the data
+  // arrives as props.
+  const animatedHackathons = useAnimatedNumber(stats.hackathons, false, 800);
+  const animatedEvents = useAnimatedNumber(stats.events, false, 800);
 
   const handleDrag = {
     start: (e: React.MouseEvent) => {
@@ -176,15 +137,57 @@ export default function EventsPage() {
     return `${totalProgress.toFixed(2)}%`;
   };
 
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-[#00002c] px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl text-center">
-          <p className="text-2xl font-bold text-white">Loading events...</p>
-        </div>
-      </main>
-    );
-  }
+  // ── Derived from the synced calendar ──────────────────────────────────────
+  // The programme is generated from event data, so the timeline and slider move with the calendar
+  // instead of tracking a hardcoded array.
+
+  const mainSeries = series.filter((event) => event.tier === 'main');
+  const sideSeries = series.filter((event) => event.tier !== 'main');
+
+  /**
+   * Timeline markers, one per dated occurrence. A series whose occurrences all fall outside the
+   * current window keeps its card but contributes no marker, so the strip reflects the months that
+   * actually have events.
+   */
+  const markers = series
+    .flatMap((event) =>
+      event.occurrences.map((occurrence) => ({
+        id: event.id,
+        color: event.color,
+        label: occurrence.label,
+        month: occurrence.month,
+        day: occurrence.day,
+      })),
+    )
+    .sort((a, b) => a.month - b.month || a.day - b.day);
+
+  /** The same occurrences grouped by month, for the mobile list view. */
+  const mobileMonths = markers.reduce<
+    Array<{ month: number; events: Array<{ id: string; name: string; color: string }> }>
+  >((months, marker) => {
+    const entry = months.find((candidate) => candidate.month === marker.month);
+    const item = {
+      id: marker.id,
+      name: series.find((event) => event.id === marker.id)?.name ?? marker.label,
+      color: marker.color,
+    };
+    if (entry) entry.events.push(item);
+    else months.push({ month: marker.month, events: [item] });
+    return months;
+  }, []);
+
+  /**
+   * Card click behaviour: absolute URLs open in a new tab (partner and Luma pages), internal paths
+   * route in-app (the hand-built RTSS/RTSH landing pages), and a series with nowhere to send you —
+   * e.g. an info evening with no registration — stays inert.
+   */
+  const linkHandler = (event: RecurringEvent) => {
+    if (!event.href) return undefined;
+    if (event.href.startsWith('http')) {
+      return () => window.open(event.href as string, '_blank', 'noopener,noreferrer');
+    }
+    return () => router.push(event.href as string);
+  };
 
   return (
     <>
@@ -237,7 +240,7 @@ export default function EventsPage() {
             <HeroCard>
               <div className="mb-3 flex items-baseline justify-center gap-2">
                 <span className="bg-gradient-to-br from-white to-gray-300 bg-clip-text text-4xl font-black text-transparent transition lg:text-6xl">
-                  {Math.floor(animatedPublicEvents)}
+                  {Math.floor(animatedEvents)}
                 </span>
                 <span className="text-xl font-bold text-[#d0006f] lg:text-3xl">+</span>
               </div>
@@ -394,7 +397,7 @@ export default function EventsPage() {
               </div>
             </div>
 
-            <UpcomingEventsGrid />
+            <UpcomingEventsList events={upcomingEvents} />
           </div>
 
           {/* Recurring Events Section */}
@@ -452,263 +455,96 @@ export default function EventsPage() {
                     ></div>
                   ))}
 
-                  {/* Event Markers - Using TimelineMarker Components */}
-                  <TimelineMarker
-                    eventId="pitch-network"
-                    left={calculateTimelinePosition(1, 15)}
-                    color="#ff1744"
-                    label="Pitch & Network"
-                    position="top"
-                    hoveredEvent={hoveredEvent}
-                    onHover={handleTimelineMarkerHover}
-                    onLeave={() => setHoveredEvent(null)}
-                  />
-
-                  <TimelineMarker
-                    eventId="legal-hack"
-                    left={calculateTimelinePosition(4, 5)}
-                    color="#9c27b0"
-                    label="Legal Hack"
-                    position="bottom"
-                    hoveredEvent={hoveredEvent}
-                    onHover={handleTimelineMarkerHover}
-                    onLeave={() => setHoveredEvent(null)}
-                  />
-
-                  <TimelineMarker
-                    eventId="info-event"
-                    left={calculateTimelinePosition(4, 15)}
-                    color="#4a90e2"
-                    label="Info Event"
-                    position="top"
-                    hoveredEvent={hoveredEvent}
-                    onHover={handleTimelineMarkerHover}
-                    onLeave={() => setHoveredEvent(null)}
-                  />
-
-                  <TimelineMarker
-                    eventId="fail-tales"
-                    left={calculateTimelinePosition(4, 25)}
-                    color="#4a90e2"
-                    label="Fail Tales"
-                    position="bottom"
-                    hoveredEvent={hoveredEvent}
-                    onHover={handleTimelineMarkerHover}
-                    onLeave={() => setHoveredEvent(null)}
-                  />
-
-                  <TimelineMarker
-                    eventId="start-labs"
-                    left={calculateTimelinePosition(5, 1)}
-                    color="#ff9800"
-                    label="START Labs"
-                    position="top"
-                    hoveredEvent={hoveredEvent}
-                    onHover={handleTimelineMarkerHover}
-                    onLeave={() => setHoveredEvent(null)}
-                  />
-
-                  <TimelineMarker
-                    eventId="pitch-network"
-                    left={calculateTimelinePosition(6, 15)}
-                    color="#ff1744"
-                    label="Pitch & Network"
-                    position="bottom"
-                    hoveredEvent={hoveredEvent}
-                    onHover={handleTimelineMarkerHover}
-                    onLeave={() => setHoveredEvent(null)}
-                  />
-
-                  <TimelineMarker
-                    eventId="info-event"
-                    left={calculateTimelinePosition(10, 15)}
-                    color="#4a90e2"
-                    label="Info Event"
-                    position="top"
-                    hoveredEvent={hoveredEvent}
-                    onHover={handleTimelineMarkerHover}
-                    onLeave={() => setHoveredEvent(null)}
-                  />
-
-                  <TimelineMarker
-                    eventId="fail-tales"
-                    left={calculateTimelinePosition(11, 15)}
-                    color="#4a90e2"
-                    label="Fail Tales"
-                    position="bottom"
-                    hoveredEvent={hoveredEvent}
-                    onHover={handleTimelineMarkerHover}
-                    onLeave={() => setHoveredEvent(null)}
-                  />
-
-                  <TimelineMarker
-                    eventId="rtsh"
-                    left={calculateTimelinePosition(11, 29)}
-                    color="#9c27b0"
-                    label="RTSH 🚀"
-                    position="top"
-                    hoveredEvent={hoveredEvent}
-                    onHover={handleTimelineMarkerHover}
-                    onLeave={() => setHoveredEvent(null)}
-                  />
-
-                  <TimelineMarker
-                    eventId="rtss"
-                    left={calculateTimelinePosition(12, 9)}
-                    color="#ff1744"
-                    label="RTSS 🚀"
-                    position="bottom"
-                    hoveredEvent={hoveredEvent}
-                    onHover={handleTimelineMarkerHover}
-                    onLeave={() => setHoveredEvent(null)}
-                  />
+                  {/* Event Markers - generated from the synced calendar */}
+                  {markers.map((marker, index) => (
+                    <TimelineMarker
+                      key={`${marker.id}-${marker.month}-${marker.day}`}
+                      eventId={marker.id}
+                      left={calculateTimelinePosition(marker.month, marker.day)}
+                      color={marker.color}
+                      label={marker.label}
+                      position={index % 2 === 0 ? 'top' : 'bottom'}
+                      hoveredEvent={hoveredEvent}
+                      onHover={handleTimelineMarkerHover}
+                      onLeave={() => setHoveredEvent(null)}
+                    />
+                  ))}
                 </div>
 
                 {/* Desktop Legend */}
                 <div className="flex flex-wrap items-center justify-center gap-4 border-t border-white/[0.06] pt-6 md:gap-5">
-                  <div className="flex items-center gap-2 rounded-full bg-white/[0.04] px-3 py-1.5">
-                    <div className="h-2.5 w-2.5 rounded-full bg-[#ff1744]"></div>
-                    <span className="text-xs font-medium text-gray-300">Pitch Events</span>
-                  </div>
-                  <div className="flex items-center gap-2 rounded-full bg-white/[0.04] px-3 py-1.5">
-                    <div className="h-2.5 w-2.5 rounded-full bg-[#9c27b0]"></div>
-                    <span className="text-xs font-medium text-gray-300">Hackathons</span>
-                  </div>
-                  <div className="flex items-center gap-2 rounded-full bg-white/[0.04] px-3 py-1.5">
-                    <div className="h-2.5 w-2.5 rounded-full bg-[#ff9800]"></div>
-                    <span className="text-xs font-medium text-gray-300">Incubator</span>
-                  </div>
-                  <div className="flex items-center gap-2 rounded-full bg-white/[0.04] px-3 py-1.5">
-                    <div className="h-2.5 w-2.5 rounded-full bg-[#4a90e2]"></div>
-                    <span className="text-xs font-medium text-gray-300">Talks</span>
-                  </div>
+                  {categories.map(({ category, color }) => (
+                    <div
+                      key={category}
+                      className="flex items-center gap-2 rounded-full bg-white/[0.04] px-3 py-1.5"
+                    >
+                      <div
+                        className="h-2.5 w-2.5 rounded-full"
+                        style={{ backgroundColor: color }}
+                      ></div>
+                      <span className="text-xs font-medium text-gray-300">{category}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
 
               {/* Mobile Timeline - Simplified List View */}
               <div className="md:hidden">
                 <div className="space-y-3">
-                  <div className="flex items-start gap-4 rounded-2xl bg-white/[0.04] p-4">
-                    <div className="w-14 flex-shrink-0 text-sm font-bold text-gray-400">Jan</div>
-                    <button
-                      onClick={() => scrollToEventMobile('pitch-network')}
-                      className="flex items-center gap-2 transition-opacity hover:opacity-80"
+                  {mobileMonths.map(({ month, events }) => (
+                    <div
+                      key={month}
+                      className="flex items-start gap-4 rounded-2xl bg-white/[0.04] p-4"
                     >
-                      <div className="h-3 w-3 flex-shrink-0 rounded-full bg-[#ff1744]"></div>
-                      <span className="text-sm text-white">Pitch & Network</span>
-                    </button>
-                  </div>
-
-                  <div className="flex items-start gap-4 rounded-2xl bg-white/[0.04] p-4">
-                    <div className="w-14 flex-shrink-0 text-sm font-bold text-gray-400">Apr</div>
-                    <div className="flex flex-col gap-2">
-                      <button
-                        onClick={() => scrollToEventMobile('legal-hack')}
-                        className="flex items-center gap-2 transition-opacity hover:opacity-80"
-                      >
-                        <div className="h-3 w-3 flex-shrink-0 rounded-full bg-[#9c27b0]"></div>
-                        <span className="text-sm text-white">Legal Hack</span>
-                      </button>
-                      <button
-                        onClick={() => scrollToEventMobile('info-event')}
-                        className="flex items-center gap-2 transition-opacity hover:opacity-80"
-                      >
-                        <div className="h-3 w-3 flex-shrink-0 rounded-full bg-[#4a90e2]"></div>
-                        <span className="text-sm text-white">Info Event</span>
-                      </button>
-                      <button
-                        onClick={() => scrollToEventMobile('fail-tales')}
-                        className="flex items-center gap-2 transition-opacity hover:opacity-80"
-                      >
-                        <div className="h-3 w-3 flex-shrink-0 rounded-full bg-[#4a90e2]"></div>
-                        <span className="text-sm text-white">Fail Tales</span>
-                      </button>
+                      <div className="w-14 flex-shrink-0 text-sm font-bold text-gray-400">
+                        {MONTH_NAMES[month - 1]}
+                      </div>
+                      {events.length === 1 ? (
+                        <button
+                          onClick={() => scrollToEventMobile(events[0].id)}
+                          className="flex items-center gap-2 transition-opacity hover:opacity-80"
+                        >
+                          <div
+                            className="h-3 w-3 flex-shrink-0 rounded-full"
+                            style={{ backgroundColor: events[0].color }}
+                          ></div>
+                          <span className="text-sm text-white">{events[0].name}</span>
+                        </button>
+                      ) : (
+                        <div className="flex flex-col gap-2">
+                          {events.map((event) => (
+                            <button
+                              key={event.id}
+                              onClick={() => scrollToEventMobile(event.id)}
+                              className="flex items-center gap-2 transition-opacity hover:opacity-80"
+                            >
+                              <div
+                                className="h-3 w-3 flex-shrink-0 rounded-full"
+                                style={{ backgroundColor: event.color }}
+                              ></div>
+                              <span className="text-sm text-white">{event.name}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  </div>
-
-                  <div className="flex items-start gap-4 rounded-2xl bg-white/[0.04] p-4">
-                    <div className="w-14 flex-shrink-0 text-sm font-bold text-gray-400">May</div>
-                    <button
-                      onClick={() => scrollToEventMobile('start-labs')}
-                      className="flex items-center gap-2 transition-opacity hover:opacity-80"
-                    >
-                      <div className="h-3 w-3 flex-shrink-0 rounded-full bg-[#ff9800]"></div>
-                      <span className="text-sm text-white">START Labs</span>
-                    </button>
-                  </div>
-
-                  <div className="flex items-start gap-4 rounded-2xl bg-white/[0.04] p-4">
-                    <div className="w-14 flex-shrink-0 text-sm font-bold text-gray-400">Jun</div>
-                    <button
-                      onClick={() => scrollToEventMobile('pitch-network')}
-                      className="flex items-center gap-2 transition-opacity hover:opacity-80"
-                    >
-                      <div className="h-3 w-3 flex-shrink-0 rounded-full bg-[#ff1744]"></div>
-                      <span className="text-sm text-white">Pitch & Network</span>
-                    </button>
-                  </div>
-
-                  <div className="flex items-start gap-4 rounded-2xl bg-white/[0.04] p-4">
-                    <div className="w-14 flex-shrink-0 text-sm font-bold text-gray-400">Oct</div>
-                    <div className="flex flex-col gap-2">
-                      <button
-                        onClick={() => scrollToEventMobile('info-event')}
-                        className="flex items-center gap-2 transition-opacity hover:opacity-80"
-                      >
-                        <div className="h-3 w-3 flex-shrink-0 rounded-full bg-[#4a90e2]"></div>
-                        <span className="text-sm text-white">Info Event</span>
-                      </button>
-                      <button
-                        onClick={() => scrollToEventMobile('fail-tales')}
-                        className="flex items-center gap-2 transition-opacity hover:opacity-80"
-                      >
-                        <div className="h-3 w-3 flex-shrink-0 rounded-full bg-[#4a90e2]"></div>
-                        <span className="text-sm text-white">Fail Tales</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4 rounded-2xl bg-white/[0.04] p-4">
-                    <div className="w-14 flex-shrink-0 text-sm font-bold text-gray-400">Nov</div>
-                    <button
-                      onClick={() => scrollToEventMobile('rtsh')}
-                      className="flex items-center gap-2 transition-opacity hover:opacity-80"
-                    >
-                      <div className="h-3 w-3 flex-shrink-0 rounded-full bg-[#9c27b0]"></div>
-                      <span className="text-sm text-white">Road to START Hack 🚀</span>
-                    </button>
-                  </div>
-
-                  <div className="flex items-start gap-4 rounded-2xl bg-white/[0.04] p-4">
-                    <div className="w-14 flex-shrink-0 text-sm font-bold text-gray-400">Dec</div>
-                    <button
-                      onClick={() => scrollToEventMobile('rtss')}
-                      className="flex items-center gap-2 transition-opacity hover:opacity-80"
-                    >
-                      <div className="h-3 w-3 flex-shrink-0 rounded-full bg-[#ff1744]"></div>
-                      <span className="text-sm text-white">RTSS 🚀</span>
-                    </button>
-                  </div>
+                  ))}
                 </div>
 
                 {/* Mobile Legend */}
                 <div className="mt-6 flex flex-wrap gap-3 border-t border-white/[0.06] pt-4">
-                  <div className="flex items-center gap-2 rounded-full bg-white/[0.04] px-3 py-1.5">
-                    <div className="h-2.5 w-2.5 rounded-full bg-[#ff1744]"></div>
-                    <span className="text-xs font-medium text-gray-300">Pitch Events</span>
-                  </div>
-                  <div className="flex items-center gap-2 rounded-full bg-white/[0.04] px-3 py-1.5">
-                    <div className="h-2.5 w-2.5 rounded-full bg-[#9c27b0]"></div>
-                    <span className="text-xs font-medium text-gray-300">Hackathons</span>
-                  </div>
-                  <div className="flex items-center gap-2 rounded-full bg-white/[0.04] px-3 py-1.5">
-                    <div className="h-2.5 w-2.5 rounded-full bg-[#ff9800]"></div>
-                    <span className="text-xs font-medium text-gray-300">Incubator</span>
-                  </div>
-                  <div className="flex items-center gap-2 rounded-full bg-white/[0.04] px-3 py-1.5">
-                    <div className="h-2.5 w-2.5 rounded-full bg-[#4a90e2]"></div>
-                    <span className="text-xs font-medium text-gray-300">Talks</span>
-                  </div>
+                  {categories.map(({ category, color }) => (
+                    <div
+                      key={category}
+                      className="flex items-center gap-2 rounded-full bg-white/[0.04] px-3 py-1.5"
+                    >
+                      <div
+                        className="h-2.5 w-2.5 rounded-full"
+                        style={{ backgroundColor: color }}
+                      ></div>
+                      <span className="text-xs font-medium text-gray-300">{category}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -733,30 +569,18 @@ export default function EventsPage() {
                   Main Events
                 </span>
                 <div className="flex flex-1 gap-6">
-                  {recurringEvents
-                    .filter((e) => ['rtss', 'rtsh', 'legal-hack', 'start-labs'].includes(e.id))
-                    .map((event, index) => (
-                      <EventCard
-                        key={event.id}
-                        event={event}
-                        index={index}
-                        hoveredEvent={hoveredEvent}
-                        setHoveredEvent={setHoveredEvent}
-                        isFlagship={true}
-                        className="h-full"
-                        onClick={
-                          event.id === 'legal-hack'
-                            ? () => window.open('https://www.hacking-legal.org/', '_blank')
-                            : event.id === 'rtsh'
-                              ? () => router.push('/eventpage/rtsh')
-                              : event.id === 'rtss'
-                                ? () => router.push('/eventpage/rtss')
-                                : event.id === 'start-labs'
-                                  ? () => window.open('https://www.startmunich.de/labs', '_blank')
-                                  : undefined
-                        }
-                      />
-                    ))}
+                  {mainSeries.map((event, index) => (
+                    <EventCard
+                      key={event.id}
+                      event={event}
+                      index={index}
+                      hoveredEvent={hoveredEvent}
+                      setHoveredEvent={setHoveredEvent}
+                      isFlagship={true}
+                      className="h-full"
+                      onClick={linkHandler(event)}
+                    />
+                  ))}
                 </div>
               </div>
 
@@ -771,20 +595,18 @@ export default function EventsPage() {
                   Side Events
                 </span>
                 <div className="flex flex-1 gap-6">
-                  {recurringEvents
-                    .filter((e) => !['rtss', 'rtsh', 'legal-hack', 'start-labs'].includes(e.id))
-                    .map((event, index) => (
-                      <EventCard
-                        key={event.id}
-                        event={event}
-                        index={index}
-                        hoveredEvent={hoveredEvent}
-                        setHoveredEvent={setHoveredEvent}
-                        isFlagship={false}
-                        className="h-full"
-                        onClick={undefined}
-                      />
-                    ))}
+                  {sideSeries.map((event, index) => (
+                    <EventCard
+                      key={event.id}
+                      event={event}
+                      index={index}
+                      hoveredEvent={hoveredEvent}
+                      setHoveredEvent={setHoveredEvent}
+                      isFlagship={false}
+                      className="h-full"
+                      onClick={linkHandler(event)}
+                    />
+                  ))}
                 </div>
               </div>
             </div>
@@ -881,7 +703,7 @@ export default function EventsPage() {
               </p>
             </div>
 
-            <PastEventsGrid />
+            <PastEventsList events={pastEvents} />
           </div>
         </div>
       </main>
