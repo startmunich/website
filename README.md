@@ -172,6 +172,14 @@ Two things to know when editing this code:
 - Event covers come from `images.lumacdn.com`, which **must** stay in the `remotePatterns` allowlist
   in `next.config.js` — without it the upcoming-events images silently fail to load.
 
+To exercise the members-platform path locally without a deployed platform, run the stub, which
+returns a payload matching the platform's response schema:
+
+```bash
+node scripts/mock-members-platform-events.mjs                     # :4010
+STARTMUNICH_API_KEY=mock-key MEMBERS_PLATFORM_API_URL=http://127.0.0.1:4010 pnpm dev
+```
+
 ## Project Structure
 
 ```
