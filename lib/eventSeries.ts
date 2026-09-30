@@ -208,6 +208,38 @@ function buildOccurrences(events: StartEvent[], now: Date): SeriesOccurrence[] {
 }
 
 /**
+ * Merges series whose keys are prefixes of one another, so a series that is sometimes written with
+ * a tagline still collapses with the plain spelling.
+ *
+ * "Road to START Hack 2026" and "Road to START Hack - The Most Entrepreneurial Hackathon in Munich"
+ * normalize to `road-to-start-hack` and `road-to-start-hack-the-most-entrepreneurial-hackathon-in-munich`;
+ * they are the same event, but exact key matching would show two cards. Prefixes only merge at a
+ * word boundary, so `start-labs` does not swallow `start-labs-final-pitch`.
+ */
+function mergePrefixedSeries(
+  groups: Map<string, SeriesAccumulator>,
+): Map<string, SeriesAccumulator> {
+  const merged = new Map<string, SeriesAccumulator>();
+
+  // Shortest key first, so the canonical (shortest) spelling is always established before any
+  // longer key looks for a parent.
+  for (const key of [...groups.keys()].sort((a, b) => a.length - b.length || a.localeCompare(b))) {
+    const group = groups.get(key)!;
+    const parent = [...merged.keys()]
+      .reverse()
+      .find((candidate) => key.startsWith(`${candidate}-`));
+
+    if (parent) {
+      merged.get(parent)!.events.push(...group.events);
+      continue;
+    }
+    merged.set(key, group);
+  }
+
+  return merged;
+}
+
+/**
  * Groups the feed into series, most significant first. Returns an empty array when the feed is
  * empty so the caller can fall back to the curated list rather than rendering a blank timeline.
  */
@@ -229,7 +261,7 @@ export function deriveEventSeries(events: StartEvent[]): RecurringEvent[] {
 
   const series: RecurringEvent[] = [];
 
-  for (const { key, events: occurrences } of groups.values()) {
+  for (const { key, events: occurrences } of mergePrefixedSeries(groups).values()) {
     // Most recent occurrence wins for the descriptive fields: an event that has been renamed shows
     // its current name rather than its historical one.
     const latest = [...occurrences].sort(
