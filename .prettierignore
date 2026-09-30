@@ -10,3 +10,11 @@ yarn.lock
 .next/types
 playwright-report
 test-results
+
+# Vendored agent skills are byte-for-byte copies of their upstreams, pinned by
+# a content hash in skills-lock.json. Reformatting them breaks that hash, so
+# every `skills update -p` would see a phantom change and the weekly updater
+# would open a PR that only adds or strips whitespace. This also keeps
+# `pnpm format:check` (which globs **/*.md) from failing on upstream files.
+.agents
+skills-lock.json
