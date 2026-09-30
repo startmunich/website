@@ -967,7 +967,7 @@ export default function HomeClient({
                 </h2>
 
                 <p className="mb-6 text-lg leading-relaxed text-gray-300">
-                  START Munich is the largest student-run entrepreneurship initiative in Munich,
+                  START Munich is the largest student-run entrepreneurship initiative in Germany,
                   empowering the next generation of founders through education, networking, and
                   hands-on experience.
                 </p>
