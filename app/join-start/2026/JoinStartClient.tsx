@@ -20,103 +20,26 @@ declare global {
   }
 }
 
-const TARGET_DATE = new Date('2026-04-26T23:59:59+02:00').getTime();
-const CLOSE_DATE = new Date('2026-04-27T00:00:00+02:00').getTime();
+const TARGET_DATE = new Date('2026-10-25T23:59:59+01:00').getTime();
+const CLOSE_DATE = new Date('2026-10-26T00:00:00+01:00').getTime();
 
 function pad(n: number) {
   return String(n).padStart(2, '0');
 }
 
-const applyEvents = [
-  {
-    id: 'yc-stories',
-    name: 'YC Stories',
-    description:
-      'Bringing the San Francisco and Y Combinator mindset to Munich through real stories from people who have built inside it.',
-    month: 'Wednesday, 15th April 2026\n18:30',
-    image: '/join-start/yc-stories.jpeg',
-    category: 'Vorhölzer Rooftop',
-    ctaHref: 'https://luma.com/zk3rcyn1',
-    ctaLabel: 'Register now',
-  },
-  {
-    id: 'sunset-run',
-    name: 'START & Friends Run Club – Sunset Run',
-    description:
-      'Join us for an easy sunset run, meet the team, and chat about what START Munich is like beyond the application.',
-    month: 'Thursday, 16th April 2026\n18:30',
-    image: '/join-start/sunset-run.jpeg',
-    category: 'START & Friends',
-    ctaHref: 'https://luma.com/omtnj23y',
-    ctaLabel: 'Register now',
-  },
-  {
-    id: 'fes',
-    name: 'Female Entrepreneurship Summit',
-    description:
-      'Meet ambitious builders, hear from inspiring voices, and connect with the wider entrepreneurial community around START.',
-    month: 'Saturday, 18th April 2026',
-    image: '/join-start/fes.png',
-    category: 'YFN x START Munich',
-    ctaHref: 'https://www.youngfounders.network/fes',
-    ctaLabel: 'More information',
-  },
-  {
-    id: 'fail-tales',
-    name: 'Founder Fail Tales',
-    description:
-      'Hear honest stories from founders, meet the START community, and get a feel for the culture we build around learning fast.',
-    month: 'Tuesday, 21st April 2026',
-    image: '/join-start/founder-fail-tales.jpeg',
-    category: 'Vol. 5',
-    ctaHref: 'https://luma.com/fp1fd6qv',
-    ctaLabel: 'Register now',
-  },
-  {
-    id: 'info-session',
-    name: 'Why Start? Info Session',
-    description:
-      'Meet the team, ask application questions, and learn how START members build projects, friendships, and careers together.',
-    month: 'Thursday, 23rd April 2026',
-    image: '/join-start/info-session-2026.png',
-    category: 'Info Session',
-    ctaHref: 'https://luma.com/t5r7vw10',
-    ctaLabel: 'Register now',
-  },
-  {
-    id: 'showcase',
-    name: 'Student Initiative Showcase',
-    description:
-      'Stop by our booth, meet the people behind START Munich, and get quick answers about the application and community.',
-    month: 'Friday, 24th April 2026',
-    image: '/join-start/student-club-fair.jpg',
-    category: 'START Munich',
-    ctaHref: undefined,
-    ctaLabel: 'Registration opens soon',
-  },
-  {
-    id: 'online-info',
-    name: 'Online Info Event',
-    description:
-      'Can’t make it to Munich? Join online, meet the team remotely, and ask everything you want to know about applying.',
-    month: 'Friday, 24th April 2026',
-    image: '/join-start/online-info-2026.jpeg',
-    category: 'Online Event',
-    ctaHref: 'https://luma.com/4q4m43v3',
-    ctaLabel: 'Register now',
-  },
-  {
-    id: 'coffee-run',
-    name: 'START & Friends Run Club – Coffee Run with LAP',
-    description:
-      'Start your Saturday with a relaxed run, coffee, and casual conversations with START members and friends of the community.',
-    month: 'Saturday, 25th April 2026\n11:00',
-    image: '/join-start/coffee-run-lap.png',
-    category: 'START & Friends',
-    ctaHref: 'https://luma.com/qb2g0cph',
-    ctaLabel: 'Register now',
-  },
-];
+interface ApplyEvent {
+  id: string;
+  name: string;
+  description: string;
+  month: string;
+  image: string;
+  category: string;
+  ctaHref?: string;
+  ctaLabel: string;
+}
+
+// Info events for the current application round. The events section is hidden while this is empty.
+const applyEvents: ApplyEvent[] = [];
 
 interface JoinStartClientProps {
   isLive: boolean;
@@ -318,6 +241,7 @@ export default function JoinStartClient({ isLive, isClosed }: JoinStartClientPro
     return (
       <div className="min-h-screen bg-brand-dark-blue text-white">
         <Hero
+          aura={false}
           backgroundImage="/memberJourney/hero-opt.png"
           title={
             <>
@@ -333,6 +257,7 @@ export default function JoinStartClient({ isLive, isClosed }: JoinStartClientPro
   return (
     <div className="bg-brand-dark-blue">
       <Hero
+        aura={false}
         backgroundImage="/join-start-2026-bg.png"
         className="min-h-[calc(100vh-30rem)] lg:min-h-[calc(100vh-5rem)]"
         overlayOpacity="bg-gradient-to-r from-brand-dark-blue/95 via-brand-dark-blue/80 to-brand-dark-blue/70"
@@ -384,7 +309,7 @@ export default function JoinStartClient({ isLive, isClosed }: JoinStartClientPro
             semester.
           </p>
           <a
-            href="https://tally.so/r/eqL4yQ"
+            href="https://tally.so/r/Y5ND8N"
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => posthog.capture('application_started', { location: 'hero_card' })}
@@ -411,52 +336,54 @@ export default function JoinStartClient({ isLive, isClosed }: JoinStartClientPro
       </section>
 
       {/* Events */}
-      <section className="py-12 md:py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-black text-brand-pink md:text-4xl lg:text-5xl">
-            Got Questions? Let&apos;s Talk.
-          </h2>
-          <p className="mt-4 max-w-3xl text-sm leading-relaxed text-white/70 md:text-base">
-            Curious about START Munich or unsure about the application process? Join one of our
-            upcoming events and get all your questions answered. Meet the team, learn what
-            we&apos;re all about, and find out how you can become part of our entrepreneurial
-            community.
-          </p>
-        </div>
-
-        <div className="mx-auto mt-12 max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div
-            ref={eventsSliderRef}
-            onMouseDown={handleDrag.start}
-            onMouseUp={handleDrag.end}
-            onMouseMove={handleDrag.move}
-            onMouseLeave={handleDrag.end}
-            className="scrollbar-hide flex cursor-grab select-none gap-6 overflow-x-auto pb-4 active:cursor-grabbing"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          >
-            {applyEvents.map((event) => (
-              <UpcomingEventTile
-                key={event.id}
-                title={event.name}
-                date={event.month}
-                imageUrl={event.image}
-                description={event.description}
-                className="flex h-[35.5rem] w-[86vw] max-w-[320px] flex-none flex-col self-stretch sm:w-[300px] lg:w-[320px]"
-                ctaHref={event.ctaHref}
-                ctaLabel={event.ctaLabel}
-                ctaDisabledLabel="Registration opens soon"
-                onCtaClick={() =>
-                  posthog.capture('application_event_registration_clicked', {
-                    event_id: event.id,
-                    event_name: event.name,
-                  })
-                }
-              />
-            ))}
+      {applyEvents.length > 0 && (
+        <section className="py-12 md:py-20">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <h2 className="text-3xl font-black text-brand-pink md:text-4xl lg:text-5xl">
+              Got Questions? Let&apos;s Talk.
+            </h2>
+            <p className="mt-4 max-w-3xl text-sm leading-relaxed text-white/70 md:text-base">
+              Curious about START Munich or unsure about the application process? Join one of our
+              upcoming events and get all your questions answered. Meet the team, learn what
+              we&apos;re all about, and find out how you can become part of our entrepreneurial
+              community.
+            </p>
           </div>
-          <ScrollIndicator sliderRef={eventsSliderRef} />
-        </div>
-      </section>
+
+          <div className="mx-auto mt-12 max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div
+              ref={eventsSliderRef}
+              onMouseDown={handleDrag.start}
+              onMouseUp={handleDrag.end}
+              onMouseMove={handleDrag.move}
+              onMouseLeave={handleDrag.end}
+              className="scrollbar-hide flex cursor-grab select-none gap-6 overflow-x-auto pb-4 active:cursor-grabbing"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {applyEvents.map((event) => (
+                <UpcomingEventTile
+                  key={event.id}
+                  title={event.name}
+                  date={event.month}
+                  imageUrl={event.image}
+                  description={event.description}
+                  className="flex h-[35.5rem] w-[86vw] max-w-[320px] flex-none flex-col self-stretch sm:w-[300px] lg:w-[320px]"
+                  ctaHref={event.ctaHref}
+                  ctaLabel={event.ctaLabel}
+                  ctaDisabledLabel="Registration opens soon"
+                  onCtaClick={() =>
+                    posthog.capture('application_event_registration_clicked', {
+                      event_id: event.id,
+                      event_name: event.name,
+                    })
+                  }
+                />
+              ))}
+            </div>
+            <ScrollIndicator sliderRef={eventsSliderRef} />
+          </div>
+        </section>
+      )}
 
       {/* What Makes START Unique */}
       <section className="py-12 md:py-20">
@@ -586,7 +513,7 @@ export default function JoinStartClient({ isLive, isClosed }: JoinStartClientPro
           </p>
           <div className="mt-8 flex justify-center">
             <a
-              href="https://tally.so/r/eqL4yQ"
+              href="https://tally.so/r/Y5ND8N"
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => posthog.capture('application_started', { location: 'bottom_cta' })}

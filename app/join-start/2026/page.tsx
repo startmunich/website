@@ -4,8 +4,8 @@ import { OG_IMAGES } from '@/lib/metadata';
 
 import JoinStartClient from './JoinStartClient';
 
-const LAUNCH_DATE = new Date('2026-04-10T00:00:00+02:00').getTime();
-const CLOSE_DATE = new Date('2026-04-27T00:00:00+02:00').getTime();
+const LAUNCH_DATE = new Date('2026-10-01T00:00:00+02:00').getTime();
+const CLOSE_DATE = new Date('2026-10-26T00:00:00+01:00').getTime();
 
 export const metadata: Metadata = {
   title: 'Join START Munich 2026',
