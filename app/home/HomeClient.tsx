@@ -197,9 +197,7 @@ export default function HomeClient({
           <div className="animate-scroll-slow whitespace-nowrap">
             {Array.from({ length: 12 }).map((_, i) => (
               <span key={i} className="mx-8 text-xs tracking-wide text-white sm:text-sm">
-                {applicationsClosed
-                  ? 'Summer Applications are now closed. Winter applications will open in October'
-                  : 'Summer Applications are open from 10 of April to 26 of April'}
+                Applications for the Winter Semester are now officially open. Apply now
               </span>
             ))}
           </div>
