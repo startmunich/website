@@ -389,7 +389,7 @@ export default function JoinStartClient({ isLive, isClosed }: JoinStartClientPro
       <section className="py-12 md:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-black uppercase text-brand-pink sm:text-4xl md:text-5xl lg:text-6xl">
-            What Makes Start Unique
+            What Makes START Unique
           </h2>
           <p className="mt-4 text-base text-white md:text-lg">
             START Munich is more than a student initiative, it&apos;s a launchpad for future
