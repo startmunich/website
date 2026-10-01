@@ -34,7 +34,25 @@ interface NocoDBMemberRecord {
   Expertise?: string;
   Achievements?: string;
   Gender?: string;
-  'Member Picture'?: Array<{ signedPath?: string }>;
+  'Member Picture'?: Array<{ path?: string; signedPath?: string }>;
+}
+
+/**
+ * Resolve a NocoDB attachment to a URL the browser can keep.
+ *
+ * `signedPath` is a temporary `dltemp/<token>/<expiry-ms>/…` URL that NocoDB
+ * stops serving once the embedded timestamp passes (a reconstructed URL with a
+ * past expiry returns 404). This route revalidates hourly, so a cached response
+ * that embeds one starts serving dead profile pictures. The unsigned `path` is
+ * served without a signature and never expires, so prefer it and keep
+ * `signedPath` only as a fallback for rows that do not carry one.
+ */
+function attachmentUrl(attachment: unknown): string | undefined {
+  if (!attachment || typeof attachment !== 'object') return undefined;
+  const file = attachment as { path?: string; signedPath?: string };
+  if (file.path) return `${NOCODB_BASE_URL}/${file.path}`;
+  if (file.signedPath) return `${NOCODB_BASE_URL}/${file.signedPath}`;
+  return undefined;
 }
 
 // Transform NocoDB record to Member format
@@ -46,9 +64,9 @@ function transformNocoDBRecord(record: NocoDBMemberRecord): Member {
     Array.isArray(record['Member Picture']) &&
     record['Member Picture'][0]
   ) {
-    const profilePic = record['Member Picture'][0];
-    if (profilePic.signedPath) {
-      profilePicUrl = `https://ndb.startmunich.de/${profilePic.signedPath}`;
+    const resolved = attachmentUrl(record['Member Picture'][0]);
+    if (resolved) {
+      profilePicUrl = resolved;
     }
   }
 
