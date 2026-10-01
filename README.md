@@ -187,6 +187,16 @@ Three things to know before changing it:
   also pauses the frame loop off screen and redraws a static frame only when the scene changes for
   `prefers-reduced-motion`. `tests/e2e/flare.spec.ts` pins the fallback contract; it cannot assert
   that the flare paints, because most CI runners have no GPU adapter.
+- **The fallback is not the bare mark — it is the pre-flare photo.** The panel stacks three layers
+  (`mark` → `photo` → `canvas`) and shows one at a time. Browsers that cannot run WebGPU end up on
+  `public/home/good-opt.png`, the event photo that sat in this panel before `729c567` replaced it,
+  so those visitors see the panel as it used to look rather than a plain logo. The mark is still the
+  _first paint_ for everyone, because whether a browser has WebGPU is only knowable in the browser;
+  making the photo the server-rendered default would flash it past every visitor who does have a
+  GPU. `index.tsx` screens `navigator.gpu` before the dynamic `import('./renderer')` so a browser
+  without it skips the ~50 kB GPU bundle instead of downloading it only to be told what it already
+  knows. Keep `aria-hidden` in sync with opacity on all three layers — opacity alone leaves a hidden
+  image in the accessibility tree, which would announce the logo and the photo together.
 - **`index.tsx` must not import from `pipeline.ts`.** That module pulls in `vgpu` and all four
   `.wgsl` chunks; the mark constants the component actually needs live in `logo-variants.ts` so the
   lazy `import('./renderer')` keeps the GPU bundle (~50 kB gzipped) out of the homepage's initial
