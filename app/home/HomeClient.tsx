@@ -197,9 +197,7 @@ export default function HomeClient({
           <div className="animate-scroll-slow whitespace-nowrap">
             {Array.from({ length: 12 }).map((_, i) => (
               <span key={i} className="mx-8 text-xs tracking-wide text-white sm:text-sm">
-                {applicationsClosed
-                  ? 'Summer Applications are now closed. Winter applications will open in October'
-                  : 'Summer Applications are open from 10 of April to 26 of April'}
+                Applications for the Winter Semester are now officially open. Apply now
               </span>
             ))}
           </div>
@@ -967,7 +965,7 @@ export default function HomeClient({
                 </h2>
 
                 <p className="mb-6 text-lg leading-relaxed text-gray-300">
-                  START Munich is the largest student-run entrepreneurship initiative in Munich,
+                  START Munich is the largest student-run entrepreneurship initiative in Germany,
                   empowering the next generation of founders through education, networking, and
                   hands-on experience.
                 </p>

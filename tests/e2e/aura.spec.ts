@@ -73,6 +73,16 @@ test('the hero aura never intercepts pointer events', async ({ page }) => {
   const host = page.locator('[data-aura]');
   await expect(host).toHaveCount(1);
 
+  // The hero streams in behind a `display: none` Suspense boundary, so for the
+  // first few hundred milliseconds the aura is a real element with a 0x0 box.
+  // Its "centre" then resolves to the top-left of the viewport — the sticky nav —
+  // which is genuinely not inside the hero, so the assertion below fails for a
+  // reason that has nothing to do with pointer events. Wait for a real box
+  // before hit-testing; a zero-height element has no centre to test.
+  await expect
+    .poll(() => host.evaluate((node) => node.getBoundingClientRect().height))
+    .toBeGreaterThan(0);
+
   // Must be unconditional: the flare only disables pointer events until its GPU
   // is ready because it reacts to the pointer, but the aura never does.
   await expect(host).toHaveCSS('pointer-events', 'none');

@@ -17,7 +17,7 @@ interface NocoDBPartnerRecord {
   Categrory?: string;
   Featured?: boolean | number | string;
   Show?: boolean | number | string;
-  Logo?: Array<{ signedPath?: string }>;
+  Logo?: Array<{ path?: string; signedPath?: string }>;
 }
 
 function transformNocoDBRecord(record: NocoDBPartnerRecord): Partner {
@@ -25,8 +25,16 @@ function transformNocoDBRecord(record: NocoDBPartnerRecord): Partner {
 
   if (record.Logo && Array.isArray(record.Logo) && record.Logo[0]) {
     const logo = record.Logo[0];
-    if (logo.signedPath) {
-      logoUrl = `https://ndb.startmunich.de/${logo.signedPath}`;
+    // Prefer the stable `path` over `signedPath`. A `signedPath` is a temporary
+    // `dltemp/<token>/<expiry-ms>/…` URL that NocoDB stops serving once the
+    // embedded timestamp passes, so baking one into a statically cached page
+    // yields 404s (broken logos) once the page outlives the signature. The
+    // plain `path` is served unauthenticated and never expires.
+    // `app/api/member-network/route.ts` already resolves attachments this way.
+    if (logo.path) {
+      logoUrl = `${NOCODB_BASE_URL}/${logo.path}`;
+    } else if (logo.signedPath) {
+      logoUrl = `${NOCODB_BASE_URL}/${logo.signedPath}`;
     }
   }
 
