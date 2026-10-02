@@ -108,7 +108,10 @@ const missionPartners = [
     name: 'Munich Startup',
     description:
       "Munich's official startup portal connecting founders with resources, investors, and the local ecosystem — mapping the city's innovation landscape and amplifying its startup scene.",
-    logo: 'https://www.munich-startup.de/wp-content/themes/munichstartup/dist/images/munich-startup-logo-w.svg',
+    // Vendored locally: the previous `munich-startup.de/wp-content/.../logo-w.svg`
+    // hotlink 404s. It is an opaque white-background raster, so it needs a light tile.
+    logo: '/aboutUs/missionPartner/munich-startup-logo.png',
+    logoOnLightTile: true,
     image: '/aboutUs/missionPartner/MunichStartup.png',
   },
   {
@@ -423,7 +426,11 @@ export default function AboutUsPage() {
                         </div>
                       </>
                     ) : (
-                      <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5">
+                      <div
+                        className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl border border-white/10 ${
+                          partner.logoOnLightTile ? 'bg-white' : 'bg-white/5'
+                        }`}
+                      >
                         {partner.logo ? (
                           <Image
                             src={partner.logo}

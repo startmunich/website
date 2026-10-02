@@ -8,10 +8,13 @@ import { expect, test } from '@playwright/test';
 //
 //   1. the mark is server-rendered, so the panel is never blank or shifted;
 //   2. the canvas is present and stays out of the way until the GPU is ready;
-//   3. a failed GPU init never reaches the visitor as an unhandled error.
+//   3. a failed GPU init never reaches the visitor as an unhandled error;
+//   4. once WebGPU has been ruled out, the panel shows the event photo that
+//      preceded the flare, and hides the mark from the accessibility tree.
 //
 // Whether the flare itself paints depends on the machine, so that is deliberately
-// not asserted here.
+// not asserted here — including which fallback layer wins, since CI has no
+// adapter and so always lands on the photo.
 
 test('flare panel falls back to the server-rendered wordmark', async ({ page }) => {
   const pageErrors: string[] = [];
@@ -42,6 +45,71 @@ test('flare panel falls back to the server-rendered wordmark', async ({ page }) 
   }
 
   // A missing adapter is routine; it must not surface as an uncaught error.
+  expect(pageErrors, `uncaught errors: ${pageErrors.join('; ')}`).toEqual([]);
+});
+
+/**
+ * The panel stacks three layers (mark, photo, canvas) and shows exactly one. With
+ * no usable WebGPU the mark is not an acceptable end state — the visitor should
+ * get the event photo that sat here before the flare landed. CI has no adapter,
+ * so this drives the `fallback` branch on every run; a machine that does have a
+ * GPU takes the `ready` branch, where the photo must stay mounted but hidden, so
+ * both outcomes are asserted rather than assuming one.
+ *
+ * `aria-hidden` is asserted alongside opacity because opacity alone leaves a layer
+ * fully in the accessibility tree — a browser without WebGPU would otherwise
+ * announce the logo and the photograph at once.
+ */
+test('the flare panel shows the event photo instead of the mark without WebGPU', async ({
+  page,
+}) => {
+  const pageErrors: string[] = [];
+  page.on('pageerror', (error) => pageErrors.push(error.message));
+
+  const response = await page.goto('/');
+  expect(response!.status()).toBeLessThan(400);
+
+  const panel = page.locator('[data-flare-panel]');
+  await panel.scrollIntoViewIfNeeded();
+
+  const canvas = panel.locator('canvas');
+  const photo = panel.locator('[data-flare-photo]');
+  const markLayer = panel.locator('[data-flare-mark-layer]');
+
+  // Both fallbacks ship in the server HTML, so the panel has something to show
+  // before any JavaScript has run and before WebGPU can be probed.
+  const html = await page.content();
+  expect(html).toContain('good-opt.png');
+  expect(html).toContain('startlogo.svg');
+
+  // Give the `navigator.gpu` gate, and failing that the renderer chunk and its
+  // adapter request, time to resolve and crossfade.
+  await page.waitForTimeout(3000);
+
+  const live = (await canvas.evaluate((node) => getComputedStyle(node).opacity)) === '1';
+
+  if (live) {
+    await expect(photo).toHaveClass(/opacity-0/);
+    await expect(photo).toHaveAttribute('aria-hidden', 'true');
+    await expect(markLayer).toHaveClass(/opacity-0/);
+    await expect(markLayer).toHaveAttribute('aria-hidden', 'true');
+  } else {
+    await expect(photo).toHaveClass(/opacity-100/);
+    await expect(photo).toHaveAttribute('aria-hidden', 'false');
+    await expect(markLayer).toHaveClass(/opacity-0/);
+    await expect(markLayer).toHaveAttribute('aria-hidden', 'true');
+
+    // `naturalWidth > 0` asserts the photo actually decoded, not merely that the
+    // element is in the tree: a renamed or 404ing asset leaves an attached <img>
+    // with the right alt text, and would leave the panel blank.
+    await expect
+      .poll(() =>
+        photo.evaluate((node) => (node.querySelector('img') as HTMLImageElement).naturalWidth),
+      )
+      .toBeGreaterThan(0);
+  }
+
+  // Ruling out WebGPU is routine; it must not surface as an uncaught error.
   expect(pageErrors, `uncaught errors: ${pageErrors.join('; ')}`).toEqual([]);
 });
 

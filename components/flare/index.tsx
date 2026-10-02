@@ -18,9 +18,24 @@
  *    instead would pull `vgpu` and all four WGSL chunks into the page bundle.
  *
  * The renderer owns the canvas and its GPU resources; this component only decides
- * whether the flare is visible or the static mark is. `renderer.ts` already
- * pauses the frame loop when the canvas scrolls out of view and holds a static
- * frame for `prefers-reduced-motion`, so neither is duplicated here.
+ * which of the three stacked layers is opaque. `renderer.ts` already pauses the
+ * frame loop when the canvas scrolls out of view and holds a static frame for
+ * `prefers-reduced-motion`, so neither is duplicated here.
+ *
+ * ## The three layers
+ *
+ * | status     | shown                      | who                                     |
+ * | ---------- | -------------------------- | --------------------------------------- |
+ * | `pending`  | the static mark            | everyone, first paint and without JS    |
+ * | `ready`    | the flare canvas           | browsers with a working WebGPU adapter  |
+ * | `fallback` | the pre-flare event photo  | browsers that cannot run WebGPU at all  |
+ *
+ * `pending` is deliberately the *mark* and not the photo, even though the photo
+ * is the better fit for the visitors who end up in `fallback`: whether a browser
+ * has WebGPU is only knowable in the browser, so the photo cannot be the
+ * server-rendered first paint without also flashing past every visitor who does
+ * have a GPU. The mark is tiny and shares the flare's colours, so it is the
+ * least jarring placeholder for the second group while the renderer chunk loads.
  */
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
@@ -42,6 +57,29 @@ import { ICON_LOGO, WORDMARK_LOGO } from './logo-variants';
 const FALLBACK_WORDMARK_CLASSES = 'relative hidden aspect-[80/36] w-[62%] max-h-[40%] sm:block';
 const FALLBACK_ICON_CLASSES = 'relative aspect-square w-1/2 max-h-1/2 sm:hidden';
 
+/** The crossfade window, matching the one the canvas uses. */
+const FADE_CLASSES = 'transition-opacity duration-700 motion-reduce:transition-none';
+
+/**
+ * The photograph that sat in this panel before the flare landed, restored for
+ * browsers that cannot render the flare. It is a real photograph of a START
+ * Munich event, so unlike the mark it needs a real `alt` — and it is deliberately
+ * the *same asset* the panel used to show, so a visitor without WebGPU sees the
+ * panel they would have seen before `729c567` rather than a plain logo.
+ */
+const PANEL_PHOTO = {
+  src: '/home/good-opt.png',
+  alt: 'Students at a START Munich event',
+  sizes: '(max-width: 1024px) 100vw, 50vw',
+} as const;
+
+/**
+ * Which layer the panel is currently showing. `'pending'` is the initial state
+ * and the server-rendered one; the renderer moves it exactly once, to either
+ * `'ready'` or `'fallback'`.
+ */
+type FlareStatus = 'pending' | 'ready' | 'fallback';
+
 /** Subset of the renderer handle that the component lifecycle actually uses. */
 interface FlareHandle {
   readonly ready: Promise<void>;
@@ -51,7 +89,7 @@ interface FlareHandle {
 /** Renders responsive static marks and reveals the decorative canvas when the renderer is ready. */
 export function LogoFlare() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [live, setLive] = useState(false);
+  const [status, setStatus] = useState<FlareStatus>('pending');
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -60,13 +98,28 @@ export function LogoFlare() {
     let disposed = false;
     let renderer: FlareHandle | undefined;
 
+    // Cheap gate before the dynamic import. `renderer.ts` runs this same check
+    // internally, but only once its own chunk has downloaded and parsed, so a
+    // browser without WebGPU would wait on a ~50 kB GPU bundle before being told
+    // what it already knows. Screening here swaps those visitors to the photo
+    // almost immediately and skips the download entirely. It cannot catch a
+    // browser that exposes `navigator.gpu` but yields no adapter — the renderer
+    // still reports `unsupported` for that, and it lands in the same `fallback`.
+    if (!('gpu' in navigator)) {
+      setStatus('fallback');
+      return;
+    }
+
     void import('./renderer').then(({ createRenderer }) => {
       // The effect can tear down while the chunk is still in flight.
       if (disposed) return;
       renderer = createRenderer({
         canvas,
-        onStatus: (status) => {
-          if (!disposed) setLive(status === 'ready');
+        onStatus: (next) => {
+          if (disposed) return;
+          // Both a missing adapter and a failed init mean the flare will never
+          // paint, so both land on the photo rather than leaving a bare mark.
+          setStatus(next === 'ready' ? 'ready' : 'fallback');
         },
       });
       // The renderer rethrows init failures after it has already disposed itself
@@ -83,15 +136,25 @@ export function LogoFlare() {
     };
   }, []);
 
+  // `opacity-0` still leaves an element in the accessibility tree, so the two
+  // hidden layers are hidden from it explicitly rather than by opacity alone.
+  // Without this the panel would announce the mark *and* the photograph at once
+  // for every visitor without WebGPU.
+  const showMark = status === 'pending';
+  const showPhoto = status === 'fallback';
+
   return (
     // The parent supplies the rounded frame and `overflow-hidden`; only the
     // surface colour belongs here, so the panel edge is not drawn twice.
     <div className="relative h-full w-full bg-brand-dark-blue">
-      {/* Fallback: also the first paint, and the whole render without WebGPU. */}
+      {/* First paint, and the whole render until WebGPU is ruled either way. */}
       <div
+        aria-hidden={!showMark}
+        data-flare-mark-layer=""
         className={cn(
-          'absolute inset-0 flex items-center justify-center transition-opacity duration-700 motion-reduce:transition-none',
-          live ? 'opacity-0' : 'opacity-100',
+          'absolute inset-0 flex items-center justify-center',
+          FADE_CLASSES,
+          showMark ? 'opacity-100' : 'opacity-0',
         )}
       >
         <div className={FALLBACK_ICON_CLASSES}>
@@ -117,6 +180,30 @@ export function LogoFlare() {
           />
         </div>
       </div>
+
+      {/* The event photo, for browsers with no usable WebGPU. Kept mounted at
+          `opacity-0` rather than conditionally rendered so the swap is a
+          crossfade with no decode stall — `loading="lazy"` still keeps it off
+          the critical path, and it is below the fold for most visitors. */}
+      <div
+        aria-hidden={!showPhoto}
+        data-flare-photo=""
+        className={cn('absolute inset-0', FADE_CLASSES, showPhoto ? 'opacity-100' : 'opacity-0')}
+      >
+        <Image
+          src={PANEL_PHOTO.src}
+          alt={PANEL_PHOTO.alt}
+          fill
+          loading="lazy"
+          className="object-cover object-right"
+          sizes={PANEL_PHOTO.sizes}
+        />
+        {/* The flare blends into the page through a vignette; the photograph gets
+            the same hand-off at the bottom edge so the panel does not end in a
+            hard line against the dark background. */}
+        <div className="absolute inset-0 bg-gradient-to-t from-brand-dark-blue/50 via-transparent to-transparent" />
+      </div>
+
       <canvas
         ref={canvasRef}
         aria-hidden
@@ -124,8 +211,9 @@ export function LogoFlare() {
           // No `touch-none` here: the canvas covers the whole panel, and
           // `touch-action: none` would stop a finger drag from scrolling the page
           // across the whole square. The renderer ignores touch pointers anyway.
-          'block h-full w-full transition-opacity duration-700 motion-reduce:transition-none',
-          live ? 'opacity-100' : 'pointer-events-none opacity-0',
+          'block h-full w-full',
+          FADE_CLASSES,
+          status === 'ready' ? 'opacity-100' : 'pointer-events-none opacity-0',
         )}
       />
     </div>
