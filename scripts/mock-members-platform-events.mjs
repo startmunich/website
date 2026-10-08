@@ -1,104 +1,103 @@
 /**
- * Local stub of `GET /api/v1/public/events`, matching the response schema in
- * startmunich/members-platform `src/server/lib/public-api/schemas.ts`.
+ * Stub of the members platform's `GET /api/v1/public/events`, for local development and the
+ * Playwright suite.
  *
- * Used to verify the website's primary (members-platform) event path end-to-end without a deployed
- * platform. Not part of the app — run manually alongside `pnpm dev`.
+ * The payload matches the documented response schema exactly — note the cover field is
+ * `coverImage`, not `coverImageUrl`. Getting that name wrong is what made an earlier version of
+ * this stub produce cards with no images.
  *
- *   node scripts/mock-members-platform-events.mjs
- *   MEMBERS_PLATFORM_API_URL=http://127.0.0.1:4010 pnpm dev
+ *   node scripts/mock-members-platform-events.mjs                       # :4010
+ *   STARTMUNICH_API_KEY=mock-key MEMBERS_PLATFORM_API_URL=http://127.0.0.1:4010 pnpm dev
  */
 import { createServer } from 'node:http';
 
-const PORT = 4010;
-const now = Date.now();
-const hour = 60 * 60 * 1000;
+const PORT = Number(process.env.MOCK_PLATFORM_PORT ?? 4010);
 
-const auth = process.env.MOCK_BEARER ?? 'mock-key';
+const HOUR = 3600 * 1000;
+const NOW = Date.now();
 
-/** Deliberately mixes past and future, several kinds, tags, and a missing cover. */
-const data = [
-  {
-    id: '11111111-1111-4111-8111-111111111111',
-    title: 'Road to START Summit 2027',
-    description: 'Our flagship pitch event.',
-    startAt: new Date(now + 24 * 70 * hour).toISOString(),
-    endAt: new Date(now + 24 * 70 * hour + 4 * hour).toISOString(),
-    timezone: 'Europe/Berlin',
-    location: 'München',
-    isOnline: false,
-    registrationUrl: 'https://luma.com/mock-rtss',
-    coverImageUrl: 'https://images.lumacdn.com/mock/rtss.png',
-    kind: 'public',
-    source: 'luma',
-    tags: ['hackathon'],
-    isHighlighted: true,
-    lastSyncedAt: new Date(now - hour).toISOString(),
-  },
-  {
-    id: '22222222-2222-4222-8222-222222222222',
-    title: 'Founder Fail Tales vol. 9',
-    description: null,
-    startAt: new Date(now + 24 * 20 * hour).toISOString(),
-    endAt: null,
-    timezone: null,
-    location: null,
-    isOnline: true,
-    registrationUrl: null,
-    coverImageUrl: null,
-    kind: 'internal',
-    source: 'luma',
-    tags: [],
-    isHighlighted: false,
-    lastSyncedAt: null,
-  },
-  {
-    id: '33333333-3333-4333-8333-333333333333',
-    title: 'Founder Fail Tales vol. 8',
-    description: null,
-    startAt: new Date(now - 24 * 40 * hour).toISOString(),
-    endAt: null,
-    timezone: 'Europe/Berlin',
-    location: null,
-    isOnline: false,
-    registrationUrl: 'https://luma.com/mock-fft8',
-    coverImageUrl: null,
-    kind: 'public',
-    source: 'luma',
-    tags: [],
-    isHighlighted: false,
-    lastSyncedAt: new Date(now - 2 * hour).toISOString(),
-  },
+/** Deterministic ids so repeated runs and the e2e suite agree on what exists. */
+const ids = ['summit', 'hack', 'labs', 'fail-tales', 'info', 'legal', 'pitch', 'bbq'];
+
+const COVERS = [
+  'https://images.lumacdn.com/1/summit-9f3a2b.jpg',
+  'https://images.lumacdn.com/2/hack-4c1d8e.jpg',
+  'https://images.lumacdn.com/3/labs-77aa10.jpg',
+  'https://images.lumacdn.com/4/fail-tales-2be5c9.jpg',
+  'https://images.lumacdn.com/5/info-c31d07.jpg',
+  'https://images.lumacdn.com/6/legal-9a04ff.jpg',
+  'https://images.lumacdn.com/7/pitch-5f2b18.jpg',
+  'https://images.lumacdn.com/8/bbq-8d0e64.jpg',
 ];
 
-createServer((req, res) => {
-  // Parse before matching: `req.url` carries the query string, so a plain string compare misses it.
-  const url = new URL(req.url ?? '/', 'http://localhost');
+const seeds = [
+  {
+    title: 'Road to START Summit',
+    inDays: 62,
+    kind: 'public',
+    tags: ['workshop'],
+    highlighted: true,
+  },
+  { title: 'Road to START Hack', inDays: 43, kind: 'public', tags: ['hackathon'] },
+  { title: 'START Labs', inDays: 200, kind: 'partner', tags: ['workshop'] },
+  { title: 'Founder Fail Tales vol. 9', inDays: 25, kind: 'public', tags: ['monthly'] },
+  { title: 'Info Event', inDays: 11, kind: 'public', tags: ['monthly'] },
+  { title: 'Munich Hacking Legal', inDays: 80, kind: 'network', tags: ['hackathon'] },
+  { title: 'PITCH & NETWORK', inDays: -18, kind: 'network', tags: ['fun'] },
+  { title: 'Summer BBQ', inDays: -95, kind: 'public', tags: ['fun'] },
+];
 
-  if (url.pathname !== '/api/v1/public/events') {
+const events = seeds.map((seed, index) => ({
+  id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+  title: seed.title,
+  description: `${seed.title} — part of the START Munich programme.`,
+  startAt: new Date(NOW + seed.inDays * 24 * HOUR).toISOString(),
+  endAt: new Date(NOW + (seed.inDays * 24 + 3) * HOUR).toISOString(),
+  timezone: 'Europe/Berlin',
+  location: 'WERK1, Munich',
+  isOnline: false,
+  registrationUrl: `https://lu.ma/${ids[index]}`,
+  coverImage: COVERS[index],
+  kind: seed.kind,
+  source: 'luma',
+  tags: seed.tags,
+  isHighlighted: seed.highlighted ?? false,
+  lastSyncedAt: new Date(NOW - 2 * HOUR).toISOString(),
+}));
+
+const server = createServer((req, res) => {
+  if (!req.url?.startsWith('/api/v1/public/events')) {
     res.writeHead(404, { 'content-type': 'application/json' });
     res.end(JSON.stringify({ error: 'Not found' }));
     return;
   }
 
-  const header = req.headers.authorization ?? '';
-  if (header !== `Bearer ${auth}`) {
+  if (!req.headers.authorization?.startsWith('Bearer ')) {
     res.writeHead(401, { 'content-type': 'application/json' });
-    res.end(JSON.stringify({ error: 'Missing, invalid, or revoked API key.' }));
+    res.end(JSON.stringify({ error: 'Missing or invalid Authorization header' }));
     return;
   }
 
-  const scope = url.searchParams.get('scope');
-  const past = scope === 'past';
-  const upcoming = scope === 'upcoming';
-  const filtered = data.filter((event) => {
-    const future = Date.parse(event.startAt) > now;
-    return past ? !future : upcoming ? future : true;
-  });
+  const url = new URL(req.url, 'http://localhost');
+  const scope = url.searchParams.get('scope') ?? 'all';
+  const limit = Number(url.searchParams.get('limit') ?? 100);
 
-  console.log(`[mock] ${req.method} ${req.url} -> ${filtered.length} event(s)`);
-  res.writeHead(200, { 'content-type': 'application/json' });
-  res.end(JSON.stringify({ data: filtered }));
-}).listen(PORT, '127.0.0.1', () => {
-  console.log(`mock members-platform events API on http://127.0.0.1:${PORT}`);
+  let data = [...events];
+  if (scope === 'upcoming') data = data.filter((e) => Date.parse(e.startAt) > Date.now());
+  if (scope === 'past') data = data.filter((e) => Date.parse(e.startAt) <= Date.now());
+  if (url.searchParams.get('highlightedOnly') === 'true') {
+    data = data.filter((e) => e.isHighlighted);
+  }
+  if (scope === 'past') data.sort((a, b) => Date.parse(b.startAt) - Date.parse(a.startAt));
+  else data.sort((a, b) => Date.parse(a.startAt) - Date.parse(b.startAt));
+
+  res.writeHead(200, {
+    'content-type': 'application/json',
+    'cache-control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+  });
+  res.end(JSON.stringify({ data: data.slice(0, limit) }));
+});
+
+server.listen(PORT, () => {
+  console.log(`mock members-platform events API on :${PORT} (${events.length} events)`);
 });

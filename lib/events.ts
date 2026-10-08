@@ -1,51 +1,40 @@
 import 'server-only';
 
-import { CURATED_PAST_EVENTS } from './curatedEventSeries';
+import { EVENT_KIND_LABELS, type EventKind, type EventTag, type StartEvent } from './eventTypes';
 import {
   fetchAllLumaEvents,
   fetchPastLumaEvents,
   fetchUpcomingLumaEvents,
   type LumaEvent,
 } from './luma';
+import { fetchFromPlatform } from './startApi';
 
 /**
- * The event shape the website renders, normalized from either source.
+ * Events for the `/events` page, normalized from one of two sources.
  *
- * The members platform is the preferred source (its data is synced out of Luma every few hours and
- * can be curated by admins). `./luma` is the fallback for when it is not configured. Both map into
- * this one type so no component has to know which upstream answered.
+ * The members platform is the source: its `events` table is kept current by the Luma sync, so an
+ * event created on Luma reaches this page after the next sync, and an admin can hide or feature one
+ * without a deploy. `./luma` is the fallback for when the platform is unconfigured or unreachable —
+ * the page is public and must not go blank because an upstream is down.
+ *
+ * Both map into `StartEvent` so no component has to know which one answered.
+ *
+ * The type and the labels live in `./eventTypes`, which is *not* `server-only`: the grids are client
+ * components, so importing even a label from this module would pull the server-only guard into the
+ * client bundle and fail the build.
+ *
+ * Note what is *not* here: no series, no recurring-programme reconstruction, no curated fallback
+ * table. An earlier version tried to regroup the flat feed into "series" by normalising titles and
+ * guessing which events belonged together, which meant maintaining a second, hand-written copy of
+ * the programme that went stale — and every bug report on it was a bug in that guessing. The page
+ * now renders what the calendar actually says.
  */
 
-const START_API_TIMEOUT_MS = 10_000;
-/** Mirrors the ISR window used elsewhere in the app (AGENTS.md: ISR is one hour everywhere). */
-const EVENTS_REVALIDATE_SECONDS = 3600;
+const EVENTS_PER_FETCH = 100;
 
-/** Calendar `kind` on the members platform. `internal` is a calendar label, not a privacy level. */
-export type EventKind = 'public' | 'internal' | 'network' | 'partner';
-export type EventTag =
-  'weekly' | 'monthly' | 'sprint' | 'workshop' | 'hackathon' | 'sports' | 'fun';
+export { EVENT_KIND_LABELS, type EventKind, type EventTag, type StartEvent };
 
-export interface StartEvent {
-  /** Stable across sources: the platform's uuid, or Luma's `api_id`. */
-  id: string;
-  title: string;
-  description: string | null;
-  /** ISO-8601 UTC instant. Combine with `timezone` to render a local time. */
-  startAt: string;
-  endAt: string | null;
-  timezone: string | null;
-  location: string | null;
-  isOnline: boolean;
-  /** Luma page where registration happens. Null means there is nothing to link to. */
-  registrationUrl: string | null;
-  coverImageUrl: string | null;
-  kind: EventKind;
-  tags: EventTag[];
-  /** Curated by an admin on the members platform; used to feature an event. */
-  isHighlighted: boolean;
-}
-
-const EVENT_KINDS: readonly EventKind[] = ['public', 'internal', 'network', 'partner'];
+const EVENT_KINDS: readonly EventKind[] = ['public', 'network', 'partner'];
 const EVENT_TAGS: readonly EventTag[] = [
   'weekly',
   'monthly',
@@ -66,18 +55,28 @@ function toEventTag(value: unknown): EventTag | null {
     : null;
 }
 
-/** Maps one row of `GET /api/v1/public/events` onto `StartEvent`. */
+function parseDate(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  return Number.isNaN(Date.parse(value)) ? null : value;
+}
+
+/**
+ * Maps one row of `GET /api/v1/public/events` onto `StartEvent`.
+ *
+ * The platform names the cover `coverImage` (not `coverImageUrl`) — getting that wrong is why an
+ * earlier mock produced cards with no images at all.
+ */
 function fromPlatformEvent(raw: Record<string, unknown>): StartEvent | null {
   const id = typeof raw.id === 'string' ? raw.id : null;
-  const startAt = typeof raw.startAt === 'string' ? raw.startAt : null;
-  if (!id || !startAt || Number.isNaN(Date.parse(startAt))) return null;
+  const startAt = parseDate(raw.startAt);
+  if (!id || !startAt) return null;
 
   return {
     id,
     title: typeof raw.title === 'string' ? raw.title : 'Untitled event',
     description: typeof raw.description === 'string' ? raw.description : null,
     startAt,
-    endAt: typeof raw.endAt === 'string' ? raw.endAt : null,
+    endAt: parseDate(raw.endAt),
     timezone: typeof raw.timezone === 'string' ? raw.timezone : null,
     location: typeof raw.location === 'string' ? raw.location : null,
     isOnline: raw.isOnline === true,
@@ -93,133 +92,101 @@ function fromPlatformEvent(raw: Record<string, unknown>): StartEvent | null {
 
 /** Maps one Luma event onto `StartEvent`, dropping entries with no usable start time. */
 function fromLumaEvent(event: LumaEvent): StartEvent | null {
-  if (!event?.api_id || !event.start_at || Number.isNaN(Date.parse(event.start_at))) return null;
+  const startAt = parseDate(event.start_at);
+  if (!event?.api_id || !startAt) return null;
 
   return {
     id: event.api_id,
     title: event.name || 'Untitled event',
     description: event.description ?? null,
-    startAt: event.start_at,
-    endAt: event.end_at ?? null,
+    startAt,
+    endAt: parseDate(event.end_at),
     timezone: event.timezone ?? null,
-    // Luma has no single location field; the description carries the address and the grids do not
-    // show it, so leave it empty rather than scraping prose.
+    // Luma has no single location field; the grids don't show a location, so leave it empty rather
+    // than scraping prose out of the description.
     location: null,
     // A meeting URL is what distinguishes an online event; without one Luma is describing a venue.
     isOnline: Boolean(event.meeting_url),
     registrationUrl: event.url ?? null,
     coverImageUrl: event.cover_url ?? null,
     kind: 'public',
+    // Luma carries no activity tags and nothing curates an event as featured, so the fallback
+    // source has no way to produce tags or highlights. That is the price of the fallback, and it
+    // is the honest one — better an empty badge than one invented from a title.
     tags: [],
     isHighlighted: false,
   };
 }
 
-function platformBaseUrl(): string {
-  return (process.env.MEMBERS_PLATFORM_API_URL || 'https://my.startmunich.de').replace(/\/+$/, '');
+function sortByStart(events: StartEvent[], order: 'asc' | 'desc'): StartEvent[] {
+  const sign = order === 'desc' ? -1 : 1;
+  return [...events].sort((a, b) => sign * (Date.parse(a.startAt) - Date.parse(b.startAt)));
 }
 
-/**
- * Fetches events from the members platform. Returns `null` — not an empty list — when the platform
- * is unconfigured, unauthorized, or failing, so callers can tell "no events" apart from "fall back
- * to Luma" and avoid wiping a working grid during a platform outage.
- */
-async function fetchFromPlatform(params: string): Promise<StartEvent[] | null> {
-  const apiKey = process.env.STARTMUNICH_API_KEY;
-  if (!apiKey) return null;
-
-  try {
-    const response = await fetch(`${platformBaseUrl()}/api/v1/public/events?${params}`, {
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
-      signal: AbortSignal.timeout(START_API_TIMEOUT_MS),
-      next: { revalidate: EVENTS_REVALIDATE_SECONDS },
-    });
-
-    if (!response.ok) {
-      console.error(`Members platform events API error: ${response.status} ${response.statusText}`);
-      return null;
-    }
-
-    const body = (await response.json()) as { data?: unknown };
-    if (!Array.isArray(body.data)) return null;
-
-    return body.data
-      .map((entry) => fromPlatformEvent(entry as Record<string, unknown>))
-      .filter((event): event is StartEvent => event !== null);
-  } catch (error) {
-    console.error('Error fetching events from the members platform:', error);
-    return null;
-  }
-}
-
-/** Platform first, Luma second; sorted ascending by start in both branches. */
+/** Platform first, Luma second; both normalised and sorted the same way. */
 async function withLumaFallback(
   fromPlatform: () => Promise<StartEvent[] | null>,
   fromLuma: () => Promise<LumaEvent[]>,
+  order: 'asc' | 'desc',
 ): Promise<StartEvent[]> {
   const platformEvents = await fromPlatform();
-  if (platformEvents) return sortAscending(platformEvents);
+  if (platformEvents) return sortByStart(platformEvents, order);
 
   const lumaEvents = await fromLuma();
-  return sortAscending(
+  return sortByStart(
     lumaEvents.map(fromLumaEvent).filter((event): event is StartEvent => event !== null),
+    order,
   );
 }
 
-function sortAscending(events: StartEvent[]): StartEvent[] {
-  return [...events].sort((a, b) => Date.parse(a.startAt) - Date.parse(b.startAt));
+async function platformEvents(query: string): Promise<StartEvent[] | null> {
+  const rows = await fetchFromPlatform<Record<string, unknown>>(`/api/v1/public/events?${query}`);
+  if (!rows) return null;
+  return rows
+    .map((row) => fromPlatformEvent(row))
+    .filter((event): event is StartEvent => event !== null);
 }
 
-/** Events that have already started, most recent first. */
-export async function getPastEvents(): Promise<StartEvent[]> {
-  const events = await withLumaFallback(
-    () => fetchFromPlatform('scope=past&limit=100'),
-    fetchPastLumaEvents,
-  );
-  return events.reverse();
-}
-
-/**
- * Past events for the archive grid: the synced feed plus the curated seeds, deduplicated by
- * registration URL and ordered most recent first.
- */
-export async function getPastEventsWithSeeds(): Promise<StartEvent[]> {
-  const fetched = await getPastEvents();
-
-  const seen = new Set(fetched.map((event) => event.registrationUrl));
-  const seeds = CURATED_PAST_EVENTS.filter((event) => !seen.has(event.registrationUrl));
-
-  return [...fetched, ...seeds].sort((a, b) => Date.parse(b.startAt) - Date.parse(a.startAt));
-}
-
-/** Events that have not started yet, soonest first. */
+/** Events that have not finished yet, soonest first. */
 export async function getUpcomingEvents(): Promise<StartEvent[]> {
   return withLumaFallback(
-    () => fetchFromPlatform('scope=upcoming&limit=100'),
+    () => platformEvents(`scope=upcoming&limit=${EVENTS_PER_FETCH}`),
     fetchUpcomingLumaEvents,
+    'asc',
+  );
+}
+
+/** Events that are over, most recent first. */
+export async function getPastEvents(): Promise<StartEvent[]> {
+  return withLumaFallback(
+    () => platformEvents(`scope=past&limit=${EVENTS_PER_FETCH}`),
+    fetchPastLumaEvents,
+    'desc',
   );
 }
 
 /**
- * The annual timeline: every event across the last 18 months and the next 12, ascending.
- * Bounded to a few hundred rows on the platform; the Luma fallback is trimmed to the same size so
- * the timeline cannot grow without limit when it is the active source.
+ * Events an admin marked as highlighted, soonest first — the "featured" strip. Empty until
+ * something is curated, which the page renders as a short "coming soon" note rather than
+ * inventing a programme to fill the space.
  */
-export async function getTimelineEvents(): Promise<StartEvent[]> {
-  const platformEvents = await fetchFromPlatform('limit=200');
-  if (platformEvents) return platformEvents;
-
-  const lumaEvents = await fetchAllLumaEvents();
-  return sortAscending(
-    lumaEvents
-      .map(fromLumaEvent)
-      .filter((event): event is StartEvent => event !== null)
-      .slice(-200),
+export async function getFeaturedEvents(): Promise<StartEvent[]> {
+  const highlighted = await platformEvents(
+    `highlightedOnly=true&scope=all&limit=${EVENTS_PER_FETCH}`,
   );
+  if (!highlighted) return [];
+  return sortByStart(highlighted, 'asc');
 }
 
-/** Events explicitly curated as featured, soonest first. Empty when nothing is highlighted. */
-export async function getHighlightedEvents(): Promise<StartEvent[]> {
-  const platformEvents = await fetchFromPlatform('highlightedOnly=true&limit=24');
-  return platformEvents ?? [];
+/**
+ * Everything on the calendar, ascending, for the annual strip: the events that already happened in
+ * this year plus the ones coming. One call, bounded, rather than a per-month fan-out.
+ */
+export async function getCalendarEvents(): Promise<StartEvent[]> {
+  const events = await withLumaFallback(
+    () => platformEvents(`scope=all&limit=200`),
+    fetchAllLumaEvents,
+    'asc',
+  );
+  return events;
 }

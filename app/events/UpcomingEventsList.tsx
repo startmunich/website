@@ -3,11 +3,11 @@
 import { useState } from 'react';
 
 import UpcomingEventTile from '@/components/UpcomingEventTile';
-import type { StartEvent } from '@/lib/events';
+import type { StartEvent } from '@/lib/eventTypes';
 
 /**
- * Presentational half of the upcoming-events grid. The page fetches on the server (see
- * `./UpcomingEventsGrid`), and only the mobile "show all" toggle needs to run in the browser.
+ * Presentational half of the upcoming-events grid. The page fetches on the server (see `./page`),
+ * and only the mobile "show all" toggle needs to run in the browser.
  */
 
 const MOBILE_LIMIT = 3;
@@ -23,29 +23,36 @@ export default function UpcomingEventsList({ events }: { events: StartEvent[] })
 
   if (events.length === 0) {
     return (
-      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-4 md:p-8">
+      <div
+        className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-4 md:p-8"
+        data-testid="upcoming-events-empty"
+      >
         <div className="py-8 text-center">
-          <p className="text-gray-400">No upcoming events found</p>
+          <p className="text-gray-400">Nothing on the calendar right now — check back soon.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div>
+    <div data-testid="upcoming-events">
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {events.map((event, index) => {
           const hiddenOnMobile = !showAll && index >= MOBILE_LIMIT;
 
           return (
-            <UpcomingEventTile
+            <div
               key={event.id}
-              href={event.registrationUrl ?? undefined}
-              title={event.title}
-              date={formatDate(event.startAt)}
-              imageUrl={event.coverImageUrl ?? undefined}
-              hiddenClassName={hiddenOnMobile ? 'hidden sm:flex' : ''}
-            />
+              data-testid="upcoming-event"
+              className={hiddenOnMobile ? 'hidden sm:block' : ''}
+            >
+              <UpcomingEventTile
+                href={event.registrationUrl ?? undefined}
+                title={event.title}
+                date={formatDate(event.startAt)}
+                imageUrl={event.coverImageUrl ?? undefined}
+              />
+            </div>
           );
         })}
       </div>

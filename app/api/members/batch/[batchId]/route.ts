@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+import { fetchFromPlatform } from '@/lib/startApi';
+
 interface Member {
   id: number;
   name: string;
@@ -62,8 +64,6 @@ type ImageSource = unknown;
 
 export const revalidate = 3600;
 
-const STARTMUNICH_API_TIMEOUT_MS = 10_000;
-
 export async function GET(request: Request, { params }: { params: Promise<{ batchId: string }> }) {
   const { batchId } = await params;
 
@@ -99,34 +99,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ batc
 
   const apiBatch = resolveApiBatch(batchId);
 
-  const API_KEY = process.env.STARTMUNICH_API_KEY;
-  if (!API_KEY) {
-    console.error('STARTMUNICH_API_KEY is not set');
-    return NextResponse.json([]);
-  }
+  // Shared platform client (see `lib/startApi`): base URL, bearer key, timeout and ISR live there
+  // and are used by board and events too, so `MEMBERS_PLATFORM_API_URL` is genuinely platform-wide.
+  const dataMembers = await fetchFromPlatform<RawMember>(
+    `/api/v1/public/members?batches=${encodeURIComponent(apiBatch)}`,
+  );
+
+  if (!dataMembers) return NextResponse.json([]);
 
   try {
-    const response = await fetch(
-      `https://my.startmunich.de/api/v1/public/members?batches=${apiBatch}`,
-      {
-        headers: {
-          Authorization: `Bearer ${API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        signal: AbortSignal.timeout(STARTMUNICH_API_TIMEOUT_MS),
-        next: { revalidate: 3600 },
-      },
-    );
-
-    if (!response.ok) {
-      console.error(`API error: ${response.status} ${response.statusText}`);
-      return NextResponse.json([]);
-    }
-
-    const data = await response.json();
-    const dataMembers: RawMember[] = Array.isArray(data) ? data : data.members || data.data || [];
-
-    if (!Array.isArray(dataMembers) || dataMembers.length === 0) {
+    if (dataMembers.length === 0) {
       return NextResponse.json([]);
     }
 

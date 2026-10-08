@@ -1,8 +1,12 @@
 import type { Metadata } from 'next';
 
-import { CURATED_SERIES } from '@/lib/curatedEventSeries';
-import { getPastEventsWithSeeds, getTimelineEvents, getUpcomingEvents } from '@/lib/events';
-import { deriveEventSeries, seriesCategories } from '@/lib/eventSeries';
+import { buildCalendarMarkers, yearlyStats } from '@/lib/eventCalendar';
+import {
+  getCalendarEvents,
+  getFeaturedEvents,
+  getPastEvents,
+  getUpcomingEvents,
+} from '@/lib/events';
 import { OG_IMAGES } from '@/lib/metadata';
 
 import EventsContent from './EventsContent';
@@ -24,57 +28,54 @@ export const metadata: Metadata = {
 };
 
 /**
- * Every event section is fetched here, on the server, and handed to the client component as props.
+ * Everything the page needs is fetched here, on the server, and passed down as props.
  *
- * Each section degrades to empty rather than throwing — a missing API key or an unreachable
- * upstream must not take the page down (AGENTS.md: degrade to empty, don't crash a preview build).
+ * Each source degrades to empty rather than throwing: a missing API key or an unreachable upstream
+ * must not take the page down (AGENTS.md: degrade to empty, don't crash a preview build). An empty
+ * section renders its own "coming soon" state rather than a blank box.
  */
 async function loadEventData() {
-  const [timeline, upcoming, past] = await Promise.allSettled([
-    getTimelineEvents(),
+  const [calendar, upcoming, past, featured] = await Promise.allSettled([
+    getCalendarEvents(),
     getUpcomingEvents(),
-    getPastEventsWithSeeds(),
+    getPastEvents(),
+    getFeaturedEvents(),
   ]);
 
-  if (timeline.status === 'rejected') {
-    console.error('Error loading timeline events:', timeline.reason);
-  }
-  if (upcoming.status === 'rejected') {
-    console.error('Error loading upcoming events:', upcoming.reason);
-  }
-  if (past.status === 'rejected') {
-    console.error('Error loading past events:', past.reason);
+  for (const [label, result] of [
+    ['calendar', calendar],
+    ['upcoming', upcoming],
+    ['past', past],
+    ['featured', featured],
+  ] as const) {
+    if (result.status === 'rejected') {
+      console.error(`Error loading ${label} events:`, result.reason);
+    }
   }
 
-  const timelineEvents = timeline.status === 'fulfilled' ? timeline.value : [];
-  const derived = deriveEventSeries(timelineEvents);
-
-  const series = derived.length > 0 ? derived : CURATED_SERIES;
+  const calendarEvents = calendar.status === 'fulfilled' ? calendar.value : [];
+  const upcomingEvents = upcoming.status === 'fulfilled' ? upcoming.value : [];
+  const pastEvents = past.status === 'fulfilled' ? past.value : [];
+  const featuredEvents = featured.status === 'fulfilled' ? featured.value : [];
 
   return {
-    // Curated fallback: with no event source configured, show the programme rather than a blank
-    // timeline. As soon as the calendar sync returns data, the derived series takes over.
-    series,
-    upcomingEvents: upcoming.status === 'fulfilled' ? upcoming.value : [],
-    pastEvents: past.status === 'fulfilled' ? past.value : [],
-    stats: {
-      // Counted from the programme so the hero numbers move with the calendar rather than being
-      // edited by hand every season.
-      hackathons: series.filter((event) => event.category === 'Hackathon').length,
-      events: series.length,
-    },
+    markers: buildCalendarMarkers(calendarEvents),
+    upcomingEvents,
+    pastEvents,
+    featuredEvents,
+    stats: yearlyStats(calendarEvents),
   };
 }
 
 export default async function EventsPage() {
-  const { series, upcomingEvents, pastEvents, stats } = await loadEventData();
+  const { markers, upcomingEvents, pastEvents, featuredEvents, stats } = await loadEventData();
 
   return (
     <EventsContent
-      series={series}
-      categories={seriesCategories(series)}
+      markers={markers}
       upcomingEvents={upcomingEvents}
       pastEvents={pastEvents}
+      featuredEvents={featuredEvents}
       stats={stats}
     />
   );
