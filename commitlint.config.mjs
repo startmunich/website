@@ -3,6 +3,7 @@ const config = {
   extends: ['@commitlint/config-conventional'], // use conventional commits, find all rules here: https://commitlint.js.org/#/reference-rules
 
   ignores: [
+    (commit) => commit.startsWith('Add files via upload'),
     (commit) => commit.includes('chore(deps)'),
     (commit) => commit.includes('chore(deps-dev)'),
     (commit) => commit.includes('fix(deps)'),

@@ -16,4 +16,4 @@ overrides:
   js-yaml: ^4.3.2
   postcss: ^8.5.28
   postcss-selector-parser: ^6.1.4
-  sharp: ^0.35.4
+  sharp: ^0.35.5
