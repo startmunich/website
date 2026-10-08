@@ -6,8 +6,8 @@ directories, company detail pages, member batch pages, events, partners, applica
 flows, plus a small set of public JSON API routes.
 
 Content is not authored in the repo. It is read at request time from **NocoDB** (startups, members,
-partners, news, waitlist), **Luma** (events), and the internal START Munich API (board + member
-batch details), with results cached via ISR.
+partners, news, waitlist), the **members platform** (events, board, member batch details), and
+**Luma** as the event fallback, with results cached via ISR.
 
 ## Tech Stack
 
@@ -65,15 +65,17 @@ Required for `/api/waitlist` to accept anything.
 
 ### Other services
 
-| Variable                            | Required | Notes                                                    |
-| ----------------------------------- | -------- | -------------------------------------------------------- |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY`    | yes²     | Baked into the client bundle at build time               |
-| `TURNSTILE_SECRET_KEY`              | yes²     | Server-side Siteverify                                   |
-| `LUMA_API_KEY`                      | no       | Without it `/events` shows an error state for both grids |
-| `LUMA_DEBUG`                        | no       | Set to `1` to log per-request Luma summaries             |
-| `STARTMUNICH_API_KEY`               | no       | Board data + member batch details from my.startmunich.de |
-| `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` | no       | Omit to disable analytics entirely                       |
-| `NEXT_PUBLIC_BASE_URL`              | no       | Absolute URLs for share links; Vercel sets this for prod |
+| Variable                            | Required | Notes                                                                                    |
+| ----------------------------------- | -------- | ---------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY`    | yes²     | Baked into the client bundle at build time                                               |
+| `TURNSTILE_SECRET_KEY`              | yes²     | Server-side Siteverify                                                                   |
+| `STARTMUNICH_API_KEY`               | no       | Events, board data, member batch details from my.startmunich.de                          |
+| `MEMBERS_PLATFORM_API_URL`          | no       | Override to point at a local members platform; defaults to `https://my.startmunich.de`   |
+| `LUMA_API_KEY`                      | no       | Event **fallback**; only needed when the members platform API is unset or unreachable    |
+| `LUMA_CALENDAR_ID`                  | no       | Restricts the Luma fallback to one calendar; omit to read every calendar the key can see |
+| `LUMA_DEBUG`                        | no       | Set to `1` to log per-request Luma summaries                                             |
+| `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` | no       | Omit to disable analytics entirely                                                       |
+| `NEXT_PUBLIC_BASE_URL`              | no       | Absolute URLs for share links; Vercel sets this for prod                                 |
 
 ### Where to set them
 
@@ -102,7 +104,7 @@ Pages (App Router, `app/`):
 | `/member-network`                    | Global START chapter network                         |
 | `/startups`                          | Filterable startup directory                         |
 | `/startup-details/[id]`              | Company detail page                                  |
-| `/events`                            | Upcoming and past events (Luma)                      |
+| `/events`                            | Events from the members platform, Luma as fallback   |
 | `/partners`, `/for-partners`         | Partner showcase and partner CTA                     |
 | `/apply`, `/join-start/2026`         | Application + waitlist flows                         |
 | `/labs`                              | Labs programme                                       |
@@ -115,17 +117,56 @@ Pages (App Router, `app/`):
 
 API routes (`app/api/`), all read-only and ISR-cached for an hour:
 
-| Route                           | Source                                     |
-| ------------------------------- | ------------------------------------------ |
-| `GET /api/startups`             | NocoDB — all companies                     |
-| `GET /api/members`              | NocoDB — members                           |
-| `GET /api/members/batch/[id]`   | START Munich internal API                  |
-| `GET /api/member-network`       | NocoDB — global network member companies   |
-| `GET /api/partners`             | NocoDB — partners                          |
-| `GET /api/board`                | START Munich internal API                  |
-| `GET /api/luma/upcoming-events` | Luma                                       |
-| `GET /api/luma/past-events`     | Luma                                       |
-| `POST /api/waitlist`            | NocoDB waitlist table (Turnstile-verified) |
+| Route                         | Source                     |
+| ----------------------------- | -------------------------- |
+| `GET /api/startups`           | NocoDB — all companies     |
+| `GET /api/members`            | NocoDB — members           |
+| `GET /api/members/batch/[id]` | Members platform           |
+| `GET /api/member-network`     | NocoDB — network companies |
+| `GET /api/partners`           | NocoDB — partners          |
+| `GET /api/board`              | Members platform           |
+| `POST /api/waitlist`          | NocoDB waitlist table      |
+
+The old `GET /api/luma/upcoming-events` and `GET /api/luma/past-events` passthroughs were removed —
+nothing consumed them, and `/events` reads its data on the server.
+
+## Events — events reach the page automatically
+
+`/events` has four sections, all driven by live data:
+
+| Section              | Source                                                       |
+| -------------------- | ------------------------------------------------------------ |
+| Upcoming events grid | Events that have not finished yet, soonest first             |
+| Annual calendar      | One marker per dated event, placed on its real month and day |
+| Featured slider      | Events an admin marked _highlighted_ on the members platform |
+| Past events grid     | Events that are over, most recent first                      |
+
+The flow, so there is one place to look when an event is missing:
+
+1. **Luma → members platform.** The platform runs a Luma sync every few hours that upserts events
+   into its database, preserving the admin-curated fields (hidden, cancelled, invite-only,
+   highlighted).
+2. **Members platform → website.** `lib/events.ts` calls `GET /api/v1/public/events` on
+   my.startmunich.de with `STARTMUNICH_API_KEY`. That endpoint only returns publicly visible events,
+   so anything invite-only, hidden or cancelled never reaches the public site.
+3. **Fallback.** If the platform is unconfigured, unauthorized or erroring, the same module reads
+   Luma directly via `lib/luma.ts`. The platform returning `null` (not an empty list) is what
+   triggers the fallback, so a platform outage cannot blank out a working page.
+
+**To add an event:** create it on Luma. It appears on `/events` within a few hours. Nothing to
+deploy, and no list to edit.
+
+To curate, hide or feature an event, do it on the members platform; the website picks it up on the
+next fetch. **Highlighted** events become the featured slider cards. Both the featured strip and the
+annual calendar render an honest "check back soon" state while there is nothing to show, rather than
+a hand-maintained programme that silently goes out of date.
+
+Two things to know when editing this code:
+
+- `lib/events.ts` is the only place that fetches events. `lib/eventCalendar.ts` holds the pure
+  marker/legend/statistics helpers and is what the unit tests cover.
+- Event covers come from `images.lumacdn.com`, which **must** stay in the `remotePatterns` allowlist
+  in `next.config.js` — without it the upcoming-events images silently fail to load.
 
 ## Project Structure
 
@@ -161,7 +202,13 @@ A **Husky** `pre-commit` hook runs **lint-staged** (ESLint `--fix` + Prettier on
 
 `tests/e2e/smoke.spec.ts` is intentionally narrow: it asserts a 2xx and a visible main landmark for
 each key route. It catches broken SSR, failed builds, and top-level routing breakage — it will not
-fail on content changes. More specific assertions belong in per-page specs.
+fail on content changes. More specific assertions belong in per-page specs, and they should use the
+`data-testid` hooks the components expose rather than Tailwind class chains, which change whenever
+someone touches the styling.
+
+`tests/unit/` runs under Vitest for pure logic — currently `lib/eventCalendar.ts`, where the marker
+placement and the year statistics are the kind of arithmetic that fails silently. Anything that
+decides _what_ the page shows belongs there rather than in a Playwright spec.
 
 Locally, Playwright expects a server you started yourself (`pnpm dev`). In CI it targets a Vercel
 preview URL via `PLAYWRIGHT_TEST_BASE_URL`.
@@ -385,9 +432,17 @@ brand: {
 - **NocoDB** — startups, members, partners, news, waitlist, member network. The member-network table
   ID is currently hardcoded in `app/api/member-network/route.ts` rather than read from the
   environment; prefer adding it to `.env` if you touch that route.
-- **Luma** — event calendar, proxied through `/api/luma/*` so the API key stays server-side.
-- **my.startmunich.de** — board data and member batch details, authenticated with
-  `STARTMUNICH_API_KEY`.
+- **my.startmunich.de** — the members platform API, authenticated with `STARTMUNICH_API_KEY`: events
+  (`/api/v1/public/events`), board data, and member batch details.
+- **Luma** — the event **fallback**, used only when the members platform API is unconfigured or
+  unreachable, so `/events` keeps working without it. The platform syncs Luma every few hours, so
+  creating an event on Luma makes it appear here without any deploy. See
+  [Events](#events-events-arrive-from-luma-automatically) below.
+- **`lib/events.ts`** — the single place event data is fetched and normalized to one `StartEvent`
+  shape, whichever source answered. `lib/eventCalendar.ts` holds the pure helpers that place events
+  on the annual strip and compute the hero statistics.
+- **`lib/startApi.ts`** — the one client for my.startmunich.de (base URL, bearer key, timeout, ISR),
+  shared by events, board and members, so `MEMBERS_PLATFORM_API_URL` genuinely redirects all three.
 - **`lib/startNetwork.ts`** — the START chapter list, and the single source of truth for the
   chapter/country/member counts shown on the home page and member journey page. Add or remove a
   chapter there and both pages stay in sync.
