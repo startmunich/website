@@ -51,14 +51,14 @@ export async function fetchFromPlatform<T>(path: string): Promise<T[] | null> {
     });
 
     if (!response.ok) {
-      console.error(`Members platform ${path} failed: ${response.status} ${response.statusText}`);
+      console.error('Members platform %s failed: %d %s', path, response.status, response.statusText);
       return null;
     }
 
     const body = (await response.json()) as { data?: unknown };
     return Array.isArray(body.data) ? (body.data as T[]) : null;
   } catch (error) {
-    console.error(`Error fetching ${path} from the members platform:`, error);
+    console.error('Error fetching %s from the members platform:', path, error);
     return null;
   }
 }
