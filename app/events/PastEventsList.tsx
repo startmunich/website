@@ -1,81 +1,73 @@
 'use client';
 
-import Image from 'next/image';
 import { useState } from 'react';
 
-import type { StartEvent } from '@/lib/events';
+import UpcomingEventTile from '@/components/UpcomingEventTile';
+import type { StartEvent } from '@/lib/eventTypes';
 
 /**
- * Presentational half of the past-events grid. The page fetches on the server (see
- * `./PastEventsGrid`), and only the page-number controls need to run in the browser.
+ * Presentational half of the past-events grid. The page fetches on the server (see `./page`), and
+ * only the page-number controls need to run in the browser.
+ *
+ * The cards are the shared `UpcomingEventTile` — the same component the upcoming grid uses. The
+ * previous version hand-rolled a near-copy here and it had already drifted: a different `sizes`, a
+ * different placeholder height, and `href="#"` on cards with no registration URL, which rendered a
+ * link to nowhere.
  */
 
 const EVENTS_PER_PAGE = 12;
+
+function formatDate(startAt: string): string {
+  const date = new Date(startAt);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
 
 export default function PastEventsList({ events }: { events: StartEvent[] }) {
   const [currentPage, setCurrentPage] = useState(1);
 
   if (events.length === 0) {
     return (
-      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-4 md:p-8">
+      <div
+        className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-4 md:p-8"
+        data-testid="past-events-empty"
+      >
         <div className="py-8 text-center">
-          <p className="text-gray-400">No past events found</p>
+          <p className="text-gray-400">No past events to show yet.</p>
         </div>
       </div>
     );
   }
 
   const totalPages = Math.ceil(events.length / EVENTS_PER_PAGE);
-  const startIndex = (currentPage - 1) * EVENTS_PER_PAGE;
-  const currentEvents = events.slice(startIndex, startIndex + EVENTS_PER_PAGE);
+  const page = Math.min(currentPage, totalPages);
+  const startIndex = (page - 1) * EVENTS_PER_PAGE;
+  const pageEvents = events.slice(startIndex, startIndex + EVENTS_PER_PAGE);
 
   return (
-    <div>
-      <div className="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {currentEvents.map((event) => (
-          <a
+    <div data-testid="past-events">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {pageEvents.map((event) => (
+          <UpcomingEventTile
             key={event.id}
-            href={event.registrationUrl ?? '#'}
-            target={event.registrationUrl ? '_blank' : undefined}
-            rel="noopener noreferrer"
-            className="group relative flex flex-col overflow-hidden rounded-2xl bg-white/5 shadow-lg shadow-black/20 transition-all duration-500 hover:scale-[1.02] hover:shadow-xl hover:shadow-black/40"
-          >
-            <div className="p-3 pb-0">
-              <div className="relative overflow-hidden rounded-xl bg-black/20">
-                {event.coverImageUrl ? (
-                  <div className="relative aspect-square w-full">
-                    <Image
-                      src={event.coverImageUrl}
-                      alt={event.title}
-                      fill
-                      unoptimized
-                      sizes="(max-width: 768px) 86vw, 300px"
-                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                    />
-                  </div>
-                ) : (
-                  <div className="h-36 rounded-xl bg-gradient-to-br from-[#1a1a3e] to-[#0a0a2e]" />
-                )}
-              </div>
-            </div>
-
-            <div className="flex flex-1 flex-col px-4 pb-5 pt-4">
-              <h3 className="mb-1.5 line-clamp-2 text-sm font-bold leading-snug text-white">
-                {event.title}
-              </h3>
-            </div>
-          </a>
+            // No registration URL means there is nothing to link to, so render a plain card rather
+            // than an anchor to "#".
+            href={event.registrationUrl ?? undefined}
+            title={event.title}
+            date={formatDate(event.startAt)}
+            imageUrl={event.coverImageUrl ?? undefined}
+          />
         ))}
       </div>
 
       {totalPages > 1 && (
         <div className="mt-10 flex items-center justify-center gap-3">
           <button
-            onClick={() => setCurrentPage(currentPage - 1)}
-            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(page - 1)}
+            disabled={page === 1}
             aria-label="Previous page"
             className={`flex h-11 w-11 items-center justify-center rounded-full font-semibold transition-all duration-300 ${
-              currentPage === 1
+              page === 1
                 ? 'cursor-not-allowed bg-white/5 text-gray-600'
                 : 'bg-white/10 text-white hover:bg-[#d0006f]'
             }`}
@@ -91,16 +83,16 @@ export default function PastEventsList({ events }: { events: StartEvent[] }) {
           </button>
 
           <div className="flex items-center gap-2">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNumber) => {
               const showPage =
-                page === 1 ||
-                page === totalPages ||
-                (page >= currentPage - 1 && page <= currentPage + 1);
+                pageNumber === 1 ||
+                pageNumber === totalPages ||
+                (pageNumber >= page - 1 && pageNumber <= page + 1);
 
               if (!showPage) {
-                if (page === currentPage - 2 || page === currentPage + 2) {
+                if (pageNumber === page - 2 || pageNumber === page + 2) {
                   return (
-                    <span key={page} className="px-1 text-gray-600">
+                    <span key={pageNumber} className="px-1 text-gray-600">
                       ...
                     </span>
                   );
@@ -110,28 +102,28 @@ export default function PastEventsList({ events }: { events: StartEvent[] }) {
 
               return (
                 <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  aria-label={`Page ${page}`}
-                  aria-current={currentPage === page}
+                  key={pageNumber}
+                  onClick={() => setCurrentPage(pageNumber)}
+                  aria-label={`Page ${pageNumber}`}
+                  aria-current={pageNumber === page}
                   className={`h-11 w-11 rounded-full text-sm font-bold transition-all duration-300 ${
-                    currentPage === page
+                    pageNumber === page
                       ? 'bg-[#d0006f] text-white shadow-lg shadow-[#d0006f]/30'
                       : 'bg-white/10 text-white hover:bg-white/20'
                   }`}
                 >
-                  {page}
+                  {pageNumber}
                 </button>
               );
             })}
           </div>
 
           <button
-            onClick={() => setCurrentPage(currentPage + 1)}
-            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(page + 1)}
+            disabled={page === totalPages}
             aria-label="Next page"
             className={`flex h-11 w-11 items-center justify-center rounded-full font-semibold transition-all duration-300 ${
-              currentPage === totalPages
+              page === totalPages
                 ? 'cursor-not-allowed bg-white/5 text-gray-600'
                 : 'bg-white/10 text-white hover:bg-[#d0006f]'
             }`}
