@@ -39,6 +39,12 @@ export function attachmentUrl(attachment: unknown): string | undefined {
  * NocoDB, so the fix ships from the repo and does not depend on someone with CMS
  * access. Delete this entry once the NocoDB attachment is replaced with a plain
  * `.svg` upload.
+ *
+ * The vendored file also has its wordmark recoloured from white to black. As
+ * supplied, the "Spherecast" text was `fill="white"`, and every surface that
+ * renders a startup logo sits on `bg-white` — so the sphere showed and the name
+ * was invisible. If the NocoDB attachment is ever replaced, upload it with a
+ * dark wordmark for the same reason.
  */
 const LOGO_OVERRIDES: Record<string, string> = {
   Spherecast: '/ourStartups/spherecast-logo.svg',

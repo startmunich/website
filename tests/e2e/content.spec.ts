@@ -23,6 +23,43 @@ test('Spherecast logo actually renders', async ({ page }) => {
     .toBeGreaterThan(0);
 });
 
+// The vendored Spherecast SVG shipped its wordmark as `fill="white"`. Every
+// startup logo sits on a `bg-white` card, so the sphere rendered and the name
+// beside it was invisible — `naturalWidth` was a perfectly good 1588, so the
+// assertion above cannot see the difference. Sample the wordmark band (x past
+// the sphere, which occupies the left ~16% of the viewBox) and require dark
+// pixels in it.
+test('Spherecast wordmark is visible on the white card', async ({ page }) => {
+  await page.goto('/startups');
+  const logo = page.locator('img[alt="Spherecast logo"]').first();
+  await expect(logo).toBeVisible();
+
+  const darkRatio = await logo.evaluate(async (img: HTMLImageElement) => {
+    await img.decode();
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return 0;
+    ctx.drawImage(img, 0, 0);
+    const { data, width, height } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let dark = 0;
+    let opaque = 0;
+    for (let y = 0; y < height; y++) {
+      for (let x = Math.round(width * 0.25); x < width; x++) {
+        const i = (y * width + x) * 4;
+        if (data[i + 3] < 10) continue;
+        opaque++;
+        const luminance = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
+        if (luminance < 60) dark++;
+      }
+    }
+    return opaque === 0 ? 0 : dark / opaque;
+  });
+
+  expect(darkRatio).toBeGreaterThan(0.05);
+});
+
 // The recurring-events calendar is hand-maintained: a marker can drift into a
 // month its own card does not claim. Fail Tales used to sit in November while
 // its card reads "October & April". This reads the rendered marker offsets
