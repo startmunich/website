@@ -87,6 +87,16 @@ const recurringEvents: RecurringEvent[] = [
     category: 'Talk',
   },
   {
+    id: 'yc-stories',
+    name: 'YC Stories',
+    description:
+      'Founders and operators from Y Combinator companies share how they got started — the honest version, from San Francisco to Munich.',
+    month: 'April & October',
+    frequency: 'Once per semester',
+    image: '/events/eventCards/yc-stories-opt.jpg',
+    category: 'Talk',
+  },
+  {
     id: 'pitch-network',
     name: 'PITCH & NETWORK',
     description:
@@ -437,8 +447,9 @@ export default function EventsPage() {
                   ))}
                 </div>
 
-                {/* Timeline Line */}
-                <div className="relative mb-20 mt-16 h-3 rounded-full bg-white/[0.06]">
+                {/* Timeline Line. `mb-32` leaves room for the staggered label row
+                    that crowded months use — see the `stagger` prop. */}
+                <div className="relative mb-32 mt-16 h-3 rounded-full bg-white/[0.06]">
                   <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#d0006f]/30 via-pink-500/20 to-[#d0006f]/30"></div>
 
                   {/* Month Dividers */}
@@ -452,7 +463,11 @@ export default function EventsPage() {
                     ></div>
                   ))}
 
-                  {/* Event Markers - Using TimelineMarker Components */}
+                  {/* Event Markers - Using TimelineMarker Components.
+                      Markers within a month are spread a few days apart and
+                      alternate top/bottom so the labels don't collide. Each one
+                      must sit in a month its card actually claims: Fail Tales and
+                      YC Stories are autumn events, not November ones. */}
                   <TimelineMarker
                     eventId="pitch-network"
                     left={calculateTimelinePosition(1, 15)}
@@ -466,20 +481,21 @@ export default function EventsPage() {
 
                   <TimelineMarker
                     eventId="legal-hack"
-                    left={calculateTimelinePosition(4, 5)}
+                    left={calculateTimelinePosition(4, 3)}
                     color="#9c27b0"
                     label="Legal Hack"
                     position="bottom"
+                    stagger
                     hoveredEvent={hoveredEvent}
                     onHover={handleTimelineMarkerHover}
                     onLeave={() => setHoveredEvent(null)}
                   />
 
                   <TimelineMarker
-                    eventId="info-event"
-                    left={calculateTimelinePosition(4, 15)}
+                    eventId="yc-stories"
+                    left={calculateTimelinePosition(4, 10)}
                     color="#4a90e2"
-                    label="Info Event"
+                    label="YC Stories"
                     position="top"
                     hoveredEvent={hoveredEvent}
                     onHover={handleTimelineMarkerHover}
@@ -487,10 +503,10 @@ export default function EventsPage() {
                   />
 
                   <TimelineMarker
-                    eventId="fail-tales"
-                    left={calculateTimelinePosition(4, 25)}
+                    eventId="info-event"
+                    left={calculateTimelinePosition(4, 18)}
                     color="#4a90e2"
-                    label="Fail Tales"
+                    label="Info Event"
                     position="bottom"
                     hoveredEvent={hoveredEvent}
                     onHover={handleTimelineMarkerHover}
@@ -498,8 +514,20 @@ export default function EventsPage() {
                   />
 
                   <TimelineMarker
+                    eventId="fail-tales"
+                    left={calculateTimelinePosition(4, 26)}
+                    color="#4a90e2"
+                    label="Fail Tales"
+                    position="top"
+                    stagger
+                    hoveredEvent={hoveredEvent}
+                    onHover={handleTimelineMarkerHover}
+                    onLeave={() => setHoveredEvent(null)}
+                  />
+
+                  <TimelineMarker
                     eventId="start-labs"
-                    left={calculateTimelinePosition(5, 1)}
+                    left={calculateTimelinePosition(5, 8)}
                     color="#ff9800"
                     label="START Labs"
                     position="top"
@@ -520,10 +548,21 @@ export default function EventsPage() {
                   />
 
                   <TimelineMarker
-                    eventId="info-event"
+                    eventId="fail-tales"
+                    left={calculateTimelinePosition(10, 8)}
+                    color="#4a90e2"
+                    label="Fail Tales"
+                    position="bottom"
+                    hoveredEvent={hoveredEvent}
+                    onHover={handleTimelineMarkerHover}
+                    onLeave={() => setHoveredEvent(null)}
+                  />
+
+                  <TimelineMarker
+                    eventId="yc-stories"
                     left={calculateTimelinePosition(10, 15)}
                     color="#4a90e2"
-                    label="Info Event"
+                    label="YC Stories"
                     position="top"
                     hoveredEvent={hoveredEvent}
                     onHover={handleTimelineMarkerHover}
@@ -531,11 +570,12 @@ export default function EventsPage() {
                   />
 
                   <TimelineMarker
-                    eventId="fail-tales"
-                    left={calculateTimelinePosition(11, 15)}
+                    eventId="info-event"
+                    left={calculateTimelinePosition(10, 23)}
                     color="#4a90e2"
-                    label="Fail Tales"
+                    label="Info Event"
                     position="bottom"
+                    stagger
                     hoveredEvent={hoveredEvent}
                     onHover={handleTimelineMarkerHover}
                     onLeave={() => setHoveredEvent(null)}
@@ -610,6 +650,13 @@ export default function EventsPage() {
                         <span className="text-sm text-white">Legal Hack</span>
                       </button>
                       <button
+                        onClick={() => scrollToEventMobile('yc-stories')}
+                        className="flex items-center gap-2 transition-opacity hover:opacity-80"
+                      >
+                        <div className="h-3 w-3 flex-shrink-0 rounded-full bg-[#4a90e2]"></div>
+                        <span className="text-sm text-white">YC Stories</span>
+                      </button>
+                      <button
                         onClick={() => scrollToEventMobile('info-event')}
                         className="flex items-center gap-2 transition-opacity hover:opacity-80"
                       >
@@ -652,18 +699,25 @@ export default function EventsPage() {
                     <div className="w-14 flex-shrink-0 text-sm font-bold text-gray-400">Oct</div>
                     <div className="flex flex-col gap-2">
                       <button
-                        onClick={() => scrollToEventMobile('info-event')}
-                        className="flex items-center gap-2 transition-opacity hover:opacity-80"
-                      >
-                        <div className="h-3 w-3 flex-shrink-0 rounded-full bg-[#4a90e2]"></div>
-                        <span className="text-sm text-white">Info Event</span>
-                      </button>
-                      <button
                         onClick={() => scrollToEventMobile('fail-tales')}
                         className="flex items-center gap-2 transition-opacity hover:opacity-80"
                       >
                         <div className="h-3 w-3 flex-shrink-0 rounded-full bg-[#4a90e2]"></div>
                         <span className="text-sm text-white">Fail Tales</span>
+                      </button>
+                      <button
+                        onClick={() => scrollToEventMobile('yc-stories')}
+                        className="flex items-center gap-2 transition-opacity hover:opacity-80"
+                      >
+                        <div className="h-3 w-3 flex-shrink-0 rounded-full bg-[#4a90e2]"></div>
+                        <span className="text-sm text-white">YC Stories</span>
+                      </button>
+                      <button
+                        onClick={() => scrollToEventMobile('info-event')}
+                        className="flex items-center gap-2 transition-opacity hover:opacity-80"
+                      >
+                        <div className="h-3 w-3 flex-shrink-0 rounded-full bg-[#4a90e2]"></div>
+                        <span className="text-sm text-white">Info Event</span>
                       </button>
                     </div>
                   </div>

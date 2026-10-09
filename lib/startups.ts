@@ -17,12 +17,38 @@ const NOCODB_TIMEOUT_MS = 10_000;
  * signature and never expires, so prefer it and keep `signedPath` only as a
  * fallback for rows that do not carry one.
  */
-function attachmentUrl(attachment: unknown): string | undefined {
+export function attachmentUrl(attachment: unknown): string | undefined {
   if (!attachment || typeof attachment !== 'object') return undefined;
   const file = attachment as { path?: string; signedPath?: string };
   if (file.path) return `${NOCODB_BASE_URL}/${file.path}`;
   if (file.signedPath) return `${NOCODB_BASE_URL}/${file.signedPath}`;
   return undefined;
+}
+
+/**
+ * Logos that NocoDB holds but cannot serve to a browser, keyed by `Startup Name`.
+ *
+ * Spherecast's NocoDB upload is a real, valid SVG, but the stored filename ends in
+ * `.svg+xml` (a Webflow/`Save as XML SVG` export). NocoDB therefore responds with
+ * `Content-Type: application/octet-stream` and `Content-Disposition: attachment`,
+ * and browsers refuse to render that in an `<img>` — the logo is simply blank on
+ * `/startups`, `/startup-details/:id` and the home marquee. Verified in Chromium:
+ * the NocoDB URL decodes to `naturalWidth === 0`, the vendored one to 1588×262.
+ *
+ * The mark is vendored from the URL Valentin supplied rather than re-uploaded to
+ * NocoDB, so the fix ships from the repo and does not depend on someone with CMS
+ * access. Delete this entry once the NocoDB attachment is replaced with a plain
+ * `.svg` upload.
+ */
+const LOGO_OVERRIDES: Record<string, string> = {
+  Spherecast: '/ourStartups/spherecast-logo.svg',
+};
+
+/** Resolve the logo to render for a startup, honouring {@link LOGO_OVERRIDES}. */
+export function resolveLogoUrl(name: string, attachment: unknown): string | undefined {
+  const override = LOGO_OVERRIDES[name];
+  if (override) return override;
+  return attachmentUrl(attachment);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -65,7 +91,7 @@ function transformNocoDBRecord(record: any): Company {
     Array.isArray(record['Company Logo']) &&
     record['Company Logo'][0]
   ) {
-    const resolved = attachmentUrl(record['Company Logo'][0]);
+    const resolved = resolveLogoUrl(record['Startup Name'] || '', record['Company Logo'][0]);
     if (resolved) {
       logoUrl = resolved;
     }

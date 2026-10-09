@@ -200,6 +200,12 @@ export interface TimelineMarkerProps {
   label: string;
   position: 'top' | 'bottom';
   size?: 'sm' | 'lg';
+  /**
+   * Push the label one row further out from the timeline line. Months with more
+   * than one event per side stack the extra markers this way, so their pills
+   * don't overlap the ones already on that row.
+   */
+  stagger?: boolean;
   hoveredEvent: string | null;
   onHover: (eventId: string) => void;
   onLeave: () => void;
@@ -212,15 +218,22 @@ export const TimelineMarker = ({
   label,
   position,
   size = 'sm',
+  stagger = false,
   hoveredEvent,
   onHover,
   onLeave,
 }: TimelineMarkerProps) => {
   const isHovered = hoveredEvent === eventId;
-  const positionClass =
-    position === 'top'
-      ? `${size === 'lg' ? '-top-12' : '-top-10'}`
-      : `${size === 'lg' ? '-bottom-12' : '-bottom-10'}`;
+  // Static class strings only — Tailwind extracts these by scanning the source
+  // for literal class names, so an interpolated `-top-[${n}rem]` produces no CSS
+  // at all and every label silently collapses onto the default offset.
+  const positionClass = (
+    {
+      top: { sm: '-top-10', lg: '-top-12' },
+      bottom: { sm: '-bottom-10', lg: '-bottom-12' },
+    } as const
+  )[position][size];
+  const staggerClass = stagger ? (position === 'top' ? '-top-16' : '-bottom-16') : '';
 
   return (
     <div
@@ -237,7 +250,9 @@ export const TimelineMarker = ({
             ...(isHovered && { boxShadow: `0 0 0 4px ${color}80` }),
           }}
         ></div>
-        <div className={`absolute ${positionClass} left-1/2 -translate-x-1/2 whitespace-nowrap`}>
+        <div
+          className={`absolute ${positionClass} ${staggerClass} left-1/2 -translate-x-1/2 whitespace-nowrap`}
+        >
           <div className="rounded-full border border-white/10 bg-[#0a0a2e] px-3.5 py-1.5 text-xs shadow-lg shadow-black/20">
             <p className="font-bold text-white">{label}</p>
           </div>
