@@ -266,9 +266,9 @@ export default function JoinStartClient({ isLive, isClosed }: JoinStartClientPro
           <>
             JOIN
             <br />
-            <span className="outline-text">START</span>
+            <span className="text-brand-pink">START</span>
             <br />
-            MUNICH
+            <span className="outline-text">MUNICH</span>
           </>
         }
         titleClassName="mb-4 text-6xl leading-[0.94] tracking-tight sm:mb-6 sm:text-6xl lg:text-8xl"
