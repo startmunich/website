@@ -154,7 +154,10 @@ export function groupMarkersByMonth(markers: CalendarMarker[]): Array<{
 
 /**
  * Hero statistics, counted from a year of real events rather than hand-edited each season.
- * Only events that already started count towards "this year".
+ *
+ * The whole calendar year counts, events that have not happened yet included — the hero reads
+ * "Hackathons Yearly" / "Public Events Yearly", so counting the full year is what the copy claims.
+ * It is also the same window the strip draws, which is the agreement the tests below pin down.
  */
 export function yearlyStats(
   events: StartEvent[],
