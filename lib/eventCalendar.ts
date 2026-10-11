@@ -158,11 +158,18 @@ export function groupMarkersByMonth(markers: CalendarMarker[]): Array<{
  * The whole calendar year counts, events that have not happened yet included — the hero reads
  * "Hackathons Yearly" / "Public Events Yearly", so counting the full year is what the copy claims.
  * It is also the same window the strip draws, which is the agreement the tests below pin down.
+ *
+ * `hackathons` is `null` when the events carry no tags, because that is *unknown*, not zero. The
+ * Luma fallback has no tags at all, so counting there would put a hard `0` on the public page
+ * beside a calendar full of events — a number that reads as "we ran none" when the truth is "we
+ * cannot see whether you did". The caller renders that as an em dash instead.
  */
 export function yearlyStats(
   events: StartEvent[],
   now = new Date(),
-): { hackathons: number; events: number } {
+  options: { tagsAvailable?: boolean } = {},
+): { hackathons: number | null; events: number } {
+  const { tagsAvailable = true } = options;
   const yearStart = new Date(now.getFullYear(), 0, 1);
   const yearEnd = new Date(now.getFullYear() + 1, 0, 1);
 
@@ -172,7 +179,9 @@ export function yearlyStats(
   });
 
   return {
-    hackathons: thisYear.filter((event) => event.tags.includes('hackathon')).length,
+    hackathons: tagsAvailable
+      ? thisYear.filter((event) => event.tags.includes('hackathon')).length
+      : null,
     events: thisYear.length,
   };
 }

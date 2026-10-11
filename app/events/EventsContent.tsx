@@ -31,7 +31,8 @@ export interface EventsContentProps {
   pastEvents: StartEvent[];
   /** Events an admin highlighted on the members platform. */
   featuredEvents: StartEvent[];
-  stats: { hackathons: number; events: number };
+  /** `hackathons` is null when the source carries no tags, which is unknown rather than zero. */
+  stats: { hackathons: number | null; events: number };
 }
 
 /** Local art for a featured card with no cover, so the row never renders a broken image. */
@@ -50,7 +51,11 @@ export default function EventsContent({
 
   // The count-up still animates on mount; there is no loading flag to wait for because the data
   // arrives as props from the server.
-  const animatedHackathons = useAnimatedNumber(stats.hackathons, false, 800);
+  //
+  // `stats.hackathons` is null when the source carries no tags (the Luma fallback). Animating a
+  // count from 0 to 0 would animate a claim, so that slot renders an em dash instead — see
+  // `yearlyStats`. The other two counts are real under either source.
+  const animatedHackathons = useAnimatedNumber(stats.hackathons ?? 0, false, 800);
   const animatedEvents = useAnimatedNumber(stats.events, false, 800);
 
   const handleDrag = {
@@ -127,9 +132,17 @@ export default function EventsContent({
             <HeroCard>
               <div className="mb-3 flex items-baseline justify-center gap-2">
                 <span className="bg-gradient-to-br from-white to-gray-300 bg-clip-text text-4xl font-black text-transparent transition lg:text-6xl">
-                  {Math.floor(animatedHackathons)}
+                  {stats.hackathons === null ? (
+                    // No tag data from the fallback source. An em dash says "not known"; a 0 would
+                    // claim we ran none while the calendar below lists the year's events.
+                    <span data-testid="stat-hackathons-unavailable">&mdash;</span>
+                  ) : (
+                    Math.floor(animatedHackathons)
+                  )}
                 </span>
-                <span className="text-xl font-bold text-[#d0006f] lg:text-3xl">+</span>
+                {stats.hackathons !== null && (
+                  <span className="text-xl font-bold text-[#d0006f] lg:text-3xl">+</span>
+                )}
               </div>
               <p className="text-xs font-bold uppercase tracking-widest text-gray-300">
                 Hackathons Yearly

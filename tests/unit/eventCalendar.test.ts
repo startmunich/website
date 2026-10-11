@@ -286,4 +286,31 @@ describe('yearlyStats', () => {
   test('is zero for an empty feed', () => {
     expect(yearlyStats([], NOW)).toEqual({ hackathons: 0, events: 0 });
   });
+
+  // The Luma fallback carries no tags at all. Counting there returned a hard 0 next to a
+  // calendar full of the year's events, which read as "we ran no hackathons" rather than "we
+  // cannot see". The page rendered that 0 in public until this was caught.
+  test('reports hackathons as unknown, not zero, when the source has no tags', () => {
+    const stats = yearlyStats(
+      [
+        event({ id: 'a', startAt: '2026-03-10T10:00:00Z' }),
+        event({ id: 'b', startAt: '2026-09-10T10:00:00Z' }),
+      ],
+      NOW,
+      { tagsAvailable: false },
+    );
+
+    expect(stats.hackathons).toBeNull();
+    // The event count is real either way — it comes from dates, not tags.
+    expect(stats.events).toBe(2);
+  });
+
+  test('still reports a real zero when tags are available but none are hackathons', () => {
+    const stats = yearlyStats([event({ id: 'a', startAt: '2026-03-10T10:00:00Z' })], NOW, {
+      tagsAvailable: true,
+    });
+
+    // Unknown and zero are different claims, and only one of them is true here.
+    expect(stats.hackathons).toBe(0);
+  });
 });

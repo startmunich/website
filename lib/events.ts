@@ -33,6 +33,13 @@ import { fetchFromPlatform } from './startApi';
 
 const EVENTS_PER_FETCH = 100;
 
+/**
+ * Which upstream answered. The two are not equivalent: only the platform carries activity tags
+ * and the admin-curated highlight flag, so a caller that reports a tag-derived number has to know
+ * whether it is looking at real tags or at a Luma fallback that has none.
+ */
+export type EventSource = 'platform' | 'luma';
+
 export { EVENT_KIND_LABELS, type EventKind, type EventTag, type StartEvent };
 
 const EVENT_KINDS: readonly EventKind[] = ['public', 'network', 'partner'];
@@ -129,15 +136,18 @@ async function withLumaFallback(
   fromPlatform: () => Promise<StartEvent[] | null>,
   fromLuma: () => Promise<LumaEvent[]>,
   order: 'asc' | 'desc',
-): Promise<StartEvent[]> {
+): Promise<{ events: StartEvent[]; source: EventSource }> {
   const platformEvents = await fromPlatform();
-  if (platformEvents) return sortByStart(platformEvents, order);
+  if (platformEvents) return { events: sortByStart(platformEvents, order), source: 'platform' };
 
   const lumaEvents = await fromLuma();
-  return sortByStart(
-    lumaEvents.map(fromLumaEvent).filter((event): event is StartEvent => event !== null),
-    order,
-  );
+  return {
+    events: sortByStart(
+      lumaEvents.map(fromLumaEvent).filter((event): event is StartEvent => event !== null),
+      order,
+    ),
+    source: 'luma',
+  };
 }
 
 async function platformEvents(query: string): Promise<StartEvent[] | null> {
@@ -150,20 +160,22 @@ async function platformEvents(query: string): Promise<StartEvent[] | null> {
 
 /** Events that have not finished yet, soonest first. */
 export async function getUpcomingEvents(): Promise<StartEvent[]> {
-  return withLumaFallback(
+  const { events } = await withLumaFallback(
     () => platformEvents(`scope=upcoming&limit=${EVENTS_PER_FETCH}`),
     fetchUpcomingLumaEvents,
     'asc',
   );
+  return events;
 }
 
 /** Events that are over, most recent first. */
 export async function getPastEvents(): Promise<StartEvent[]> {
-  return withLumaFallback(
+  const { events } = await withLumaFallback(
     () => platformEvents(`scope=past&limit=${EVENTS_PER_FETCH}`),
     fetchPastLumaEvents,
     'desc',
   );
+  return events;
 }
 
 /**
@@ -192,13 +204,18 @@ export async function getFeaturedEvents(): Promise<StartEvent[]> {
  * disagree. Asking for `scope=all` without a window instead took the 200 soonest events overall,
  * which is oldest-first under `scope=all` — a quiet year would quietly push next January's events
  * into view and drop this December's.
+ *
+ * Returns which source answered alongside the events. Only the platform carries activity tags, so
+ * the caller needs that to avoid reporting a tag-derived statistic as a hard zero.
  */
-export async function getCalendarEvents(): Promise<StartEvent[]> {
+export async function getCalendarEvents(): Promise<{
+  events: StartEvent[];
+  source: EventSource;
+}> {
   const { from, to } = calendarYearWindow();
-  const events = await withLumaFallback(
+  return withLumaFallback(
     () => platformEvents(`from=${from.toISOString()}&to=${to.toISOString()}&limit=200`),
     fetchAllLumaEvents,
     'asc',
   );
-  return events;
 }

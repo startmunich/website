@@ -53,17 +53,22 @@ async function loadEventData() {
     }
   }
 
-  const calendarEvents = calendar.status === 'fulfilled' ? calendar.value : [];
+  const calendarEvents = calendar.status === 'fulfilled' ? calendar.value : null;
   const upcomingEvents = upcoming.status === 'fulfilled' ? upcoming.value : [];
   const pastEvents = past.status === 'fulfilled' ? past.value : [];
   const featuredEvents = featured.status === 'fulfilled' ? featured.value : [];
 
+  const events = calendarEvents?.events ?? [];
+  // Luma carries no activity tags, so a tag-derived statistic is unknown rather than zero when
+  // the fallback answered. Saying `0` there would contradict the calendar right next to it.
+  const tagsAvailable = calendarEvents?.source === 'platform';
+
   return {
-    markers: buildCalendarMarkers(calendarEvents),
+    markers: buildCalendarMarkers(events),
     upcomingEvents,
     pastEvents,
     featuredEvents,
-    stats: yearlyStats(calendarEvents),
+    stats: yearlyStats(events, new Date(), { tagsAvailable }),
   };
 }
 
