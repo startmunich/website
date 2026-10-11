@@ -29,26 +29,17 @@ export interface EventsContentProps {
   }>;
   upcomingEvents: StartEvent[];
   pastEvents: StartEvent[];
-  /**
-   * Yearly totals counted from real events. `hackathons` is a random stand-in when the source
-   * carries no tags — see `yearlyStats` — so the hero always has a number to show.
-   */
-  stats: { hackathons: number; events: number };
 }
 
-export default function EventsContent({
-  markers,
-  upcomingEvents,
-  pastEvents,
-  stats,
-}: EventsContentProps) {
+// Hand-set until hackathon tags flow from Luma through the members platform.
+const HACKATHONS_YEARLY = 2;
+const EVENTS_YEARLY = 15;
+
+export default function EventsContent({ markers, upcomingEvents, pastEvents }: EventsContentProps) {
   const [hoveredEvent, setHoveredEvent] = useState<string | null>(null);
 
-  // The count-up still animates on mount; there is no loading flag to wait for because the data
-  // arrives as props from the server. Both counts are real numbers under either source — the
-  // hackathon total is a stand-in only while the untagged fallback answers, see `yearlyStats`.
-  const animatedHackathons = useAnimatedNumber(stats.hackathons, false, 800);
-  const animatedEvents = useAnimatedNumber(stats.events, false, 800);
+  const animatedHackathons = useAnimatedNumber(HACKATHONS_YEARLY, false, 800);
+  const animatedEvents = useAnimatedNumber(EVENTS_YEARLY, false, 800);
 
   const months = monthLabels();
   const monthGroups = groupMarkersByMonth(markers);

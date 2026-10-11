@@ -88,8 +88,6 @@ test.describe('events page', () => {
 
   test('hero statistics render', async ({ page }) => {
     await page.goto('/events');
-    // Counted from this year's real events via `yearlyStats`. Asserting specific values would
-    // break every time the calendar changes; asserting presence catches a broken section.
     await expect(page.getByText(/hackathons yearly/i).first()).toBeVisible();
     await expect(page.getByText(/public events yearly/i).first()).toBeVisible();
   });

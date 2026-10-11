@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-import { buildCalendarMarkers, yearlyStats } from '@/lib/eventCalendar';
+import { buildCalendarMarkers } from '@/lib/eventCalendar';
 import { getCalendarEvents, getPastEvents, getUpcomingEvents } from '@/lib/events';
 import { OG_IMAGES } from '@/lib/metadata';
 
@@ -50,28 +50,17 @@ async function loadEventData() {
   const upcomingEvents = upcoming.status === 'fulfilled' ? upcoming.value : [];
   const pastEvents = past.status === 'fulfilled' ? past.value : [];
 
-  const events = calendarEvents?.events ?? [];
-  // Luma carries no activity tags, so a tag-derived statistic is unknown rather than zero when
-  // the fallback answered. Saying `0` there would contradict the calendar right next to it.
-  const tagsAvailable = calendarEvents?.source === 'platform';
-
   return {
-    markers: buildCalendarMarkers(events),
+    markers: buildCalendarMarkers(calendarEvents?.events ?? []),
     upcomingEvents,
     pastEvents,
-    stats: yearlyStats(events, new Date(), { tagsAvailable }),
   };
 }
 
 export default async function EventsPage() {
-  const { markers, upcomingEvents, pastEvents, stats } = await loadEventData();
+  const { markers, upcomingEvents, pastEvents } = await loadEventData();
 
   return (
-    <EventsContent
-      markers={markers}
-      upcomingEvents={upcomingEvents}
-      pastEvents={pastEvents}
-      stats={stats}
-    />
+    <EventsContent markers={markers} upcomingEvents={upcomingEvents} pastEvents={pastEvents} />
   );
 }
