@@ -9,7 +9,12 @@ export interface EventCardProps {
     description: string;
     month: string;
     image: string;
-    category: string;
+    /**
+     * Optional on purpose: callers pass nothing for the ordinary `public` kind, because a badge
+     * reading "Public" on nearly every card carries no information. Only the kinds that actually
+     * differentiate something get one.
+     */
+    category?: string;
   };
   index: number;
   hoveredEvent: string | null;
@@ -61,9 +66,11 @@ export const EventCard = ({
 
       {/* Text content area */}
       <div className="flex flex-1 flex-col px-6 py-4">
-        <span className="mb-2 inline-block text-xs font-bold uppercase tracking-widest text-[#d0006f]">
-          {event.category}
-        </span>
+        {event.category && (
+          <span className="mb-2 inline-block text-xs font-bold uppercase tracking-widest text-[#d0006f]">
+            {event.category}
+          </span>
+        )}
         <h3 className="mb-1 text-lg font-black leading-tight text-white">{event.name}</h3>
         <p className="mb-2 whitespace-pre-line text-xs font-medium text-white/40">{event.month}</p>
         <p className="flex-1 text-sm leading-relaxed text-gray-400">{event.description}</p>
@@ -144,7 +151,7 @@ export interface SpecialEventCardProps {
     id: string;
     name: string;
     description: string;
-    category: string;
+    category?: string;
     image: string;
   };
   index?: number;
@@ -170,11 +177,13 @@ export const SpecialEventCard = ({ event, index = 0, className = '' }: SpecialEv
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
 
         {/* Category badge - top left */}
-        <div className="absolute left-5 top-5">
-          <span className="inline-flex items-center rounded-full border border-white/20 bg-white/20 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-md">
-            {event.category}
-          </span>
-        </div>
+        {event.category && (
+          <div className="absolute left-5 top-5">
+            <span className="inline-flex items-center rounded-full border border-white/20 bg-white/20 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-white backdrop-blur-md">
+              {event.category}
+            </span>
+          </div>
+        )}
 
         {/* Bottom text overlay */}
         <div className="absolute bottom-0 left-0 right-0 p-6">
@@ -235,10 +244,28 @@ export const TimelineMarker = ({
   )[position][size];
   const staggerClass = stagger ? (position === 'top' ? '-top-16' : '-bottom-16') : '';
 
+  /**
+   * Keep the pill inside the card.
+   *
+   * The pill is `whitespace-nowrap` and centred on the marker, so a late-December event at 99.73%
+   * would hang most of its label past the right edge of a ~1200px card. Near either edge the pill
+   * anchors to that edge instead of centring, which costs nothing in the middle of the year and
+   * stops the label running off the card.
+   */
+  const percent = Number.parseFloat(left);
+  const pillAnchor =
+    !Number.isFinite(percent) || (percent > 12 && percent < 88)
+      ? 'left-1/2 -translate-x-1/2'
+      : percent <= 12
+        ? 'left-0'
+        : 'right-0';
+
   return (
     <div
       className={`absolute top-1/2 -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all ${isHovered ? 'z-10 scale-150' : 'hover:scale-125'}`}
-      style={{ left }}
+      // The dot is 16px and centred on `left`, so the last days of December would otherwise sit
+      // half a dot past the strip. Clamping keeps it on the line without moving it anywhere else.
+      style={{ left: `clamp(0.5rem, ${left}, calc(100% - 0.5rem))` }}
       onMouseEnter={() => onHover(eventId)}
       onMouseLeave={onLeave}
     >
@@ -251,7 +278,7 @@ export const TimelineMarker = ({
           }}
         ></div>
         <div
-          className={`absolute ${positionClass} ${staggerClass} left-1/2 -translate-x-1/2 whitespace-nowrap`}
+          className={`absolute ${positionClass} ${staggerClass} ${pillAnchor} whitespace-nowrap`}
         >
           <div className="rounded-full border border-white/10 bg-[#0a0a2e] px-3.5 py-1.5 text-xs shadow-lg shadow-black/20">
             <p className="font-bold text-white">{label}</p>
