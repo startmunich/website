@@ -85,19 +85,38 @@ export function timelinePosition(month: number, day: number): string {
 }
 
 /**
- * Markers for the events in a window around `now`, soonest first.
+ * The bounds of the calendar year `now` falls in: `[from, to)`.
  *
- * `pastMonths` / `futureMonths` bound the strip: a calendar that only syncs ~6 months ahead would
- * otherwise pile every future event onto the far right of the year.
+ * Shared by the marker window and by the `getCalendarEvents` fetch, so the strip cannot be handed
+ * a different period than the one it draws.
+ */
+export function calendarYearWindow(now = new Date()): { from: Date; to: Date } {
+  return {
+    from: new Date(now.getFullYear(), 0, 1),
+    to: new Date(now.getFullYear() + 1, 0, 1),
+  };
+}
+
+/**
+ * Markers for the events in the calendar year `now` falls in, soonest first.
+ *
+ * The window is the calendar year, because the strip is drawn on a Jan–Dec axis labelled "our year
+ * in events" — so Jan must be January *this* year and Dec must be December *this* year. A rolling
+ * window (3 months back, 9 forward) disagreed with its own axis: viewed in October it covered
+ * Jul–Jul, which dropped everything earlier in the year and then plotted next year's January onto
+ * this January. Months far from "now" came out blank for no reason other than the window.
+ *
+ * Windowing on the same year `yearlyStats` counts is also what makes the hero numbers and the
+ * strip describe the same period, instead of the hero counting 21 events while 9 of them had no
+ * marker.
  */
 export function buildCalendarMarkers(
   events: StartEvent[],
-  options: { now?: Date; pastMonths?: number; futureMonths?: number } = {},
+  options: { now?: Date } = {},
 ): CalendarMarker[] {
-  const { now = new Date(), pastMonths = 3, futureMonths = 9 } = options;
+  const { now = new Date() } = options;
 
-  const windowStart = new Date(now.getFullYear(), now.getMonth() - pastMonths, 1);
-  const windowEnd = new Date(now.getFullYear(), now.getMonth() + futureMonths + 1, 1);
+  const { from: windowStart, to: windowEnd } = calendarYearWindow(now);
 
   return events
     .filter((event) => {

@@ -51,7 +51,12 @@ export async function fetchFromPlatform<T>(path: string): Promise<T[] | null> {
     });
 
     if (!response.ok) {
-      console.error('Members platform %s failed: %d %s', path, response.status, response.statusText);
+      console.error(
+        'Members platform %s failed: %d %s',
+        path,
+        response.status,
+        response.statusText,
+      );
       return null;
     }
 

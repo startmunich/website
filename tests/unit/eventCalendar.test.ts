@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest';
 
 import {
   buildCalendarMarkers,
+  calendarYearWindow,
   EVENT_KIND_COLORS,
   fullMonthLabel,
   groupMarkersByMonth,
@@ -89,6 +90,40 @@ describe('timelinePosition', () => {
   });
 });
 
+describe('calendarYearWindow', () => {
+  test('spans exactly the calendar year, start inclusive and end exclusive', () => {
+    const { from, to } = calendarYearWindow(NOW);
+    expect(from.getFullYear()).toBe(2026);
+    expect(from.getMonth()).toBe(0);
+    expect(from.getDate()).toBe(1);
+    expect(to.getFullYear()).toBe(2027);
+    expect(to.getMonth()).toBe(0);
+    expect(to.getDate()).toBe(1);
+  });
+
+  test('is the same period the strip draws and the hero counts', () => {
+    // The disagreement this guards: the hero counted all 21 of the year's events while 9 of them
+    // had no marker, because the two used different windows.
+    const events = [
+      event({ id: 'a', startAt: '2026-02-03T10:00:00Z' }),
+      event({ id: 'b', startAt: '2026-04-14T10:00:00Z' }),
+      event({ id: 'c', startAt: '2026-12-09T10:00:00Z' }),
+      event({ id: 'next', startAt: '2027-03-03T10:00:00Z' }),
+    ];
+
+    const { from, to } = calendarYearWindow(NOW);
+    const counted = events.filter((e) => {
+      const at = Date.parse(e.startAt);
+      return at >= from.getTime() && at < to.getTime();
+    });
+
+    expect(yearlyStats(events, NOW).events).toBe(counted.length);
+    expect(buildCalendarMarkers(events, { now: NOW }).map((m) => m.eventId)).toEqual(
+      counted.map((e) => e.id),
+    );
+  });
+});
+
 describe('buildCalendarMarkers', () => {
   test('returns nothing for an empty feed', () => {
     expect(buildCalendarMarkers([], { now: NOW })).toEqual([]);
@@ -115,18 +150,37 @@ describe('buildCalendarMarkers', () => {
     // November one whenever the window crossed a year boundary.
     const markers = buildCalendarMarkers(
       [
-        event({ id: 'jan', startAt: '2027-01-13T10:00:00Z' }),
         event({ id: 'nov', startAt: '2026-11-11T10:00:00Z' }),
         event({ id: 'dec', startAt: '2026-12-09T10:00:00Z' }),
         event({ id: 'oct', startAt: '2026-10-14T10:00:00Z' }),
       ],
-      { now: NOW, pastMonths: 0, futureMonths: 6 },
+      { now: NOW },
     );
 
-    expect(markers.map((m) => m.eventId)).toEqual(['oct', 'nov', 'dec', 'jan']);
+    expect(markers.map((m) => m.eventId)).toEqual(['oct', 'nov', 'dec']);
   });
 
-  test('excludes events outside the window', () => {
+  test('covers the whole calendar year, not a window around now', () => {
+    // The bug this guards: a rolling 3-months-back / 9-months-forward window viewed in October
+    // covers Jul–Jul, which blanked January and April even though the strip is drawn Jan–Dec and
+    // the hero counts the whole year.
+    const markers = buildCalendarMarkers(
+      [
+        event({ id: 'january', startAt: '2026-01-20T10:00:00Z' }),
+        event({ id: 'april', startAt: '2026-04-14T10:00:00Z' }),
+        event({ id: 'july', startAt: '2026-07-14T10:00:00Z' }),
+        event({ id: 'december', startAt: '2026-12-09T10:00:00Z' }),
+        // Next January belongs to next year and must not land on this January.
+        event({ id: 'next-january', startAt: '2027-01-13T10:00:00Z' }),
+        event({ id: 'last-january', startAt: '2025-01-15T10:00:00Z' }),
+      ],
+      { now: NOW },
+    );
+
+    expect(markers.map((m) => m.eventId)).toEqual(['january', 'april', 'july', 'december']);
+  });
+
+  test('excludes events outside the calendar year', () => {
     const markers = buildCalendarMarkers(
       [
         event({ id: 'far-past', startAt: '2023-01-10T10:00:00Z' }),

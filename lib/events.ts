@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { calendarYearWindow } from './eventCalendar';
 import { EVENT_KIND_LABELS, type EventKind, type EventTag, type StartEvent } from './eventTypes';
 import {
   fetchAllLumaEvents,
@@ -169,22 +170,33 @@ export async function getPastEvents(): Promise<StartEvent[]> {
  * Events an admin marked as highlighted, soonest first — the "featured" strip. Empty until
  * something is curated, which the page renders as a short "coming soon" note rather than
  * inventing a programme to fill the space.
+ *
+ * `scope=upcoming`, not `scope=all`: the platform never clears `isHighlighted`, so once an event
+ * is featured it stays featured forever. Under `scope=all` the strip opened with the oldest
+ * highlight of all — a finished event with a Register button pointing at an expired Luma page.
+ * Scoping on "not yet finished" also keeps an event that is running right now in the strip.
  */
 export async function getFeaturedEvents(): Promise<StartEvent[]> {
   const highlighted = await platformEvents(
-    `highlightedOnly=true&scope=all&limit=${EVENTS_PER_FETCH}`,
+    `highlightedOnly=true&scope=upcoming&limit=${EVENTS_PER_FETCH}`,
   );
   if (!highlighted) return [];
   return sortByStart(highlighted, 'asc');
 }
 
 /**
- * Everything on the calendar, ascending, for the annual strip: the events that already happened in
- * this year plus the ones coming. One call, bounded, rather than a per-month fan-out.
+ * Everything on the calendar for this calendar year, ascending, for the annual strip: the events
+ * that already happened plus the ones coming. One call, bounded, rather than a per-month fan-out.
+ *
+ * The `from`/`to` window is the same `calendarYearWindow` the strip draws, so the two cannot
+ * disagree. Asking for `scope=all` without a window instead took the 200 soonest events overall,
+ * which is oldest-first under `scope=all` — a quiet year would quietly push next January's events
+ * into view and drop this December's.
  */
 export async function getCalendarEvents(): Promise<StartEvent[]> {
+  const { from, to } = calendarYearWindow();
   const events = await withLumaFallback(
-    () => platformEvents(`scope=all&limit=200`),
+    () => platformEvents(`from=${from.toISOString()}&to=${to.toISOString()}&limit=200`),
     fetchAllLumaEvents,
     'asc',
   );

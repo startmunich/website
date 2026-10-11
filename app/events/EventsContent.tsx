@@ -329,7 +329,7 @@ export default function EventsContent({
         </div>
 
         {/* Featured events */}
-        <div ref={sliderRef} className="mx-auto mb-24 mt-8 max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto mb-24 mt-8 max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="relative">
             <div className="mb-6">
               <span className="text-sm font-bold uppercase tracking-[0.3em] text-[#d0006f]">
@@ -343,6 +343,11 @@ export default function EventsContent({
             {featuredEvents.length > 0 ? (
               <>
                 <div
+                  // The ref has to be on the element that actually scrolls. It sat on the
+                  // outer wrapper for a while, which left `scrollLeft` writes going nowhere and
+                  // the ScrollIndicator thumb pinned full width; trackpads kept working, so it
+                  // was easy to miss.
+                  ref={sliderRef}
                   onMouseDown={handleDrag.start}
                   onMouseUp={handleDrag.end}
                   onMouseMove={handleDrag.move}

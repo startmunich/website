@@ -161,12 +161,27 @@ next fetch. **Highlighted** events become the featured slider cards. Both the fe
 annual calendar render an honest "check back soon" state while there is nothing to show, rather than
 a hand-maintained programme that silently goes out of date.
 
-Two things to know when editing this code:
+### Where event tags come from
+
+The hero's "Hackathons Yearly" figure counts events whose `tags` include `hackathon`, so it depends
+on tags being present:
+
+- **Members platform (primary).** `tags` come straight from the `events` table, which the platform's
+  Luma sync populates. They are real, admin-curated values, so the count reflects what is actually
+  tagged in the platform rather than anything guessed here.
+- **Luma (fallback).** Luma carries no activity tags, so events from the fallback arrive untagged
+  and the figure reads lower. The website does **not** infer a tag from an event title — a title
+  that happens to contain "hackathon" is not evidence that it is one. Treat a low count as a signal
+  that the fallback is in use, not as a bug in the page.
+
+Three things to know when editing this code:
 
 - `lib/events.ts` is the only place that fetches events. `lib/eventCalendar.ts` holds the pure
   marker/legend/statistics helpers and is what the unit tests cover.
 - Event covers come from `images.lumacdn.com`, which **must** stay in the `remotePatterns` allowlist
   in `next.config.js` — without it the upcoming-events images silently fail to load.
+- The annual strip is windowed on the **calendar year**, shared by the marker builder and the fetch
+  (`calendarYearWindow`), so the strip and the hero statistics always describe the same period.
 
 ## Project Structure
 
@@ -437,7 +452,7 @@ brand: {
 - **Luma** — the event **fallback**, used only when the members platform API is unconfigured or
   unreachable, so `/events` keeps working without it. The platform syncs Luma every few hours, so
   creating an event on Luma makes it appear here without any deploy. See
-  [Events](#events-events-arrive-from-luma-automatically) below.
+  [Events](#events--events-reach-the-page-automatically) below.
 - **`lib/events.ts`** — the single place event data is fetched and normalized to one `StartEvent`
   shape, whichever source answered. `lib/eventCalendar.ts` holds the pure helpers that place events
   on the annual strip and compute the hero statistics.
