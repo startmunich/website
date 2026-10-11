@@ -80,17 +80,6 @@ test.describe('events page', () => {
     }
   });
 
-  test('renders either the featured strip or its explicit empty state', async ({ page }) => {
-    await page.goto('/events');
-    const featured = page.getByTestId('events-featured');
-    const empty = page.getByTestId('events-featured-empty');
-    await expect(featured.or(empty).first()).toBeVisible();
-    if ((await empty.count()) > 0) {
-      // Nothing curated yet — the strip says so rather than inventing a programme.
-      await expect(empty).toContainText(/check back soon/i);
-    }
-  });
-
   test('never shows a dead "#" link on a card', async ({ page }) => {
     await page.goto('/events');
     // A card with no registration URL must render a plain card, not an anchor to nowhere.

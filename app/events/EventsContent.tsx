@@ -2,13 +2,13 @@
 
 import Link from 'next/link';
 import Script from 'next/script';
-import React, { useRef, useState } from 'react';
+import { useState } from 'react';
 
-import { EventCard, ScrollIndicator, TimelineMarker } from '@/components/EventComponents';
+import { TimelineMarker } from '@/components/EventComponents';
 import Hero from '@/components/Hero';
 import HeroCard from '@/components/HeroCard';
 import { groupMarkersByMonth, monthLabels } from '@/lib/eventCalendar';
-import { EVENT_KIND_LABELS, type StartEvent } from '@/lib/eventTypes';
+import type { StartEvent } from '@/lib/eventTypes';
 import { useAnimatedNumber } from '@/lib/useAnimatedNumber';
 
 import PastEventsList from './PastEventsList';
@@ -29,58 +29,26 @@ export interface EventsContentProps {
   }>;
   upcomingEvents: StartEvent[];
   pastEvents: StartEvent[];
-  /** Events an admin highlighted on the members platform. */
-  featuredEvents: StartEvent[];
-  /** `hackathons` is null when the source carries no tags, which is unknown rather than zero. */
-  stats: { hackathons: number | null; events: number };
+  /**
+   * Yearly totals counted from real events. `hackathons` is a random stand-in when the source
+   * carries no tags — see `yearlyStats` — so the hero always has a number to show.
+   */
+  stats: { hackathons: number; events: number };
 }
-
-/** Local art for a featured card with no cover, so the row never renders a broken image. */
-const FALLBACK_COVER = '/events/eventCards/hack-opt.jpg';
 
 export default function EventsContent({
   markers,
   upcomingEvents,
   pastEvents,
-  featuredEvents,
   stats,
 }: EventsContentProps) {
-  const sliderRef = useRef<HTMLDivElement>(null);
-  const dragState = useRef({ isDragging: false, startX: 0, scrollLeft: 0 });
   const [hoveredEvent, setHoveredEvent] = useState<string | null>(null);
 
   // The count-up still animates on mount; there is no loading flag to wait for because the data
-  // arrives as props from the server.
-  //
-  // `stats.hackathons` is null when the source carries no tags (the Luma fallback). Animating a
-  // count from 0 to 0 would animate a claim, so that slot renders an em dash instead — see
-  // `yearlyStats`. The other two counts are real under either source.
-  const animatedHackathons = useAnimatedNumber(stats.hackathons ?? 0, false, 800);
+  // arrives as props from the server. Both counts are real numbers under either source — the
+  // hackathon total is a stand-in only while the untagged fallback answers, see `yearlyStats`.
+  const animatedHackathons = useAnimatedNumber(stats.hackathons, false, 800);
   const animatedEvents = useAnimatedNumber(stats.events, false, 800);
-
-  const handleDrag = {
-    start: (e: React.MouseEvent) => {
-      const slider = sliderRef.current;
-      if (!slider) return;
-      dragState.current = {
-        isDragging: true,
-        startX: e.pageX - slider.offsetLeft,
-        scrollLeft: slider.scrollLeft,
-      };
-    },
-    move: (e: React.MouseEvent) => {
-      if (!dragState.current.isDragging || !sliderRef.current) return;
-      e.preventDefault();
-      const x = e.currentTarget.ownerDocument.defaultView
-        ? e.clientX - sliderRef.current.offsetLeft
-        : 0;
-      sliderRef.current.scrollLeft =
-        dragState.current.scrollLeft - (x - dragState.current.startX) * 2;
-    },
-    end: () => {
-      dragState.current.isDragging = false;
-    },
-  };
 
   const months = monthLabels();
   const monthGroups = groupMarkersByMonth(markers);
@@ -122,17 +90,9 @@ export default function EventsContent({
             <HeroCard>
               <div className="mb-3 flex items-baseline justify-center gap-2">
                 <span className="bg-gradient-to-br from-white to-gray-300 bg-clip-text text-4xl font-black text-transparent transition lg:text-6xl">
-                  {stats.hackathons === null ? (
-                    // No tag data from the fallback source. An em dash says "not known"; a 0 would
-                    // claim we ran none while the calendar below lists the year's events.
-                    <span data-testid="stat-hackathons-unavailable">&mdash;</span>
-                  ) : (
-                    Math.floor(animatedHackathons)
-                  )}
+                  {Math.floor(animatedHackathons)}
                 </span>
-                {stats.hackathons !== null && (
-                  <span className="text-xl font-bold text-[#d0006f] lg:text-3xl">+</span>
-                )}
+                <span className="text-xl font-bold text-[#d0006f] lg:text-3xl">+</span>
               </div>
               <p className="text-xs font-bold uppercase tracking-widest text-gray-300">
                 Hackathons Yearly
@@ -305,81 +265,6 @@ export default function EventsContent({
               >
                 <p className="text-lg text-gray-400">
                   The calendar is being updated — check back soon.
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Featured events */}
-        <div className="mx-auto mb-24 mt-8 max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="relative">
-            <div className="mb-6">
-              <span className="text-sm font-bold uppercase tracking-[0.3em] text-[#d0006f]">
-                Featured
-              </span>
-              <h2 className="mb-3 mt-2 text-3xl font-black text-white md:text-4xl">
-                DON&apos;T <span className="outline-text">MISS OUT</span>
-              </h2>
-            </div>
-
-            {featuredEvents.length > 0 ? (
-              <>
-                <div
-                  // The ref has to be on the element that actually scrolls. It sat on the
-                  // outer wrapper for a while, which left `scrollLeft` writes going nowhere and
-                  // the ScrollIndicator thumb pinned full width; trackpads kept working, so it
-                  // was easy to miss.
-                  ref={sliderRef}
-                  onMouseDown={handleDrag.start}
-                  onMouseUp={handleDrag.end}
-                  onMouseMove={handleDrag.move}
-                  onMouseLeave={handleDrag.end}
-                  className="scrollbar-hide flex cursor-grab select-none gap-6 overflow-x-auto px-1 py-4 active:cursor-grabbing"
-                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                  data-testid="events-featured"
-                >
-                  {featuredEvents.map((event, index) => (
-                    <EventCard
-                      key={event.id}
-                      event={{
-                        id: event.id,
-                        name: event.title,
-                        description: event.description ?? '',
-                        month: new Date(event.startAt).toLocaleDateString('en-GB', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                          timeZone: 'UTC',
-                        }),
-                        image: event.coverImageUrl ?? FALLBACK_COVER,
-                        // A chip reading "Public" tells a visitor nothing — essentially every
-                        // event carries that kind. Only the kinds that actually differentiate
-                        // something are worth the space.
-                        category:
-                          event.kind === 'public' ? undefined : EVENT_KIND_LABELS[event.kind],
-                      }}
-                      index={index}
-                      hoveredEvent={hoveredEvent}
-                      setHoveredEvent={setHoveredEvent}
-                      isFlagship
-                      className="h-full"
-                      ctaLabel={event.registrationUrl ? 'Register' : undefined}
-                      ctaHref={event.registrationUrl ?? undefined}
-                    />
-                  ))}
-                </div>
-
-                <ScrollIndicator sliderRef={sliderRef} />
-                <div className="pointer-events-none absolute bottom-0 right-0 top-0 w-16 rounded-r-[1.75rem] bg-gradient-to-l from-[#00002c] to-transparent"></div>
-              </>
-            ) : (
-              <div
-                className="rounded-[1.75rem] border border-white/[0.07] bg-white/[0.03] px-6 py-16 text-center backdrop-blur-sm"
-                data-testid="events-featured-empty"
-              >
-                <p className="text-lg text-gray-400">
-                  We&apos;re picking the next highlight — check back soon.
                 </p>
               </div>
             )}

@@ -131,19 +131,38 @@ function sortByStart(events: StartEvent[], order: 'asc' | 'desc'): StartEvent[] 
   return [...events].sort((a, b) => sign * (Date.parse(a.startAt) - Date.parse(b.startAt)));
 }
 
-/** Platform first, Luma second; both normalised and sorted the same way. */
+/**
+ * Entries that exist to exercise the pipeline, not to be seen. Filtered from every list the page
+ * renders — upcoming, past, calendar, featured — so a test entry can never reach the public site
+ * from either source.
+ */
+function isTestEvent(event: StartEvent): boolean {
+  return event.title.trim().toLowerCase() === 'test-event';
+}
+
+/** Platform first, Luma second; both normalised, de-tested, and sorted the same way. */
 async function withLumaFallback(
   fromPlatform: () => Promise<StartEvent[] | null>,
   fromLuma: () => Promise<LumaEvent[]>,
   order: 'asc' | 'desc',
 ): Promise<{ events: StartEvent[]; source: EventSource }> {
   const platformEvents = await fromPlatform();
-  if (platformEvents) return { events: sortByStart(platformEvents, order), source: 'platform' };
+  if (platformEvents) {
+    return {
+      events: sortByStart(
+        platformEvents.filter((event) => !isTestEvent(event)),
+        order,
+      ),
+      source: 'platform',
+    };
+  }
 
   const lumaEvents = await fromLuma();
   return {
     events: sortByStart(
-      lumaEvents.map(fromLumaEvent).filter((event): event is StartEvent => event !== null),
+      lumaEvents
+        .map(fromLumaEvent)
+        .filter((event): event is StartEvent => event !== null && !isTestEvent(event)),
       order,
     ),
     source: 'luma',
@@ -176,24 +195,6 @@ export async function getPastEvents(): Promise<StartEvent[]> {
     'desc',
   );
   return events;
-}
-
-/**
- * Events an admin marked as highlighted, soonest first — the "featured" strip. Empty until
- * something is curated, which the page renders as a short "coming soon" note rather than
- * inventing a programme to fill the space.
- *
- * `scope=upcoming`, not `scope=all`: the platform never clears `isHighlighted`, so once an event
- * is featured it stays featured forever. Under `scope=all` the strip opened with the oldest
- * highlight of all — a finished event with a Register button pointing at an expired Luma page.
- * Scoping on "not yet finished" also keeps an event that is running right now in the strip.
- */
-export async function getFeaturedEvents(): Promise<StartEvent[]> {
-  const highlighted = await platformEvents(
-    `highlightedOnly=true&scope=upcoming&limit=${EVENTS_PER_FETCH}`,
-  );
-  if (!highlighted) return [];
-  return sortByStart(highlighted, 'asc');
 }
 
 /**
