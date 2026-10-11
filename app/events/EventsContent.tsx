@@ -175,7 +175,7 @@ export default function EventsContent({
           </div>
 
           {/* Annual Calendar */}
-          <div>
+          <div className="mb-24">
             <div className="mb-8">
               <span className="text-sm font-bold uppercase tracking-[0.3em] text-[#d0006f]">
                 Annual Calendar
@@ -273,7 +273,7 @@ export default function EventsContent({
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Member Exclusive Events Section */}
-          <div className="mb-16">
+          <div className="mb-24">
             <div className="relative overflow-hidden rounded-2xl border-2 border-[#d0006f]/50 bg-gradient-to-br from-[#1a1a3e] via-[#00002c] to-[#0d0d1f] shadow-2xl shadow-[#d0006f]/20">
               <div className="absolute right-0 top-0 h-64 w-64 rounded-full bg-[#d0006f]/10 blur-3xl"></div>
               <div className="absolute bottom-0 left-0 h-48 w-48 rounded-full bg-[#d0006f]/5 blur-3xl"></div>
