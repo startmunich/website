@@ -10,6 +10,7 @@
 import type { Metadata } from 'next';
 
 import { OG_IMAGES } from '@/lib/metadata';
+import { attachmentUrl, resolveLogoUrl } from '@/lib/startups';
 import type { NewsItem, Partner, Startup } from '@/lib/types';
 
 import HomeClient from './home/HomeClient';
@@ -48,6 +49,7 @@ type StartupFetchResult = {
 };
 
 interface NocoDBAttachment {
+  path?: string;
   signedPath?: string;
 }
 
@@ -106,9 +108,11 @@ async function fetchFeaturedPartners(): Promise<Partner[]> {
       .map((r: PartnerRecord) => {
         const logos: NocoDBAttachment[] = r.LogoNoBackground || [];
         const logo = logos.length > 0 ? logos[logos.length - 1] : null;
-        const logoUrl = logo?.signedPath
-          ? `${NOCODB_BASE_URL}/${logo.signedPath}`
-          : `https://ui-avatars.com/api/?name=${encodeURIComponent(r.Name || 'Partner')}&size=300&background=4f46e5&color=fff&bold=true&font-size=0.4`;
+        // Prefer the unsigned `path`; a `signedPath` expires and goes stale in
+        // the ISR cache. See `attachmentUrl` in lib/startups.ts.
+        const logoUrl =
+          attachmentUrl(logo) ??
+          `https://ui-avatars.com/api/?name=${encodeURIComponent(r.Name || 'Partner')}&size=300&background=4f46e5&color=fff&bold=true&font-size=0.4`;
         return {
           id: r.Id || String(Math.random()),
           name: r.Name || 'Partner',
@@ -144,8 +148,8 @@ async function fetchFeaturedStartups(): Promise<StartupFetchResult> {
       )
       .map((r: StartupRecord) => {
         let logoUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(r['Startup Name'] || 'Startup')}&size=300&background=00002c&color=fff&bold=true&font-size=0.4`;
-        if (r['Company Logo']?.[0]?.signedPath)
-          logoUrl = `${NOCODB_BASE_URL}/${r['Company Logo'][0].signedPath}`;
+        const resolved = resolveLogoUrl(r['Startup Name'] || '', r['Company Logo']?.[0]);
+        if (resolved) logoUrl = resolved;
         return {
           id: r.Id || r.id,
           name: r['Startup Name'] || 'Startup',
@@ -176,10 +180,7 @@ async function fetchNews(): Promise<NewsItem[]> {
     return (data.list || [])
       .sort((a: NewsRecord, b: NewsRecord) => (a.Order ?? Infinity) - (b.Order ?? Infinity))
       .map((r: NewsRecord) => {
-        let imageUrl = '';
-        if (r.Image && Array.isArray(r.Image) && r.Image[0]?.signedPath) {
-          imageUrl = `${NOCODB_BASE_URL}/${r.Image[0].signedPath}`;
-        }
+        const imageUrl = attachmentUrl(Array.isArray(r.Image) ? r.Image[0] : undefined) ?? '';
         return {
           id: r.Id || r.id || String(Math.random()),
           title: r.Title || '',
