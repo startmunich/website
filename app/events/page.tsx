@@ -1,12 +1,7 @@
 import type { Metadata } from 'next';
 
 import { buildCalendarMarkers, yearlyStats } from '@/lib/eventCalendar';
-import {
-  getCalendarEvents,
-  getFeaturedEvents,
-  getPastEvents,
-  getUpcomingEvents,
-} from '@/lib/events';
+import { getCalendarEvents, getPastEvents, getUpcomingEvents } from '@/lib/events';
 import { OG_IMAGES } from '@/lib/metadata';
 
 import EventsContent from './EventsContent';
@@ -35,18 +30,16 @@ export const metadata: Metadata = {
  * section renders its own "coming soon" state rather than a blank box.
  */
 async function loadEventData() {
-  const [calendar, upcoming, past, featured] = await Promise.allSettled([
+  const [calendar, upcoming, past] = await Promise.allSettled([
     getCalendarEvents(),
     getUpcomingEvents(),
     getPastEvents(),
-    getFeaturedEvents(),
   ]);
 
   for (const [label, result] of [
     ['calendar', calendar],
     ['upcoming', upcoming],
     ['past', past],
-    ['featured', featured],
   ] as const) {
     if (result.status === 'rejected') {
       console.error(`Error loading ${label} events:`, result.reason);
@@ -56,7 +49,6 @@ async function loadEventData() {
   const calendarEvents = calendar.status === 'fulfilled' ? calendar.value : null;
   const upcomingEvents = upcoming.status === 'fulfilled' ? upcoming.value : [];
   const pastEvents = past.status === 'fulfilled' ? past.value : [];
-  const featuredEvents = featured.status === 'fulfilled' ? featured.value : [];
 
   const events = calendarEvents?.events ?? [];
   // Luma carries no activity tags, so a tag-derived statistic is unknown rather than zero when
@@ -67,20 +59,18 @@ async function loadEventData() {
     markers: buildCalendarMarkers(events),
     upcomingEvents,
     pastEvents,
-    featuredEvents,
     stats: yearlyStats(events, new Date(), { tagsAvailable }),
   };
 }
 
 export default async function EventsPage() {
-  const { markers, upcomingEvents, pastEvents, featuredEvents, stats } = await loadEventData();
+  const { markers, upcomingEvents, pastEvents, stats } = await loadEventData();
 
   return (
     <EventsContent
       markers={markers}
       upcomingEvents={upcomingEvents}
       pastEvents={pastEvents}
-      featuredEvents={featuredEvents}
       stats={stats}
     />
   );
