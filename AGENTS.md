@@ -3,8 +3,8 @@
 Working notes for coding agents on the START Munich website.
 
 Next.js 15 (App Router) + React 18 + TypeScript 5.9 (strict) + Tailwind 3.4, deployed to Vercel.
-Content is **not** in the repo — it is fetched at request time from NocoDB, Luma, and the internal
-START Munich API.
+Content is **not** in the repo — it is fetched at request time from Sanity, the members platform,
+and Luma. NocoDB survives only for the waitlist write (see "The waitlist exception" below).
 
 - `README.md` is the human-facing reference (setup, env vars, routes, deployment). Read it before
   touching anything non-trivial.
@@ -51,6 +51,7 @@ commit messages must be Conventional Commits (`feat(startups): ...`, `fix: ...`)
 app/            Routes (App Router), layouts, API route handlers
 components/     Shared components; components/ui/ = shadcn + registry components
 lib/            Data fetching, types, shared metadata, hooks
+sanity/         Sanity client (client.ts) and GROQ queries (queries.ts)
 scripts/        Repo scripts (.cjs, use require — not linted for that)
 tests/e2e/      Playwright specs
 docs/           Setup guides
@@ -69,23 +70,38 @@ Pages that render live data split into `page.tsx` (server: `metadata`, route con
 
 ### Data fetching and caching
 
-All upstream calls go through NocoDB (`xc-token` header), Luma, or the internal API. Conventions to
-copy from `lib/startups.ts` and `app/api/*/route.ts`:
+CMS content comes from Sanity via `next-sanity`. Other upstream calls go through the members
+platform or Luma. Conventions to copy from `lib/sanityContent.ts` and `app/api/*/route.ts`:
 
-- `AbortSignal.timeout(10_000)` on every fetch — never leave a request unbounded.
+- GROQ lives in `sanity/queries.ts`, one `defineQuery` per surface. Use **unique query variable
+  names** across files — duplicates silently overwrite each other's generated types.
+- Always project fields; never `*[_type == "x"]` unprojected. Wrap computed attributes in quotes:
+  `"logoUrl": logo{…}`.
+- Filter on indexed attributes (`_type`, `isVisible == true`, `slug.current == $slug`). Avoid
+  `->field` in filters — that resolves references per candidate document. Use `_ref` instead.
 - ISR is one hour everywhere: `export const revalidate = 3600` on the route/segment, and
   `next: { revalidate: 3600 }` on the `fetch` itself.
 - Data-driven pages (`/startups`, `/members`, `/partners`, `/events`, `/labs`, `/member-network`,
   `/member-journey`) opt out of static rendering with `export const dynamic = 'force-dynamic'`.
-- When a token or table ID is missing, **degrade to empty rather than throwing** so a misconfigured
-  preview build still renders. This is deliberate — do not "fix" it by crashing.
+- **Degrade to empty rather than throwing** so a misconfigured preview build still renders. This is
+  deliberate — do not "fix" it by crashing.
 - API handlers wrap upstream calls in `try/catch` and map failures to JSON with a sensible status
   (504 on timeout, 500 otherwise).
 - Mark server-only data modules with `import 'server-only'` so a token can't leak into the client
-  bundle.
+  bundle. `sanity/client.ts` and `lib/sanityContent.ts` both do.
+- **Schema changes are cross-repo.** Field definitions live in `website-cms`
+  (`schemaTypes/documents/`). Adding or renaming a field means changing the schema there, running
+  `npm run typegen` in that repo, _and_ updating the projection in `sanity/queries.ts` here.
 - `lib/startNetwork.ts` is the single source of truth for the chapter list and the
   chapter/country/member counts rendered on the home and member-journey pages. Edit it there; don't
   duplicate the numbers.
+
+### The waitlist exception
+
+`app/api/waitlist/route.ts` still writes to NocoDB and still needs `NOCODB_API_TOKEN` +
+`NOCODB_WAITLIST_TABLE_ID`. Do not "finish the migration" by moving it to Sanity: that table holds
+real applicant email addresses and the Sanity `production` dataset is readable without
+authentication. `docs/nocodb-migration.md` has the options for retiring it.
 
 ### Pages and metadata
 
@@ -109,9 +125,9 @@ page images.
 ### Types
 
 `strict` mode, no `any` (`@typescript-eslint/no-explicit-any` is a warning, but treat it as a
-failure). When modelling a NocoDB row, declare an interface with optional fields for every column
-(`app/api/members/route.ts` has a good `NocoDBMemberRecord` example) and normalize in a
-`transformNocoDBRecord` function — the raw NocoDB shape is never allowed to escape the transform.
+failure). Sanity projections are typed as explicit interfaces with optional fields (see
+`StartupProjection` / `PartnerProjection` in `lib/sanityContent.ts`) and normalised in a
+`transform*` function — the raw projected shape is never allowed to escape.
 
 ### Imports
 
@@ -123,8 +139,11 @@ before committing.
 
 `next/image` with an explicit `sizes` attribute. `next.config.js` holds an explicit `remotePatterns`
 allowlist — **a new image host will render broken until you add it there**. Output is deliberately
-WebP-only with a one-year `minimumCacheTTL`; don't add formats. NocoDB images are passed through
-`isNocoDbImage()` from `@/lib/images` to set `unoptimized`.
+WebP-only with a one-year `minimumCacheTTL`; don't add formats.
+
+CMS images come from Sanity's CDN and are optimized normally. Member portraits come from the members
+platform's object storage and are passed through `isObjectStorageImage()` from `@/lib/images` to set
+`unoptimized` — don't extend that to Sanity URLs.
 
 ## Environment variables
 
@@ -132,9 +151,8 @@ WebP-only with a one-year `minimumCacheTTL`; don't add formats. NocoDB images ar
 tables, and mark them required or optional. Two things bite regularly:
 
 - `NEXT_PUBLIC_*` values are inlined at build time. Changing one on Vercel requires a redeploy.
-- NocoDB table IDs are per-environment, so a new table means a new env var rather than a hardcoded
-  ID. (`app/api/member-network/route.ts` still has one hardcoded — the README flags it; prefer
-  moving it to `.env` if you touch that route.)
+- The Sanity dataset is public, so nothing needs a token. If it is ever made private (e.g. to host
+  the waitlist), add a server-only read token and keep it out of `NEXT_PUBLIC_*`.
 
 ## Testing
 

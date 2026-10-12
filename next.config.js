@@ -57,10 +57,12 @@ const nextConfig = {
     formats: ['image/webp'],
     minimumCacheTTL: 31536000,
     remotePatterns: [
+      // Sanity image CDN — startups, partners, network logos and news all come
+      // from the CMS. `cdn.sanity.io` is the optimised delivery host.
       {
         protocol: 'https',
-        hostname: 'ndb.startmunich.de',
-        pathname: '/**',
+        hostname: 'cdn.sanity.io',
+        pathname: '/images/**',
       },
       {
         protocol: 'https',

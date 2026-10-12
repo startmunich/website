@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 import { OG_IMAGES } from '@/lib/metadata';
-import { getStartupById } from '@/lib/startups';
+import { getStartupById } from '@/lib/sanityContent';
 
 import StartupDetailsContent from './StartupDetailsContent';
 

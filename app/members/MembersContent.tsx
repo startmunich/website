@@ -8,7 +8,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Hero from '@/components/Hero';
 import HeroCard from '@/components/HeroCard';
 import { useInView } from '@/lib/hooks';
-import { isNocoDbImage } from '@/lib/images';
+import { isObjectStorageImage } from '@/lib/images';
 import { useAnimatedNumber } from '@/lib/useAnimatedNumber';
 
 export const dynamic = 'force-dynamic';
@@ -70,19 +70,14 @@ interface BoardMemberLike {
   linkedinUrl?: string;
 }
 
-async function fetchMembers(): Promise<Member[]> {
-  try {
-    const response = await fetch('/api/members');
-    if (!response.ok) throw new Error('Failed to fetch members');
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching members:', error);
-    return [];
-  }
-}
-
+/**
+ * `/api/members` was a NocoDB route backed by a table that no longer exists —
+ * it returned `[]` in production. It was removed with the NocoDB migration, so
+ * the page renders entirely from the curated board list below plus the
+ * per-batch `/api/members/batch/[batchId]` calls against my.startmunich.de,
+ * which are unaffected.
+ */
 export default function MembersPage() {
-  const [members, setMembers] = useState<Member[]>([]);
   const [expandedBatch, setExpandedBatch] = useState<string | null>(null);
   const [expandedBoard, setExpandedBoard] = useState<string | null>(null);
   const [batchMembers, setBatchMembers] = useState<Member[]>([]);
@@ -169,14 +164,6 @@ export default function MembersPage() {
   };
 
   useEffect(() => {
-    const loadMembers = async () => {
-      const data = await fetchMembers();
-      setMembers(data);
-    };
-    loadMembers();
-  }, []);
-
-  useEffect(() => {
     if (!expandedBatch) {
       setBatchMembers([]);
       return;
@@ -202,15 +189,15 @@ export default function MembersPage() {
             }));
             setBatchMembers(transformedData);
           } else {
-            setBatchMembers(members.filter((m) => m.batch === expandedBatch));
+            setBatchMembers([]);
           }
         } else {
-          setBatchMembers(members.filter((m) => m.batch === expandedBatch));
+          setBatchMembers([]);
         }
       } catch (error) {
         if ((error as Error).name === 'AbortError') return;
         console.error('Error fetching batch members:', error);
-        setBatchMembers(members.filter((m) => m.batch === expandedBatch));
+        setBatchMembers([]);
       }
       if (!cancelled) setLoadingBatch(false);
     };
@@ -221,7 +208,7 @@ export default function MembersPage() {
       cancelled = true;
       controller.abort();
     };
-  }, [expandedBatch, members]);
+  }, [expandedBatch]);
 
   const normalize = (text: string) =>
     text
@@ -446,10 +433,7 @@ export default function MembersPage() {
     'Summer 2022',
     'Winter 2021',
   ];
-  const allBatches = Array.from(new Set([...members.map((m) => m.batch), ...defaultBatches]))
-    .filter(Boolean)
-    .sort()
-    .reverse();
+  const allBatches = Array.from(new Set(defaultBatches)).filter(Boolean).sort().reverse();
 
   const malePercentage = 59;
   const femalePercentage = 41;
@@ -531,7 +515,10 @@ export default function MembersPage() {
         semester: batchName.split(' ')[0] || 'Batch',
         year: batchName.split(' ')[1] || '',
         groupImageUrl,
-        memberCount: members.filter((m) => m.batch === batchName).length,
+        // Was `members.filter(...).length` against the removed `/api/members`
+        // route, which always returned []. Unused by the render, so 0 is the
+        // exact same value the page produced before.
+        memberCount: 0,
       };
     })
     .sort((a, b) => {
@@ -797,7 +784,7 @@ export default function MembersPage() {
                                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 15vw"
                                     className="object-cover object-top"
                                     referrerPolicy="no-referrer"
-                                    unoptimized={isNocoDbImage(member.profileImage)}
+                                    unoptimized={isObjectStorageImage(member.profileImage)}
                                   />
                                 ) : (
                                   <div className="flex h-full w-full items-center justify-center text-3xl font-black text-white/20">
@@ -845,7 +832,7 @@ export default function MembersPage() {
                                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 15vw"
                                     className="object-cover object-top"
                                     referrerPolicy="no-referrer"
-                                    unoptimized={isNocoDbImage(member.profileImage)}
+                                    unoptimized={isObjectStorageImage(member.profileImage)}
                                   />
                                 ) : (
                                   <div className="flex h-full w-full items-center justify-center text-3xl font-black text-white/20">
@@ -1005,7 +992,7 @@ export default function MembersPage() {
                                         sizes="(max-width: 640px) 33vw, 10vw"
                                         className="object-cover"
                                         referrerPolicy="no-referrer"
-                                        unoptimized={isNocoDbImage(member.profileImage)}
+                                        unoptimized={isObjectStorageImage(member.profileImage)}
                                       />
                                     ) : (
                                       <div className="flex h-full w-full items-center justify-center bg-white/5">

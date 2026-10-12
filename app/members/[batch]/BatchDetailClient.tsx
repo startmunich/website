@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Script from 'next/script';
 import { useEffect, useState } from 'react';
 
-import { isNocoDbImage } from '@/lib/images';
+import { isObjectStorageImage } from '@/lib/images';
 
 interface Member {
   id: number;
@@ -204,7 +204,7 @@ export default function BatchDetailClient({ batchSlug }: BatchDetailClientProps)
                             sizes="(max-width: 640px) 33vw, 10vw"
                             className="object-cover"
                             referrerPolicy="no-referrer"
-                            unoptimized={isNocoDbImage(member.profileImage)}
+                            unoptimized={isObjectStorageImage(member.profileImage)}
                           />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center bg-white/5">

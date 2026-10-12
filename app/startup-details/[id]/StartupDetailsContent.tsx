@@ -4,7 +4,6 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import posthog from 'posthog-js';
 
-import { isNocoDbImage } from '@/lib/images';
 import type { Company } from '@/lib/types';
 
 export default function StartupDetailsContent({ company }: { company: Company }) {
@@ -196,7 +195,6 @@ export default function StartupDetailsContent({ company }: { company: Company })
                             fill
                             sizes="64px"
                             className="object-cover"
-                            unoptimized={isNocoDbImage(founder.imageUrl)}
                           />
                         </a>
                       ) : (
@@ -207,7 +205,6 @@ export default function StartupDetailsContent({ company }: { company: Company })
                             fill
                             sizes="64px"
                             className="object-cover"
-                            unoptimized={isNocoDbImage(founder.imageUrl)}
                           />
                         </div>
                       )}

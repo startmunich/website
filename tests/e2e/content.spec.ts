@@ -7,57 +7,36 @@ import { expect, test } from '@playwright/test';
 // Both checks were added alongside fixes for the same report; each one is
 // narrow enough to say which thing broke.
 
-// The Spherecast logo in NocoDB is a valid SVG stored under a `.svg+xml`
-// filename, which NocoDB serves as `application/octet-stream` +
-// `Content-Disposition: attachment`. Browsers refuse to render that in an
-// <img>, so the logo is blank. `lib/startups.ts` overrides it with a vendored
-// copy. Asserting on naturalWidth catches both a regression in the override
-// and a vendored file that was deleted or emptied.
-test('Spherecast logo actually renders', async ({ page }) => {
+// Startup logos now come from the Sanity image pipeline rather than NocoDB
+// attachments. The two specs this replaces asserted on a `LOGO_OVERRIDES`
+// workaround for a NocoDB SVG served as `application/octet-stream`; that
+// override is gone and the failure mode it papered over no longer exists.
+//
+// The real failure mode it is replaced by: every logo is a required Sanity
+// `image` field, so a broken asset reference — a migrated row whose upload did
+// not land, or a document edited to point at a deleted asset — renders as an
+// empty box. Assert the directory serves decodable images from the Sanity CDN.
+test('startup logos are served by the Sanity CDN and actually decode', async ({ page }) => {
   await page.goto('/startups');
-  const logo = page.locator('img[alt="Spherecast logo"]').first();
-  await expect(logo).toBeVisible();
 
-  await expect
-    .poll(() => logo.evaluate((img: HTMLImageElement) => img.naturalWidth))
-    .toBeGreaterThan(0);
-});
+  const logos = page.locator('img[alt$=" logo"]');
+  await expect(logos.first()).toBeVisible();
 
-// The vendored Spherecast SVG shipped its wordmark as `fill="white"`. Every
-// startup logo sits on a `bg-white` card, so the sphere rendered and the name
-// beside it was invisible — `naturalWidth` was a perfectly good 1588, so the
-// assertion above cannot see the difference. Sample the wordmark band (x past
-// the sphere, which occupies the left ~16% of the viewBox) and require dark
-// pixels in it.
-test('Spherecast wordmark is visible on the white card', async ({ page }) => {
-  await page.goto('/startups');
-  const logo = page.locator('img[alt="Spherecast logo"]').first();
-  await expect(logo).toBeVisible();
+  const results = await logos.evaluateAll((nodes) =>
+    nodes.slice(0, 12).map((node) => {
+      const img = node as HTMLImageElement;
+      return {
+        src: img.currentSrc || img.src,
+        pixels: img.naturalWidth * img.naturalHeight,
+      };
+    }),
+  );
 
-  const darkRatio = await logo.evaluate(async (img: HTMLImageElement) => {
-    await img.decode();
-    const canvas = document.createElement('canvas');
-    canvas.width = img.naturalWidth;
-    canvas.height = img.naturalHeight;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return 0;
-    ctx.drawImage(img, 0, 0);
-    const { data, width, height } = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    let dark = 0;
-    let opaque = 0;
-    for (let y = 0; y < height; y++) {
-      for (let x = Math.round(width * 0.25); x < width; x++) {
-        const i = (y * width + x) * 4;
-        if (data[i + 3] < 10) continue;
-        opaque++;
-        const luminance = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
-        if (luminance < 60) dark++;
-      }
-    }
-    return opaque === 0 ? 0 : dark / opaque;
-  });
-
-  expect(darkRatio).toBeGreaterThan(0.05);
+  expect(results.length).toBeGreaterThan(0);
+  for (const { src, pixels } of results) {
+    expect(src, 'logo was not served by the Sanity CDN').toContain('cdn.sanity.io');
+    expect(pixels, `logo failed to decode: ${src}`).toBeGreaterThan(0);
+  }
 });
 
 // The recurring-events calendar used to be hand-maintained, so a marker could

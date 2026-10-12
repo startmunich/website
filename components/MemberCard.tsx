@@ -1,6 +1,6 @@
 import Image from 'next/image';
 
-import { isNocoDbImage } from '@/lib/images';
+import { isObjectStorageImage } from '@/lib/images';
 
 interface MemberCardProps {
   name: string;
@@ -26,7 +26,7 @@ export default function MemberCard({
           fill
           sizes="(max-width: 768px) 50vw, 25vw"
           className="object-cover"
-          unoptimized={isNocoDbImage(imageUrl)}
+          unoptimized={isObjectStorageImage(imageUrl)}
         />
       </div>
       <div className="absolute inset-0 bg-gradient-to-t from-[#00002c]/60 via-[#00002c]/20 to-transparent"></div>

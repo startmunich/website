@@ -1,5 +1,15 @@
 import { NextResponse } from 'next/server';
 
+/**
+ * Waitlist submissions for /join-start/2026.
+ *
+ * This is the last NocoDB-backed route. It was intentionally left out of the
+ * Sanity migration: the table holds real applicant email addresses, and the
+ * Sanity `production` dataset is readable by anyone without authentication —
+ * moving it there would publish every applicant's address on the open internet.
+ *
+ * See `docs/nocodb-migration.md` for the options to retire this last write.
+ */
 const NOCODB_API_TOKEN = process.env.NOCODB_API_TOKEN;
 const NOCODB_BASE_URL = process.env.NOCODB_BASE_URL || 'https://ndb.startmunich.de';
 const NOCODB_WAITLIST_TABLE_ID = process.env.NOCODB_WAITLIST_TABLE_ID;

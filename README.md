@@ -5,9 +5,10 @@ entrepreneurship community in Munich. A Next.js App Router application serving s
 directories, company detail pages, member batch pages, events, partners, application and waitlist
 flows, plus a small set of public JSON API routes.
 
-Content is not authored in the repo. It is read at request time from **NocoDB** (startups, members,
-partners, news, waitlist), the **members platform** (events, board, member batch details), and
-**Luma** as the event fallback, with results cached via ISR.
+Content is not authored in the repo. It is read at request time from **Sanity** (startups, partners,
+network companies, news), the **members platform** (events, board, member batch details), and
+**Luma** as the event fallback, with results cached via ISR. The waitlist write path is still on
+NocoDB — see [`docs/nocodb-migration.md`](docs/nocodb-migration.md) for why.
 
 ## Tech Stack
 
@@ -16,7 +17,7 @@ partners, news, waitlist), the **members platform** (events, board, member batch
 - **Tailwind CSS 3.4** + **shadcn/ui** (plus Aceternity and Magic UI registry components)
 - **PostHog** for analytics (EU-hosted, proxied through Next.js rewrites)
 - **Playwright** for end-to-end smoke tests
-- **NocoDB** as the backend/content source
+- **Sanity** as the CMS/content source (public `production` dataset, read via `next-sanity`)
 - **Cloudflare Turnstile** for waitlist captcha
 - **pnpm 11** (enforced), **Node 24** (enforced via `engines` + `.nvmrc`)
 
@@ -48,20 +49,27 @@ Open [http://localhost:3000](http://localhost:3000).
 [`.env.example`](.env.example) is the source of truth and is annotated with which values are
 required (uncommented) versus optional (commented). Summary:
 
-### NocoDB (backend data source)
+### Sanity (content source)
+
+| Variable                        | Required | Notes                                        |
+| ------------------------------- | -------- | -------------------------------------------- |
+| `NEXT_PUBLIC_SANITY_PROJECT_ID` | no       | Defaults to `j77hk8qc` in `sanity/client.ts` |
+| `NEXT_PUBLIC_SANITY_DATASET`    | no       | Defaults to `production`                     |
+
+The dataset is public and read through the CDN, so no token is needed. Both are `NEXT_PUBLIC_*`, so
+changing one on Vercel requires a redeploy.
+
+### NocoDB (waitlist submissions only)
 
 | Variable                   | Required | Notes                                    |
 | -------------------------- | -------- | ---------------------------------------- |
-| `NOCODB_API_TOKEN`         | yes      | NocoDB account token (`xc-token` header) |
+| `NOCODB_API_TOKEN`         | yes²     | NocoDB account token (`xc-token` header) |
 | `NOCODB_BASE_URL`          | no       | Defaults to `https://ndb.startmunich.de` |
-| `NOCODB_STARTUPS_TABLE_ID` | yes¹     | Startup / company directory              |
-| `NOCODB_MEMBERS_TABLE_ID`  | yes¹     | Member overview page                     |
-| `NOCODB_PARTNERS_TABLE_ID` | yes¹     | Partner logos and categories             |
-| `NOCODB_NEWS_TABLE_ID`     | yes¹     | Home page news carousel                  |
 | `NOCODB_WAITLIST_TABLE_ID` | yes²     | `/join-start/2026` waitlist submissions  |
 
-¹ Without a token or table ID the affected section degrades to empty rather than crashing. ²
-Required for `/api/waitlist` to accept anything.
+² Required for `/api/waitlist` to accept anything. This is the only remaining NocoDB usage. The
+table holds applicant email addresses, which is why it was not migrated to Sanity — see
+[`docs/nocodb-migration.md`](docs/nocodb-migration.md).
 
 ### Other services
 
@@ -85,11 +93,16 @@ Required for `/api/waitlist` to accept anything.
 Production and/or Preview. Afterwards, redeploy — `NEXT_PUBLIC_*` variables are inlined at build
 time, so a redeploy is required for changes to take effect.
 
-### Finding NocoDB credentials
+### Finding NocoDB credentials (waitlist only)
 
 - **API token:** NocoDB → Account Settings → Tokens → create or copy one.
-- **Table ID:** open the table; it is the last path segment of
+- **Table ID:** open the `Waitlist` table; it is the last path segment of
   `https://ndb.startmunich.de/nc/{workspace}/{project}/table/{TABLE_ID}`.
+
+### Content migrations from NocoDB
+
+The NocoDB → Sanity content import runs from the `website-cms` repo, not this one:
+`node scripts/migrate-from-nocodb.mjs`. See [`docs/nocodb-migration.md`](docs/nocodb-migration.md).
 
 ## Routes
 
@@ -119,13 +132,15 @@ API routes (`app/api/`), all read-only and ISR-cached for an hour:
 
 | Route                         | Source                     |
 | ----------------------------- | -------------------------- |
-| `GET /api/startups`           | NocoDB — all companies     |
-| `GET /api/members`            | NocoDB — members           |
+| `GET /api/startups`           | Sanity — all companies     |
 | `GET /api/members/batch/[id]` | Members platform           |
-| `GET /api/member-network`     | NocoDB — network companies |
-| `GET /api/partners`           | NocoDB — partners          |
+| `GET /api/member-network`     | Sanity — network companies |
+| `GET /api/partners`           | Sanity — partners          |
 | `GET /api/board`              | Members platform           |
 | `POST /api/waitlist`          | NocoDB waitlist table      |
+
+`GET /api/members` was removed with the NocoDB migration: its backing table no longer existed and it
+already returned `[]` in production. `/members` renders from `/api/members/batch/[id]` instead.
 
 The old `GET /api/luma/upcoming-events` and `GET /api/luma/past-events` passthroughs were removed —
 nothing consumed them, and `/events` reads its data on the server.
@@ -444,9 +459,12 @@ brand: {
 
 ## Data Sources
 
-- **NocoDB** — startups, members, partners, news, waitlist, member network. The member-network table
-  ID is currently hardcoded in `app/api/member-network/route.ts` rather than read from the
-  environment; prefer adding it to `.env` if you touch that route.
+- **Sanity** (`j77hk8qc` / `production`) — startups, partners, network companies, news. Read through
+  the public CDN via `next-sanity`; no token. Queries are in `sanity/queries.ts`, and the read-side
+  normalisation (which preserves the shapes the components already expect) is in
+  `lib/sanityContent.ts`.
+- **NocoDB** — waitlist submissions only. Kept deliberately: it holds applicant emails and the
+  Sanity dataset is world-readable. See [`docs/nocodb-migration.md`](docs/nocodb-migration.md).
 - **my.startmunich.de** — the members platform API, authenticated with `STARTMUNICH_API_KEY`: events
   (`/api/v1/public/events`), board data, and member batch details.
 - **Luma** — the event **fallback**, used only when the members platform API is unconfigured or

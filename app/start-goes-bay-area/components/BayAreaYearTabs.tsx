@@ -9,13 +9,6 @@ import { bayAreaYearContent } from '@/lib/startGoesBayAreaData';
 import type { BayAreaYearId } from '../types';
 import { getLogoChipClassName } from '../types';
 
-interface Member {
-  id: number;
-  name: string;
-  imageUrl: string;
-  linkedinUrl?: string;
-}
-
 const KEY_VISITS_COPY = 'A few of the most memorable stops from the year.';
 const HOSTS_COPY =
   'A curated look at the startups, teams, and organizations we visited across the Bay Area.';
@@ -86,7 +79,6 @@ export default function BayAreaYearTabs() {
   const [activeYear, setActiveYear] = useState<BayAreaYearId>(
     (PAST_YEAR_CONTENT[PAST_YEAR_CONTENT.length - 1]?.id ?? '2026') as BayAreaYearId,
   );
-  const [members, setMembers] = useState<Member[]>([]);
   const factsView = useInView(0.05);
 
   const activeContent = useMemo(
@@ -94,27 +86,11 @@ export default function BayAreaYearTabs() {
     [activeYear],
   );
 
-  // Fetch members on mount
-  useEffect(() => {
-    const loadMembers = async () => {
-      try {
-        const response = await fetch('/api/members');
-        if (!response.ok) throw new Error('Failed to fetch members');
-        const data = await response.json();
-        setMembers(data);
-      } catch (error) {
-        console.error('Error fetching members:', error);
-        setMembers([]);
-      }
-    };
-    loadMembers();
-  }, []);
-
-  // Get team member data from API by matching names
-  const getTeamMemberData = (name: string) => {
-    return members.find((m) => m.name.toLowerCase() === name.toLowerCase());
-  };
-
+  // Team portraits come entirely from `bayAreaYearContent`. The old
+  // `/api/members` endpoint (a NocoDB table that no longer exists) was removed
+  // with the NocoDB migration; it returned `[]` in production, so the
+  // `memberData?.imageUrl` override it fed was already always undefined and
+  // every card rendered from `member.photoPath` regardless.
   return (
     <section ref={factsView.ref} className="mx-auto max-w-7xl px-4 pb-24 sm:px-6 lg:px-8">
       <div
@@ -300,20 +276,14 @@ export default function BayAreaYearTabs() {
               <div className="relative -mx-5 mt-8 overflow-x-auto px-5 pb-2 sm:-mx-8 sm:px-8">
                 <div className="pointer-events-none absolute bottom-2 right-0 top-0 z-10 w-16 bg-gradient-to-l from-brand-dark-blue to-transparent" />
                 <div className="flex gap-7">
-                  {activeContent.teamMembers.map((member) => {
-                    const memberData = getTeamMemberData(member.name);
-
-                    return (
-                      <TeamPortraitCard
-                        key={`${activeContent.id}-${member.name}`}
-                        name={member.name}
-                        imageUrl={
-                          member.photoPath || memberData?.imageUrl || TEAM_PLACEHOLDER_IMAGE
-                        }
-                        linkedinUrl={member.linkedinUrl ?? memberData?.linkedinUrl}
-                      />
-                    );
-                  })}
+                  {activeContent.teamMembers.map((member) => (
+                    <TeamPortraitCard
+                      key={`${activeContent.id}-${member.name}`}
+                      name={member.name}
+                      imageUrl={member.photoPath || TEAM_PLACEHOLDER_IMAGE}
+                      linkedinUrl={member.linkedinUrl}
+                    />
+                  ))}
                 </div>
               </div>
             ) : (

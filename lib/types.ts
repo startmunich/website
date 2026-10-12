@@ -34,7 +34,12 @@ export interface NewsItem {
 }
 
 export interface Company {
-  id: number;
+  /**
+   * The Sanity document's `legacyId` — the original NocoDB row ID. Kept as the
+   * public `/startup-details/[id]` route param so existing URLs keep resolving.
+   * Typed as a string because it arrives from GROQ as one.
+   */
+  id: string;
   name: string;
   website: string;
   summary: string;
