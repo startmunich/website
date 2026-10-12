@@ -51,6 +51,7 @@ export default function UpcomingEventsList({ events }: { events: StartEvent[] })
                 title={event.title}
                 date={formatDate(event.startAt)}
                 imageUrl={event.coverImageUrl ?? undefined}
+                className="h-full"
               />
             </div>
           );

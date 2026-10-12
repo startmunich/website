@@ -2,13 +2,13 @@
 
 import Link from 'next/link';
 import Script from 'next/script';
-import React, { useRef, useState } from 'react';
+import { useState } from 'react';
 
-import { EventCard, ScrollIndicator, TimelineMarker } from '@/components/EventComponents';
+import { TimelineMarker } from '@/components/EventComponents';
 import Hero from '@/components/Hero';
 import HeroCard from '@/components/HeroCard';
-import { EVENT_KIND_COLORS, groupMarkersByMonth, monthLabels } from '@/lib/eventCalendar';
-import { EVENT_KIND_LABELS, type StartEvent } from '@/lib/eventTypes';
+import { groupMarkersByMonth, monthLabels } from '@/lib/eventCalendar';
+import type { StartEvent } from '@/lib/eventTypes';
 import { useAnimatedNumber } from '@/lib/useAnimatedNumber';
 
 import PastEventsList from './PastEventsList';
@@ -29,72 +29,21 @@ export interface EventsContentProps {
   }>;
   upcomingEvents: StartEvent[];
   pastEvents: StartEvent[];
-  /** Events an admin highlighted on the members platform. */
-  featuredEvents: StartEvent[];
-  /** `hackathons` is null when the source carries no tags, which is unknown rather than zero. */
-  stats: { hackathons: number | null; events: number };
 }
 
-/** Local art for a featured card with no cover, so the row never renders a broken image. */
-const FALLBACK_COVER = '/events/eventCards/hack-opt.jpg';
+// Hand-set until hackathon tags flow from Luma through the members platform.
+const HACKATHONS_YEARLY = 2;
+const EVENTS_YEARLY = 15;
 
-export default function EventsContent({
-  markers,
-  upcomingEvents,
-  pastEvents,
-  featuredEvents,
-  stats,
-}: EventsContentProps) {
-  const sliderRef = useRef<HTMLDivElement>(null);
-  const dragState = useRef({ isDragging: false, startX: 0, scrollLeft: 0 });
+export default function EventsContent({ markers, upcomingEvents, pastEvents }: EventsContentProps) {
   const [hoveredEvent, setHoveredEvent] = useState<string | null>(null);
 
-  // The count-up still animates on mount; there is no loading flag to wait for because the data
-  // arrives as props from the server.
-  //
-  // `stats.hackathons` is null when the source carries no tags (the Luma fallback). Animating a
-  // count from 0 to 0 would animate a claim, so that slot renders an em dash instead — see
-  // `yearlyStats`. The other two counts are real under either source.
-  const animatedHackathons = useAnimatedNumber(stats.hackathons ?? 0, false, 800);
-  const animatedEvents = useAnimatedNumber(stats.events, false, 800);
-
-  const handleDrag = {
-    start: (e: React.MouseEvent) => {
-      const slider = sliderRef.current;
-      if (!slider) return;
-      dragState.current = {
-        isDragging: true,
-        startX: e.pageX - slider.offsetLeft,
-        scrollLeft: slider.scrollLeft,
-      };
-    },
-    move: (e: React.MouseEvent) => {
-      if (!dragState.current.isDragging || !sliderRef.current) return;
-      e.preventDefault();
-      const x = e.currentTarget.ownerDocument.defaultView
-        ? e.clientX - sliderRef.current.offsetLeft
-        : 0;
-      sliderRef.current.scrollLeft =
-        dragState.current.scrollLeft - (x - dragState.current.startX) * 2;
-    },
-    end: () => {
-      dragState.current.isDragging = false;
-    },
-  };
+  const animatedHackathons = useAnimatedNumber(HACKATHONS_YEARLY, false, 800);
+  const animatedEvents = useAnimatedNumber(EVENTS_YEARLY, false, 800);
 
   const months = monthLabels();
   const monthGroups = groupMarkersByMonth(markers);
   const hasMarkers = markers.length > 0;
-
-  /**
-   * Only kinds actually present in the data get a legend entry — an "Incubator" swatch for a month
-   * with no incubator event was one of the phantom entries the previous version rendered.
-   */
-  const legendKinds = markers.length
-    ? (Object.keys(EVENT_KIND_LABELS) as Array<keyof typeof EVENT_KIND_LABELS>).filter((kind) =>
-        markers.some((marker) => marker.color === EVENT_KIND_COLORS[kind]),
-      )
-    : [];
 
   return (
     <>
@@ -132,17 +81,9 @@ export default function EventsContent({
             <HeroCard>
               <div className="mb-3 flex items-baseline justify-center gap-2">
                 <span className="bg-gradient-to-br from-white to-gray-300 bg-clip-text text-4xl font-black text-transparent transition lg:text-6xl">
-                  {stats.hackathons === null ? (
-                    // No tag data from the fallback source. An em dash says "not known"; a 0 would
-                    // claim we ran none while the calendar below lists the year's events.
-                    <span data-testid="stat-hackathons-unavailable">&mdash;</span>
-                  ) : (
-                    Math.floor(animatedHackathons)
-                  )}
+                  {Math.floor(animatedHackathons)}
                 </span>
-                {stats.hackathons !== null && (
-                  <span className="text-xl font-bold text-[#d0006f] lg:text-3xl">+</span>
-                )}
+                <span className="text-xl font-bold text-[#d0006f] lg:text-3xl">+</span>
               </div>
               <p className="text-xs font-bold uppercase tracking-widest text-gray-300">
                 Hackathons Yearly
@@ -191,7 +132,7 @@ export default function EventsContent({
                     fill="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452h22.225V9H20.45zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.225 0z" />
+                    <path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9h4v12H3zM10 9h3.8v1.7h.05c.53-1 1.83-2.05 3.77-2.05C21.4 8.65 22 11 22 14.1V21h-4v-6.1c0-1.45-.03-3.3-2-3.3-2 0-2.3 1.57-2.3 3.2V21h-4z" />
                   </svg>
                   <span className="text-sm font-medium text-white/80 transition-colors group-hover:text-white">
                     LinkedIn
@@ -205,10 +146,14 @@ export default function EventsContent({
                 >
                   <svg
                     className="h-[18px] w-[18px] text-[#E1306C] transition-transform duration-300 group-hover:scale-110"
-                    fill="currentColor"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={1.9}
                     viewBox="0 0 24 24"
                   >
-                    <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.583-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.069-1.645-.069-4.849 0-3.204.013-3.583.069-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272 2.273.693 1.924 3.072.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.78 4.358 0 6.78-2.618 6.98-6.78.058-1.28.073-1.689.073-2.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.78zM12 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
+                    <rect x="2.6" y="2.6" width="18.8" height="18.8" rx="5.4" />
+                    <circle cx="12" cy="12" r="4.3" />
+                    <circle cx="17.4" cy="6.6" r="1.25" fill="currentColor" stroke="none" />
                   </svg>
                   <span className="text-sm font-medium text-white/80 transition-colors group-hover:text-white">
                     Instagram
@@ -221,7 +166,7 @@ export default function EventsContent({
           </div>
 
           {/* Annual Calendar */}
-          <div>
+          <div className="mb-24">
             <div className="mb-8">
               <span className="text-sm font-bold uppercase tracking-[0.3em] text-[#d0006f]">
                 Annual Calendar
@@ -253,7 +198,11 @@ export default function EventsContent({
                       <div
                         key={i}
                         className="absolute top-1/2 h-6 w-px -translate-y-1/2 bg-white/20"
-                        style={{ left: `calc(${(i + 1) * 8.33}% - 0.5px)` }}
+                        // The final tick would sit on the right edge and overhang it by its own
+                        // width; clamping keeps every tick strictly inside the strip.
+                        style={{
+                          left: `clamp(0, calc(${(i + 1) * 8.33}% - 0.5px), calc(100% - 1px))`,
+                        }}
                       ></div>
                     ))}
 
@@ -269,20 +218,6 @@ export default function EventsContent({
                         onHover={setHoveredEvent}
                         onLeave={() => setHoveredEvent(null)}
                       />
-                    ))}
-                  </div>
-
-                  <div className="flex flex-wrap items-center justify-center gap-4 border-t border-white/[0.06] pt-6 md:gap-5">
-                    {legendKinds.map((kind) => (
-                      <div
-                        key={kind}
-                        className="flex items-center gap-2 rounded-full bg-white/[0.04] px-3 py-1.5"
-                      >
-                        <LegendSwatch kind={kind} />
-                        <span className="text-xs font-medium text-gray-300">
-                          {EVENT_KIND_LABELS[kind]}
-                        </span>
-                      </div>
                     ))}
                   </div>
                 </div>
@@ -312,20 +247,6 @@ export default function EventsContent({
                       </div>
                     ))}
                   </div>
-
-                  <div className="mt-6 flex flex-wrap gap-3 border-t border-white/[0.06] pt-4">
-                    {legendKinds.map((kind) => (
-                      <div
-                        key={kind}
-                        className="flex items-center gap-2 rounded-full bg-white/[0.04] px-3 py-1.5"
-                      >
-                        <LegendSwatch kind={kind} />
-                        <span className="text-xs font-medium text-gray-300">
-                          {EVENT_KIND_LABELS[kind]}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               </div>
             ) : (
@@ -341,80 +262,9 @@ export default function EventsContent({
           </div>
         </div>
 
-        {/* Featured events */}
-        <div className="mx-auto mb-24 mt-8 max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="relative">
-            <div className="mb-6">
-              <span className="text-sm font-bold uppercase tracking-[0.3em] text-[#d0006f]">
-                Featured
-              </span>
-              <h2 className="mb-3 mt-2 text-3xl font-black text-white md:text-4xl">
-                DON&apos;T <span className="outline-text">MISS OUT</span>
-              </h2>
-            </div>
-
-            {featuredEvents.length > 0 ? (
-              <>
-                <div
-                  // The ref has to be on the element that actually scrolls. It sat on the
-                  // outer wrapper for a while, which left `scrollLeft` writes going nowhere and
-                  // the ScrollIndicator thumb pinned full width; trackpads kept working, so it
-                  // was easy to miss.
-                  ref={sliderRef}
-                  onMouseDown={handleDrag.start}
-                  onMouseUp={handleDrag.end}
-                  onMouseMove={handleDrag.move}
-                  onMouseLeave={handleDrag.end}
-                  className="scrollbar-hide flex cursor-grab select-none gap-6 overflow-x-auto px-1 py-4 active:cursor-grabbing"
-                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                  data-testid="events-featured"
-                >
-                  {featuredEvents.map((event, index) => (
-                    <EventCard
-                      key={event.id}
-                      event={{
-                        id: event.id,
-                        name: event.title,
-                        description: event.description ?? '',
-                        month: new Date(event.startAt).toLocaleDateString('en-GB', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                          timeZone: 'UTC',
-                        }),
-                        image: event.coverImageUrl ?? FALLBACK_COVER,
-                        category: EVENT_KIND_LABELS[event.kind],
-                      }}
-                      index={index}
-                      hoveredEvent={hoveredEvent}
-                      setHoveredEvent={setHoveredEvent}
-                      isFlagship
-                      className="h-full"
-                      ctaLabel={event.registrationUrl ? 'Register' : undefined}
-                      ctaHref={event.registrationUrl ?? undefined}
-                    />
-                  ))}
-                </div>
-
-                <ScrollIndicator sliderRef={sliderRef} />
-                <div className="pointer-events-none absolute bottom-0 right-0 top-0 w-16 rounded-r-[1.75rem] bg-gradient-to-l from-[#00002c] to-transparent"></div>
-              </>
-            ) : (
-              <div
-                className="rounded-[1.75rem] border border-white/[0.07] bg-white/[0.03] px-6 py-16 text-center backdrop-blur-sm"
-                data-testid="events-featured-empty"
-              >
-                <p className="text-lg text-gray-400">
-                  We&apos;re picking the next highlight — check back soon.
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Member Exclusive Events Section */}
-          <div className="mb-16">
+          <div className="mb-24">
             <div className="relative overflow-hidden rounded-2xl border-2 border-[#d0006f]/50 bg-gradient-to-br from-[#1a1a3e] via-[#00002c] to-[#0d0d1f] shadow-2xl shadow-[#d0006f]/20">
               <div className="absolute right-0 top-0 h-64 w-64 rounded-full bg-[#d0006f]/10 blur-3xl"></div>
               <div className="absolute bottom-0 left-0 h-48 w-48 rounded-full bg-[#d0006f]/5 blur-3xl"></div>
@@ -498,19 +348,5 @@ export default function EventsContent({
         </div>
       </main>
     </>
-  );
-}
-
-/**
- * Legend swatch. The colour comes from the same map the markers use, so the legend cannot drift
- * from what the dots actually are.
- */
-function LegendSwatch({ kind }: { kind: keyof typeof EVENT_KIND_LABELS }) {
-  return (
-    <div
-      className="h-2.5 w-2.5 rounded-full"
-      style={{ backgroundColor: EVENT_KIND_COLORS[kind] }}
-      data-kind={kind}
-    />
   );
 }

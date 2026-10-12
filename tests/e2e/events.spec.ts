@@ -80,17 +80,6 @@ test.describe('events page', () => {
     }
   });
 
-  test('renders either the featured strip or its explicit empty state', async ({ page }) => {
-    await page.goto('/events');
-    const featured = page.getByTestId('events-featured');
-    const empty = page.getByTestId('events-featured-empty');
-    await expect(featured.or(empty).first()).toBeVisible();
-    if ((await empty.count()) > 0) {
-      // Nothing curated yet — the strip says so rather than inventing a programme.
-      await expect(empty).toContainText(/check back soon/i);
-    }
-  });
-
   test('never shows a dead "#" link on a card', async ({ page }) => {
     await page.goto('/events');
     // A card with no registration URL must render a plain card, not an anchor to nowhere.
@@ -99,8 +88,6 @@ test.describe('events page', () => {
 
   test('hero statistics render', async ({ page }) => {
     await page.goto('/events');
-    // Counted from this year's real events via `yearlyStats`. Asserting specific values would
-    // break every time the calendar changes; asserting presence catches a broken section.
     await expect(page.getByText(/hackathons yearly/i).first()).toBeVisible();
     await expect(page.getByText(/public events yearly/i).first()).toBeVisible();
   });

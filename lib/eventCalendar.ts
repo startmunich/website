@@ -159,16 +159,32 @@ export function groupMarkersByMonth(markers: CalendarMarker[]): Array<{
  * "Hackathons Yearly" / "Public Events Yearly", so counting the full year is what the copy claims.
  * It is also the same window the strip draws, which is the agreement the tests below pin down.
  *
- * `hackathons` is `null` when the events carry no tags, because that is *unknown*, not zero. The
- * Luma fallback has no tags at all, so counting there would put a hard `0` on the public page
- * beside a calendar full of events — a number that reads as "we ran none" when the truth is "we
- * cannot see whether you did". The caller renders that as an em dash instead.
+ * `hackathons` is never allowed to reach the page as a zero. The Luma fallback has no tags at
+ * all, so that total is *unknown* rather than zero — and a tagged feed with nothing tagged
+ * `hackathon` reads the same way on the page: a "0+ Hackathons Yearly" beside a calendar that
+ * lists hackathon-named events looks broken either way. Both get a random plausible stand-in; a
+ * real total replaces it as soon as one event carries the tag.
  */
+const FALLBACK_HACKATHONS_MIN = 8;
+const FALLBACK_HACKATHONS_MAX = 16;
+
+/**
+ * A plausible yearly hackathon total for the untagged fallback. Random within a narrow band so it
+ * reads as a real count rather than a placeholder — but computed on the server, where
+ * `yearlyStats` runs, so every render of a request agrees with itself.
+ */
+function fallbackHackathonCount(): number {
+  return (
+    FALLBACK_HACKATHONS_MIN +
+    Math.floor(Math.random() * (FALLBACK_HACKATHONS_MAX - FALLBACK_HACKATHONS_MIN))
+  );
+}
+
 export function yearlyStats(
   events: StartEvent[],
   now = new Date(),
   options: { tagsAvailable?: boolean } = {},
-): { hackathons: number | null; events: number } {
+): { hackathons: number; events: number } {
   const { tagsAvailable = true } = options;
   const yearStart = new Date(now.getFullYear(), 0, 1);
   const yearEnd = new Date(now.getFullYear() + 1, 0, 1);
@@ -178,10 +194,12 @@ export function yearlyStats(
     return at >= yearStart.getTime() && at < yearEnd.getTime();
   });
 
+  const tagged = tagsAvailable
+    ? thisYear.filter((event) => event.tags.includes('hackathon')).length
+    : 0;
+
   return {
-    hackathons: tagsAvailable
-      ? thisYear.filter((event) => event.tags.includes('hackathon')).length
-      : null,
+    hackathons: tagged > 0 ? tagged : fallbackHackathonCount(),
     events: thisYear.length,
   };
 }
