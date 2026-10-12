@@ -1,7 +1,7 @@
 import 'server-only';
 
 import type { Company, Founder, NewsItem, Partner, Startup } from '@/lib/types';
-import { client } from '@/sanity/client';
+import { sanityFetch } from '@/sanity/client';
 import {
   FEATURED_PARTNERS_QUERY,
   FEATURED_STARTUPS_QUERY,
@@ -13,12 +13,15 @@ import {
 } from '@/sanity/queries';
 
 /**
- * ISR is one hour everywhere, matching the `revalidate = 3600` the routes
- * already export. Data-driven pages also set `dynamic = 'force-dynamic'`, so
- * the route render is per-request and this window only governs how long the
- * upstream fetch is reused.
+ * Every read below goes through `sanityFetch`, which tags the result with the
+ * document type so `/api/revalidate` can invalidate it the moment an editor
+ * publishes. The one-hour ISR window stays as the fallback for when the webhook
+ * is not configured — see `sanityFetch` for why it is not disabled outright.
+ *
+ * Each call names its `type` explicitly rather than inferring it, so adding a
+ * query without a tag fails the typecheck rather than silently never
+ * revalidating.
  */
-const REVALIDATE_SECONDS = 3600;
 
 /**
  * Pick a usable URL out of a projected Sanity image field.
@@ -125,11 +128,10 @@ function transformStartup(row: StartupProjection): Company {
  */
 export async function getAllStartups(): Promise<Company[]> {
   try {
-    const rows = await client.fetch<StartupProjection[]>(
-      STARTUPS_QUERY,
-      {},
-      { next: { revalidate: REVALIDATE_SECONDS } },
-    );
+    const rows = await sanityFetch<StartupProjection[]>({
+      query: STARTUPS_QUERY,
+      type: 'startup',
+    });
     return (rows || []).map(transformStartup);
   } catch (error) {
     console.error('Error fetching startups from Sanity:', error);
@@ -140,11 +142,11 @@ export async function getAllStartups(): Promise<Company[]> {
 /** A single startup by its legacy NocoDB id, or null when it no longer exists. */
 export async function getStartupById(id: string): Promise<Company | null> {
   try {
-    const row = await client.fetch<StartupProjection | null>(
-      STARTUP_BY_LEGACY_ID_QUERY,
-      { id },
-      { next: { revalidate: REVALIDATE_SECONDS } },
-    );
+    const row = await sanityFetch<StartupProjection | null>({
+      query: STARTUP_BY_LEGACY_ID_QUERY,
+      params: { id },
+      type: 'startup',
+    });
     return row ? transformStartup(row) : null;
   } catch (error) {
     console.error(`Error fetching startup ${id} from Sanity:`, error);
@@ -158,10 +160,13 @@ export async function getFeaturedStartups(): Promise<{
   totalStartups: number;
 }> {
   try {
-    const data = await client.fetch<{
+    const data = await sanityFetch<{
       total?: number;
       startups?: StartupProjection[];
-    }>(FEATURED_STARTUPS_QUERY, {}, { next: { revalidate: REVALIDATE_SECONDS } });
+    }>({
+      query: FEATURED_STARTUPS_QUERY,
+      type: 'startup',
+    });
     const rows = data?.startups || [];
     return {
       featuredStartups: rows.map((row) => {
@@ -211,11 +216,10 @@ function transformPartner(row: PartnerProjection): Partner {
 
 export async function getAllPartners(): Promise<Partner[]> {
   try {
-    const rows = await client.fetch<PartnerProjection[]>(
-      PARTNERS_QUERY,
-      {},
-      { next: { revalidate: REVALIDATE_SECONDS } },
-    );
+    const rows = await sanityFetch<PartnerProjection[]>({
+      query: PARTNERS_QUERY,
+      type: 'partner',
+    });
     return (rows || []).map(transformPartner);
   } catch (error) {
     console.error('Error fetching partners from Sanity:', error);
@@ -233,11 +237,10 @@ export async function getAllPartners(): Promise<Partner[]> {
  */
 export async function getFeaturedPartners(): Promise<Partner[]> {
   try {
-    const rows = await client.fetch<PartnerProjection[]>(
-      FEATURED_PARTNERS_QUERY,
-      {},
-      { next: { revalidate: REVALIDATE_SECONDS } },
-    );
+    const rows = await sanityFetch<PartnerProjection[]>({
+      query: FEATURED_PARTNERS_QUERY,
+      type: 'partner',
+    });
     return (rows || []).map((row) => {
       const transparent = imageUrl(row.logoNoBackgroundUrl, 600);
       const base = transformPartner(row);
@@ -260,14 +263,17 @@ export interface MemberNetworkLogo {
 
 export async function getNetworkCompanies(): Promise<MemberNetworkLogo[]> {
   try {
-    const rows = await client.fetch<
+    const rows = await sanityFetch<
       {
         _id: string;
         name?: string | null;
         type?: string | null;
         logoUrl?: { asset?: { url?: string } } | null;
       }[]
-    >(NETWORK_COMPANIES_QUERY, {}, { next: { revalidate: REVALIDATE_SECONDS } });
+    >({
+      query: NETWORK_COMPANIES_QUERY,
+      type: 'networkCompany',
+    });
     return (rows || []).map((row) => ({
       id: row._id,
       name: row.name || 'Company',
@@ -284,7 +290,7 @@ export async function getNetworkCompanies(): Promise<MemberNetworkLogo[]> {
 
 export async function getNewsItems(): Promise<NewsItem[]> {
   try {
-    const rows = await client.fetch<
+    const rows = await sanityFetch<
       {
         _id: string;
         title?: string | null;
@@ -292,7 +298,10 @@ export async function getNewsItems(): Promise<NewsItem[]> {
         url?: string | null;
         imageUrl?: { asset?: { url?: string } } | null;
       }[]
-    >(NEWS_ITEMS_QUERY, {}, { next: { revalidate: REVALIDATE_SECONDS } });
+    >({
+      query: NEWS_ITEMS_QUERY,
+      type: 'newsItem',
+    });
     return (rows || []).map((row) => ({
       id: row._id,
       title: row.title || '',
