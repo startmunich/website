@@ -91,4 +91,22 @@ test.describe('events page', () => {
     await expect(page.getByText(/hackathons yearly/i).first()).toBeVisible();
     await expect(page.getByText(/public events yearly/i).first()).toBeVisible();
   });
+
+  test('hero hackathon count is real or honestly unknown, never a fabricated figure', async ({
+    page,
+  }) => {
+    await page.goto('/events');
+
+    // Neither this environment nor CI configures a bearer key with `public:events:read`
+    // (AGENTS.md: no key means no platform), so the Luma fallback is the only reachable path and
+    // the hero must show the em dash for "unknown". A plausible-looking integer — the random
+    // stand-in this replaces — would fail the assertion, which is exactly the regression being
+    // guarded: a fabricated number on a public page. The tagged branch is asserted directly in
+    // `tests/unit/eventCalendar.test.ts`.
+    //
+    // `.first()` because the hero renders once per breakpoint; the two copies always agree.
+    await expect(page.getByTestId('hackathon-count').first()).toHaveText('—');
+    // The event count comes from dates rather than tags, so it is real under either source.
+    await expect(page.getByTestId('event-count').first()).toHaveText(/^\d+$/);
+  });
 });

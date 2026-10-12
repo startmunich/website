@@ -29,17 +29,27 @@ export interface EventsContentProps {
   }>;
   upcomingEvents: StartEvent[];
   pastEvents: StartEvent[];
+  /**
+   * Yearly totals counted from real events. When `stats.hackathonsKnown` is `false` the source
+   * carried no activity tags (the Luma fallback), so `stats.hackathons` is a placeholder and the
+   * hero renders an em dash rather than a number it cannot stand behind.
+   */
+  stats: { hackathons: number; events: number; hackathonsKnown: boolean };
 }
 
-// Hand-set until hackathon tags flow from Luma through the members platform.
-const HACKATHONS_YEARLY = 2;
-const EVENTS_YEARLY = 15;
-
-export default function EventsContent({ markers, upcomingEvents, pastEvents }: EventsContentProps) {
+export default function EventsContent({
+  markers,
+  upcomingEvents,
+  pastEvents,
+  stats,
+}: EventsContentProps) {
   const [hoveredEvent, setHoveredEvent] = useState<string | null>(null);
 
-  const animatedHackathons = useAnimatedNumber(HACKATHONS_YEARLY, false, 800);
-  const animatedEvents = useAnimatedNumber(EVENTS_YEARLY, false, 800);
+  // The count-up animates on mount; there is no loading flag to wait for because the data
+  // arrives as props from the server. `stats.hackathons` is only a real total when the source
+  // carried activity tags — an untagged feed gets an em dash instead of an invented figure.
+  const animatedHackathons = useAnimatedNumber(stats.hackathonsKnown ? stats.hackathons : 0);
+  const animatedEvents = useAnimatedNumber(stats.events, false, 800);
 
   const months = monthLabels();
   const monthGroups = groupMarkersByMonth(markers);
@@ -80,10 +90,27 @@ export default function EventsContent({ markers, upcomingEvents, pastEvents }: E
           <div className="grid grid-cols-2 gap-4 lg:flex lg:flex-col lg:gap-6">
             <HeroCard>
               <div className="mb-3 flex items-baseline justify-center gap-2">
-                <span className="bg-gradient-to-br from-white to-gray-300 bg-clip-text text-4xl font-black text-transparent transition lg:text-6xl">
-                  {Math.floor(animatedHackathons)}
-                </span>
-                <span className="text-xl font-bold text-[#d0006f] lg:text-3xl">+</span>
+                {stats.hackathonsKnown ? (
+                  <>
+                    <span
+                      data-testid="hackathon-count"
+                      className="bg-gradient-to-br from-white to-gray-300 bg-clip-text text-4xl font-black text-transparent transition lg:text-6xl"
+                    >
+                      {Math.floor(animatedHackathons)}
+                    </span>
+                    <span className="text-xl font-bold text-[#d0006f] lg:text-3xl">+</span>
+                  </>
+                ) : (
+                  // The Luma fallback carries no activity tags, so this total is genuinely
+                  // unknown. An em dash says that; a number would be a claim we cannot back.
+                  <span
+                    data-testid="hackathon-count"
+                    className="text-4xl font-black text-white/40 lg:text-6xl"
+                    aria-hidden
+                  >
+                    —
+                  </span>
+                )}
               </div>
               <p className="text-xs font-bold uppercase tracking-widest text-gray-300">
                 Hackathons Yearly
@@ -92,7 +119,10 @@ export default function EventsContent({ markers, upcomingEvents, pastEvents }: E
 
             <HeroCard>
               <div className="mb-3 flex items-baseline justify-center gap-2">
-                <span className="bg-gradient-to-br from-white to-gray-300 bg-clip-text text-4xl font-black text-transparent transition lg:text-6xl">
+                <span
+                  data-testid="event-count"
+                  className="bg-gradient-to-br from-white to-gray-300 bg-clip-text text-4xl font-black text-transparent transition lg:text-6xl"
+                >
                   {Math.floor(animatedEvents)}
                 </span>
                 <span className="text-xl font-bold text-[#d0006f] lg:text-3xl">+</span>

@@ -267,6 +267,7 @@ describe('yearlyStats', () => {
     );
 
     expect(stats.events).toBe(2);
+    expect(stats.hackathonsKnown).toBe(true);
   });
 
   test('counts hackathons from the tag, not from the title', () => {
@@ -281,25 +282,22 @@ describe('yearlyStats', () => {
 
     expect(stats.hackathons).toBe(1);
     expect(stats.events).toBe(2);
+    expect(stats.hackathonsKnown).toBe(true);
   });
 
-  test('shows the stand-in for hackathons but an honest zero events on an empty feed', () => {
+  // These three replaced a random stand-in (8–15) that was shown on the public page whenever the
+  // real total was zero. It put fabricated data in front of visitors and drifts between loads,
+  // so an untagged source now reports that it cannot answer instead of guessing.
+  test('reports an honest zero for an empty feed', () => {
     const stats = yearlyStats([], NOW);
 
-    // No events at all is the one case where nothing is countable — but a displayed
-    // "0+ Hackathons Yearly" still reads as "we ran none", so the hackathon slot takes the
-    // stand-in while the event count stays honestly at zero.
-    expect(Number.isInteger(stats.hackathons)).toBe(true);
-    expect(stats.hackathons).toBeGreaterThan(0);
-    expect(stats.hackathons).toBeLessThan(20);
     expect(stats.events).toBe(0);
+    expect(stats.hackathons).toBe(0);
+    expect(stats.hackathonsKnown).toBe(true);
   });
 
-  // The Luma fallback carries no tags at all. Counting there returned a hard 0 next to a
-  // calendar full of the year's events, which read as "we ran no hackathons" rather than "we
-  // cannot see". An em dash reads the same way, so the fallback shows a random plausible figure
-  // instead — never a 0, never above the band a real yearly total lands in.
-  test('shows a plausible stand-in, not zero, when the source has no tags', () => {
+  test('reports zero and unknown when the source has no tags', () => {
+    // The Luma fallback: real event dates, no activity tags. The total is unknown, not zero.
     const stats = yearlyStats(
       [
         event({ id: 'a', startAt: '2026-03-10T10:00:00Z' }),
@@ -309,22 +307,37 @@ describe('yearlyStats', () => {
       { tagsAvailable: false },
     );
 
-    expect(Number.isInteger(stats.hackathons)).toBe(true);
-    expect(stats.hackathons).toBeGreaterThan(0);
-    expect(stats.hackathons).toBeLessThan(20);
-    // The event count is real either way — it comes from dates, not tags.
+    expect(stats.hackathons).toBe(0);
+    expect(stats.hackathonsKnown).toBe(false);
+    // The event count comes from dates, so it is real either way.
     expect(stats.events).toBe(2);
   });
 
-  test('shows the stand-in, not zero, when tags exist but none mark a hackathon', () => {
+  test('reports a real zero when tags exist but none mark a hackathon', () => {
+    // A tagged feed with no hackathon tag is a genuine "none this year", which is a different
+    // claim from "cannot tell" — the two must not be conflated.
     const stats = yearlyStats([event({ id: 'a', startAt: '2026-03-10T10:00:00Z' })], NOW, {
       tagsAvailable: true,
     });
 
-    // A tagged feed with no hackathon tags makes the same claim as an untagged one — the calendar
-    // below lists the year's events, so a hard 0 reads as "we ran none". The stand-in replaces it.
-    expect(Number.isInteger(stats.hackathons)).toBe(true);
-    expect(stats.hackathons).toBeGreaterThan(0);
-    expect(stats.hackathons).toBeLessThan(20);
+    expect(stats.hackathons).toBe(0);
+    expect(stats.hackathonsKnown).toBe(true);
+    expect(stats.events).toBe(1);
+  });
+
+  test('counts only hackathon-tagged events that fall in the current year', () => {
+    const stats = yearlyStats(
+      [
+        event({ id: 'a', startAt: '2026-03-10T10:00:00Z', tags: ['hackathon'] }),
+        event({ id: 'b', startAt: '2026-04-10T10:00:00Z', tags: ['hackathon'] }),
+        // Tagged, but a different year — the hero claims "Yearly", so the window must hold.
+        event({ id: 'c', startAt: '2025-04-10T10:00:00Z', tags: ['hackathon'] }),
+        event({ id: 'd', startAt: '2027-04-10T10:00:00Z', tags: ['hackathon'] }),
+      ],
+      NOW,
+    );
+
+    expect(stats.hackathons).toBe(2);
+    expect(stats.events).toBe(2);
   });
 });
