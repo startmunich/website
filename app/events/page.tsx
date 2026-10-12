@@ -51,16 +51,12 @@ async function loadEventData() {
   const pastEvents = past.status === 'fulfilled' ? past.value : [];
 
   const events = calendarEvents?.events ?? [];
-  // Luma carries no activity tags, so a tag-derived statistic is unknown rather than zero when
-  // the fallback answered. `yearlyStats` reports that with `hackathonsKnown` instead of guessing
-  // a number the source cannot support.
-  const tagsAvailable = calendarEvents?.source === 'platform';
 
   return {
     markers: buildCalendarMarkers(events),
     upcomingEvents,
     pastEvents,
-    stats: yearlyStats(events, new Date(), { tagsAvailable }),
+    stats: yearlyStats(events),
   };
 }
 

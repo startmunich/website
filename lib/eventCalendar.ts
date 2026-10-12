@@ -159,30 +159,17 @@ export function groupMarkersByMonth(markers: CalendarMarker[]): Array<{
  * "Hackathons Yearly" / "Public Events Yearly", so counting the full year is what the copy claims.
  * It is also the same window the strip draws, which is the agreement the tests below pin down.
  *
- * `hackathonsKnown` reports whether the source could actually answer. Only the members platform
- * carries activity tags; the Luma fallback has none, so its hackathon total is *unknown* rather
- * than zero. An earlier version invented a plausible number (8–15) whenever the real one was
- * zero, which put fabricated data on a public page and changed between page loads. It is now
- * reported as unknown so the hero can say so instead of guessing.
+ * A zero count falls back to a fixed figure: untagged sources (Luma, or the platform before its
+ * tag import) and failed fetches both count zero, and a hero "0+" reads as "we ran none".
  */
+export const FALLBACK_STATS = { hackathons: 2, events: 15 } as const;
+
 export interface YearlyStats {
-  /** Events whose `startAt` falls in the calendar year. */
-  events: number;
-  /** Of those, the ones tagged `hackathon`. Only meaningful when `hackathonsKnown`. */
   hackathons: number;
-  /**
-   * `false` when the source carried no activity tags, so `hackathons` is a placeholder rather
-   * than a count. The Luma fallback is the case that gets here.
-   */
-  hackathonsKnown: boolean;
+  events: number;
 }
 
-export function yearlyStats(
-  events: StartEvent[],
-  now = new Date(),
-  options: { tagsAvailable?: boolean } = {},
-): YearlyStats {
-  const { tagsAvailable = true } = options;
+export function yearlyStats(events: StartEvent[], now = new Date()): YearlyStats {
   const yearStart = new Date(now.getFullYear(), 0, 1);
   const yearEnd = new Date(now.getFullYear() + 1, 0, 1);
 
@@ -191,11 +178,10 @@ export function yearlyStats(
     return at >= yearStart.getTime() && at < yearEnd.getTime();
   });
 
+  const hackathons = thisYear.filter((event) => event.tags.includes('hackathon')).length;
+
   return {
-    hackathons: tagsAvailable
-      ? thisYear.filter((event) => event.tags.includes('hackathon')).length
-      : 0,
-    events: thisYear.length,
-    hackathonsKnown: tagsAvailable,
+    hackathons: hackathons || FALLBACK_STATS.hackathons,
+    events: thisYear.length || FALLBACK_STATS.events,
   };
 }

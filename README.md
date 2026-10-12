@@ -183,12 +183,13 @@ on tags being present:
   Luma sync populates — it imports the Luma tag that names the activity, and migration `0165`
   backfills the events that predate the import. They are real, admin-curated values, so the count
   reflects what is actually tagged in the platform rather than anything guessed here.
-- **Luma (fallback).** Luma carries no activity tags, so events from the fallback arrive untagged
-  and the total is **unknown rather than zero**. The website does **not** infer a tag from an event
-  title — a title that happens to contain "hackathon" is not evidence that it is one. In that state
-  the hero renders an em dash instead of a figure. An earlier version substituted a randomly chosen
-  8–15 when the real total was zero; that was removed, because a plausible-looking number on a
-  public page is a claim the data does not support and it drifted between page loads.
+- **Luma (fallback).** Luma carries no activity tags, so events from the fallback arrive untagged.
+  The website does **not** infer a tag from an event title — a title that happens to contain
+  "hackathon" is not evidence that it is one.
+
+Whenever a count comes out zero (untagged feed, failed fetch, empty year), the hero shows a fixed
+fallback instead: **2+ Hackathons Yearly** and **15+ Public Events Yearly** (`FALLBACK_STATS` in
+`lib/eventCalendar.ts`).
 
 Three things to know when editing this code:
 

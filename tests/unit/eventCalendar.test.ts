@@ -4,6 +4,7 @@ import {
   buildCalendarMarkers,
   calendarYearWindow,
   EVENT_KIND_COLORS,
+  FALLBACK_STATS,
   fullMonthLabel,
   groupMarkersByMonth,
   monthLabels,
@@ -267,14 +268,12 @@ describe('yearlyStats', () => {
     );
 
     expect(stats.events).toBe(2);
-    expect(stats.hackathonsKnown).toBe(true);
   });
 
   test('counts hackathons from the tag, not from the title', () => {
     const stats = yearlyStats(
       [
         event({ id: 'a', startAt: '2026-03-10T10:00:00Z', tags: ['hackathon'] }),
-        // Title says hackathon, no tag — not counted, which is the honest answer.
         event({ id: 'b', startAt: '2026-04-10T10:00:00Z', title: 'Road to START Hack' }),
       ],
       NOW,
@@ -282,47 +281,6 @@ describe('yearlyStats', () => {
 
     expect(stats.hackathons).toBe(1);
     expect(stats.events).toBe(2);
-    expect(stats.hackathonsKnown).toBe(true);
-  });
-
-  // These three replaced a random stand-in (8–15) that was shown on the public page whenever the
-  // real total was zero. It put fabricated data in front of visitors and drifts between loads,
-  // so an untagged source now reports that it cannot answer instead of guessing.
-  test('reports an honest zero for an empty feed', () => {
-    const stats = yearlyStats([], NOW);
-
-    expect(stats.events).toBe(0);
-    expect(stats.hackathons).toBe(0);
-    expect(stats.hackathonsKnown).toBe(true);
-  });
-
-  test('reports zero and unknown when the source has no tags', () => {
-    // The Luma fallback: real event dates, no activity tags. The total is unknown, not zero.
-    const stats = yearlyStats(
-      [
-        event({ id: 'a', startAt: '2026-03-10T10:00:00Z' }),
-        event({ id: 'b', startAt: '2026-09-10T10:00:00Z' }),
-      ],
-      NOW,
-      { tagsAvailable: false },
-    );
-
-    expect(stats.hackathons).toBe(0);
-    expect(stats.hackathonsKnown).toBe(false);
-    // The event count comes from dates, so it is real either way.
-    expect(stats.events).toBe(2);
-  });
-
-  test('reports a real zero when tags exist but none mark a hackathon', () => {
-    // A tagged feed with no hackathon tag is a genuine "none this year", which is a different
-    // claim from "cannot tell" — the two must not be conflated.
-    const stats = yearlyStats([event({ id: 'a', startAt: '2026-03-10T10:00:00Z' })], NOW, {
-      tagsAvailable: true,
-    });
-
-    expect(stats.hackathons).toBe(0);
-    expect(stats.hackathonsKnown).toBe(true);
-    expect(stats.events).toBe(1);
   });
 
   test('counts only hackathon-tagged events that fall in the current year', () => {
@@ -330,7 +288,6 @@ describe('yearlyStats', () => {
       [
         event({ id: 'a', startAt: '2026-03-10T10:00:00Z', tags: ['hackathon'] }),
         event({ id: 'b', startAt: '2026-04-10T10:00:00Z', tags: ['hackathon'] }),
-        // Tagged, but a different year — the hero claims "Yearly", so the window must hold.
         event({ id: 'c', startAt: '2025-04-10T10:00:00Z', tags: ['hackathon'] }),
         event({ id: 'd', startAt: '2027-04-10T10:00:00Z', tags: ['hackathon'] }),
       ],
@@ -338,6 +295,23 @@ describe('yearlyStats', () => {
     );
 
     expect(stats.hackathons).toBe(2);
+    expect(stats.events).toBe(2);
+  });
+
+  test('falls back to the fixed figures on an empty feed', () => {
+    expect(yearlyStats([], NOW)).toEqual(FALLBACK_STATS);
+  });
+
+  test('falls back to the fixed hackathon figure when no event is tagged hackathon', () => {
+    const stats = yearlyStats(
+      [
+        event({ id: 'a', startAt: '2026-03-10T10:00:00Z' }),
+        event({ id: 'b', startAt: '2026-09-10T10:00:00Z', tags: ['workshop'] }),
+      ],
+      NOW,
+    );
+
+    expect(stats.hackathons).toBe(FALLBACK_STATS.hackathons);
     expect(stats.events).toBe(2);
   });
 });
