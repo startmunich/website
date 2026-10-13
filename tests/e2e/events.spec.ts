@@ -91,4 +91,13 @@ test.describe('events page', () => {
     await expect(page.getByText(/hackathons yearly/i).first()).toBeVisible();
     await expect(page.getByText(/public events yearly/i).first()).toBeVisible();
   });
+
+  test('hero counts are positive under either event source', async ({ page }) => {
+    await page.goto('/events');
+
+    // Platform-fed or Luma-fed, a zero count falls back to a fixed figure, so neither ever reads 0.
+    // `.first()` because `Hero` renders its children once per breakpoint.
+    await expect(page.getByTestId('hackathon-count').first()).toHaveText(/^[1-9]\d*$/);
+    await expect(page.getByTestId('event-count').first()).toHaveText(/^[1-9]\d*$/);
+  });
 });

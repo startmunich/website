@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { TimelineMarker } from '@/components/EventComponents';
 import Hero from '@/components/Hero';
 import HeroCard from '@/components/HeroCard';
-import { groupMarkersByMonth, monthLabels } from '@/lib/eventCalendar';
+import { groupMarkersByMonth, monthLabels, type YearlyStats } from '@/lib/eventCalendar';
 import type { StartEvent } from '@/lib/eventTypes';
 import { useAnimatedNumber } from '@/lib/useAnimatedNumber';
 
@@ -29,17 +29,19 @@ export interface EventsContentProps {
   }>;
   upcomingEvents: StartEvent[];
   pastEvents: StartEvent[];
+  stats: YearlyStats;
 }
 
-// Hand-set until hackathon tags flow from Luma through the members platform.
-const HACKATHONS_YEARLY = 2;
-const EVENTS_YEARLY = 15;
-
-export default function EventsContent({ markers, upcomingEvents, pastEvents }: EventsContentProps) {
+export default function EventsContent({
+  markers,
+  upcomingEvents,
+  pastEvents,
+  stats,
+}: EventsContentProps) {
   const [hoveredEvent, setHoveredEvent] = useState<string | null>(null);
 
-  const animatedHackathons = useAnimatedNumber(HACKATHONS_YEARLY, false, 800);
-  const animatedEvents = useAnimatedNumber(EVENTS_YEARLY, false, 800);
+  const animatedHackathons = useAnimatedNumber(stats.hackathons, false, 800);
+  const animatedEvents = useAnimatedNumber(stats.events, false, 800);
 
   const months = monthLabels();
   const monthGroups = groupMarkersByMonth(markers);
@@ -80,7 +82,10 @@ export default function EventsContent({ markers, upcomingEvents, pastEvents }: E
           <div className="grid grid-cols-2 gap-4 lg:flex lg:flex-col lg:gap-6">
             <HeroCard>
               <div className="mb-3 flex items-baseline justify-center gap-2">
-                <span className="bg-gradient-to-br from-white to-gray-300 bg-clip-text text-4xl font-black text-transparent transition lg:text-6xl">
+                <span
+                  data-testid="hackathon-count"
+                  className="bg-gradient-to-br from-white to-gray-300 bg-clip-text text-4xl font-black text-transparent transition lg:text-6xl"
+                >
                   {Math.floor(animatedHackathons)}
                 </span>
                 <span className="text-xl font-bold text-[#d0006f] lg:text-3xl">+</span>
@@ -92,7 +97,10 @@ export default function EventsContent({ markers, upcomingEvents, pastEvents }: E
 
             <HeroCard>
               <div className="mb-3 flex items-baseline justify-center gap-2">
-                <span className="bg-gradient-to-br from-white to-gray-300 bg-clip-text text-4xl font-black text-transparent transition lg:text-6xl">
+                <span
+                  data-testid="event-count"
+                  className="bg-gradient-to-br from-white to-gray-300 bg-clip-text text-4xl font-black text-transparent transition lg:text-6xl"
+                >
                   {Math.floor(animatedEvents)}
                 </span>
                 <span className="text-xl font-bold text-[#d0006f] lg:text-3xl">+</span>

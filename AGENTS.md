@@ -156,11 +156,13 @@ tables, and mark them required or optional. Two things bite regularly:
 
 ## Testing
 
-There is **no unit test runner** — Playwright is the only suite, and `tests/e2e/smoke.spec.ts` is
-deliberately narrow (2xx + visible main landmark per key route). It catches broken SSR, failed
-builds, and routing breakage; it will not fail on content changes. Add per-page specs under
-`tests/e2e/` when a change needs real assertions. Locally, start `pnpm dev` yourself first; in CI
-the suite runs against a Vercel preview via `PLAYWRIGHT_TEST_BASE_URL`.
+Playwright is the e2e suite (`tests/e2e/`), and `vitest` runs the unit tests in `tests/unit/`
+(`pnpm test`) — see `vitest.config.mts`. `tests/e2e/smoke.spec.ts` is deliberately narrow (2xx +
+visible main landmark per key route): it catches broken SSR, failed builds and routing breakage, but
+will not fail on content changes. Add per-page specs under `tests/e2e/` when a change needs real
+assertions. Locally, start `pnpm dev` yourself first; in CI the suite runs against a Vercel preview
+via `PLAYWRIGHT_TEST_BASE_URL`. Data-dependent specs must accept both branches, because CI
+configures no event source and takes the empty/Luma-fallback path.
 
 ## Git workflow
 

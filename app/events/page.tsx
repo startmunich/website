@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-import { buildCalendarMarkers } from '@/lib/eventCalendar';
+import { buildCalendarMarkers, yearlyStats } from '@/lib/eventCalendar';
 import { getCalendarEvents, getPastEvents, getUpcomingEvents } from '@/lib/events';
 import { OG_IMAGES } from '@/lib/metadata';
 
@@ -50,17 +50,25 @@ async function loadEventData() {
   const upcomingEvents = upcoming.status === 'fulfilled' ? upcoming.value : [];
   const pastEvents = past.status === 'fulfilled' ? past.value : [];
 
+  const events = calendarEvents?.events ?? [];
+
   return {
-    markers: buildCalendarMarkers(calendarEvents?.events ?? []),
+    markers: buildCalendarMarkers(events),
     upcomingEvents,
     pastEvents,
+    stats: yearlyStats(events),
   };
 }
 
 export default async function EventsPage() {
-  const { markers, upcomingEvents, pastEvents } = await loadEventData();
+  const { markers, upcomingEvents, pastEvents, stats } = await loadEventData();
 
   return (
-    <EventsContent markers={markers} upcomingEvents={upcomingEvents} pastEvents={pastEvents} />
+    <EventsContent
+      markers={markers}
+      upcomingEvents={upcomingEvents}
+      pastEvents={pastEvents}
+      stats={stats}
+    />
   );
 }

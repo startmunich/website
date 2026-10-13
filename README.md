@@ -153,7 +153,6 @@ nothing consumed them, and `/events` reads its data on the server.
 | -------------------- | ------------------------------------------------------------ |
 | Upcoming events grid | Events that have not finished yet, soonest first             |
 | Annual calendar      | One marker per dated event, placed on its real month and day |
-| Featured slider      | Events an admin marked _highlighted_ on the members platform |
 | Past events grid     | Events that are over, most recent first                      |
 
 The flow, so there is one place to look when an event is missing:
@@ -171,10 +170,9 @@ The flow, so there is one place to look when an event is missing:
 **To add an event:** create it on Luma. It appears on `/events` within a few hours. Nothing to
 deploy, and no list to edit.
 
-To curate, hide or feature an event, do it on the members platform; the website picks it up on the
-next fetch. **Highlighted** events become the featured slider cards. Both the featured strip and the
-annual calendar render an honest "check back soon" state while there is nothing to show, rather than
-a hand-maintained programme that silently goes out of date.
+To curate or hide an event, do it on the members platform; the website picks it up on the next
+fetch. The annual calendar and the event grids each render an honest "check back soon" state while
+there is nothing to show, rather than a hand-maintained programme that silently goes out of date.
 
 ### Where event tags come from
 
@@ -182,12 +180,16 @@ The hero's "Hackathons Yearly" figure counts events whose `tags` include `hackat
 on tags being present:
 
 - **Members platform (primary).** `tags` come straight from the `events` table, which the platform's
-  Luma sync populates. They are real, admin-curated values, so the count reflects what is actually
-  tagged in the platform rather than anything guessed here.
-- **Luma (fallback).** Luma carries no activity tags, so events from the fallback arrive untagged
-  and the figure reads lower. The website does **not** infer a tag from an event title — a title
-  that happens to contain "hackathon" is not evidence that it is one. Treat a low count as a signal
-  that the fallback is in use, not as a bug in the page.
+  Luma sync populates — it imports the Luma tag that names the activity, and migration `0165`
+  backfills the events that predate the import. They are real, admin-curated values, so the count
+  reflects what is actually tagged in the platform rather than anything guessed here.
+- **Luma (fallback).** Luma carries no activity tags, so events from the fallback arrive untagged.
+  The website does **not** infer a tag from an event title — a title that happens to contain
+  "hackathon" is not evidence that it is one.
+
+Whenever a count comes out zero (untagged feed, failed fetch, empty year), the hero shows a fixed
+fallback instead: **2+ Hackathons Yearly** and **15+ Public Events Yearly** (`FALLBACK_STATS` in
+`lib/eventCalendar.ts`).
 
 Three things to know when editing this code:
 
