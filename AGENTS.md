@@ -2,12 +2,15 @@
 
 Working notes for coding agents on the START Munich website.
 
-Next.js 15 (App Router) + React 18 + TypeScript 5.9 (strict) + Tailwind 3.4, deployed to Vercel.
-Content is **not** in the repo — it is fetched at request time from Sanity, the members platform,
-and Luma. NocoDB survives only for the waitlist write (see "The waitlist exception" below).
+Next.js 15 (App Router) + React 19 + TypeScript 5.9 (strict) + Tailwind 4 + shadcn/ui on Base UI,
+deployed to Vercel. Content is **not** in the repo — it is fetched at request time from Sanity, the
+members platform, and Luma. NocoDB survives only for the waitlist write (see "The waitlist
+exception" below).
 
 - `README.md` is the human-facing reference (setup, env vars, routes, deployment). Read it before
   touching anything non-trivial.
+- `docs/design-system.md` is the reference for tokens, components and styling rules. Read it before
+  touching any UI.
 - `.github/copilot-instructions.md` is **stale** (it still describes a Next.js 14 "company list"
   app). Do not trust it; this file and `README.md` win.
 
@@ -49,12 +52,14 @@ commit messages must be Conventional Commits (`feat(startups): ...`, `fix: ...`)
 
 ```
 app/            Routes (App Router), layouts, API route handlers
-components/     Shared components; components/ui/ = shadcn + registry components
+components/ui/  Primitives: shadcn/ui (base-nova, Base UI) + typography/layout primitives
+components/site/ Site composites (header, footer, hero, cards, CTA, FAQ…) built from ui/
+components/aura, components/flare  WebGPU visuals (vgpu)
 lib/            Data fetching, types, shared metadata, hooks
 sanity/         Sanity client (client.ts) and GROQ queries (queries.ts)
 scripts/        Repo scripts (.cjs, use require — not linted for that)
 tests/e2e/      Playwright specs
-docs/           Setup guides
+docs/           Setup guides and the design-system reference
 ```
 
 Import the root as `@/...` (`tsconfig` maps `@/*` → `./*`).
@@ -65,8 +70,11 @@ Import the root as `@/...` (`tsconfig` maps `@/*` → `./*`).
 
 Default to Server Components. Add `'use client'` only for interactivity (state, effects, event
 handlers) — roughly a third of the codebase is client, and it is fine for that to stay a minority.
-Pages that render live data split into `page.tsx` (server: `metadata`, route config) and a
-`*Content.tsx` client sibling. Follow that split rather than marking the whole page client.
+Pages split into `page.tsx` (server: `metadata`, route config) and a `*Content.tsx` sibling. Keep
+`*Content.tsx` a Server Component when it can be, and move interactivity into small client islands
+next to it (e.g. `app/members/BoardsSection.tsx`, `app/home/NewsSection.tsx`) rather than marking
+the whole page client. The root layout's `SiteChrome` owns the page's only `<main>`; pages render
+sections.
 
 ### Data fetching and caching
 
@@ -113,14 +121,29 @@ page images.
 
 ### Styling
 
-- Tailwind utility classes only. No CSS modules, no inline style objects.
-- Brand tokens live in `colors.brand` in `tailwind.config.ts`: `brand-pink` (`#d0006f`),
-  `brand-dark-blue` (`#00002c`), `brand-secondary-blue` (`#011152`). Use the token, never the hex
-  literal. The sans font is `Avenirnextltpro` via `fontFamily.sans`.
+See `docs/design-system.md` for the full reference. The short version:
+
+- Tailwind utility classes only. No CSS modules. Inline `style` only for runtime-computed values (a
+  CMS colour, a marker position), with a comment.
+- Tokens live in `app/globals.css` (Tailwind 4, CSS-first; there is no `tailwind.config.ts`). Use
+  the semantic utilities (`bg-background`, `text-primary`, `bg-card`, `text-muted-foreground`,
+  `border-border`, `rounded-2xl`, `shadow-glow`…), never hex literals or arbitrary colours. The raw
+  palette (`brand-pink`, `brand-navy`, `brand-blue`) is for the rare colour that must not follow a
+  theme.
+- Compose pages from components: `Section`/`Container`/`SectionHeader` for layout,
+  `Heading`/`Eyebrow`/`Text` for type, `Button`/`ButtonLink`/`Badge`/`Card` and the
+  `components/site/` composites for everything else. Don't hand-style interactive elements.
+- Sub-brand microsites (`/labs`, `/eventpage/rtsh`, `/eventpage/rtss`) wrap their root in
+  `.theme-labs` / `.theme-rtsh` / `.theme-rtss`, which re-map the same tokens. Don't hard-code their
+  colours.
+- Fonts are loaded with `next/font` in `app/fonts.ts` (Avenir Next, JetBrains Mono for Labs).
 - Merge conditional classes with `cn()` from `@/lib/utils` (`clsx` + `tailwind-merge`) rather than
   string concatenation.
-- `components/ui/` follows the shadcn/ui pattern: `React.forwardRef`, a `displayName`, and a
-  `cn(...)` base class that callers can override. Copy the existing shape when adding one.
+- `components/ui/` follows the current shadcn/ui (`base-nova`) shape: plain function components with
+  a `data-slot`, `cva` variants, and a `cn(...)` className callers can extend. Polymorphism uses
+  Base UI's `render` prop (`<Card render={<Link href="…" />}>`), not `asChild`. Add components with
+  `pnpm dlx shadcn@latest add <name>`, fix any `from "cn"` import to `@/lib/utils`, and never let
+  the CLI overwrite `button.tsx` (it carries the brand variants).
 
 ### Types
 
@@ -184,6 +207,9 @@ configures no event source and takes the empty/Luma-fallback path.
   `overrides` live. Editing `package.json` to pin a transitive dep does nothing.
 - There is no `vercel.json`. Redirects, the PostHog `/ingest/*` proxy, image config, and the
   permanent `/home` → `/` redirect all live in `next.config.js`.
-- `postcss.config.js` and `tailwind.config.ts` are both still needed; Tailwind 3 predates the
-  PostCSS-native `@tailwindcss/postcss` setup.
+- Tailwind 4 is configured in CSS (`app/globals.css`) via `@tailwindcss/postcss`; there is no
+  `tailwind.config.ts`. Prettier's Tailwind plugin reads the same file (`tailwindStylesheet` in
+  `prettier.config.mjs`), so custom tokens sort correctly.
+- `react` and `react-dom` must resolve to the exact same version or the build fails at page-data
+  collection. Bump them together.
 - Prefer adding a new env-gated code path over branching on build environments elsewhere.

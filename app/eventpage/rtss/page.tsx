@@ -1,8 +1,18 @@
-import { ArrowRight, CalendarDays, MapPin } from 'lucide-react';
+import { ArrowRightIcon, CalendarDaysIcon, MapPinIcon } from 'lucide-react';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+
+import { Faq, type FaqItem } from '@/components/site/faq';
+import { MicrositeFooter } from '@/components/site/microsite-footer';
+import { Badge } from '@/components/ui/badge';
+import { ButtonLink } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Marquee } from '@/components/ui/marquee';
+import { Container, Section } from '@/components/ui/section';
+import { Eyebrow, Heading, Text } from '@/components/ui/typography';
+import { cn } from '@/lib/utils';
 
 import RtssHeroTitle from './RtssHeroTitle';
 
@@ -131,59 +141,64 @@ const testimonials = [
   },
 ];
 
-const faqs = [
+const faqs: FaqItem[] = [
   {
+    id: 'what',
     question: 'What is the Road to START Summit?',
     answer:
       'The Road to START Summit is a series of events organized by START chapters throughout Europe. These events serve as warm-up gatherings leading up to START Summit in St. Gallen. The goal is to identify promising startups that will represent START Munich and pitch in St. Gallen.',
   },
   {
+    id: 'where',
     question: 'Where and when does it take place?',
     answer:
       'It will take place on 9 December 2025 at Freiheitshalle, Munich. The following START Summit in St. Gallen, Switzerland, will run from 19 to 20 March 2026.',
   },
   {
+    id: 'requirements',
     question: 'What are the requirements for startups?',
     answer:
       'Your startup was founded in 2023 or later, is in Seed or Pre-Seed stage, and is an independent legal entity. There are no limitations regarding the amount of funding you have already received. Extra points if your startup has a deep tech focus.',
   },
   {
+    id: 'difference',
     question: 'How is it different from Road to START Hack?',
     answer:
       'Road to START Hack is a weekend-long hackathon where students build software and hardware projects. Road to START Summit is a pitching competition for startups.',
   },
 ];
 
+const beyond = ['Network', 'Pitch', 'Connect', 'Grow', 'Invest', 'Scale'];
+
 function RtssButton({
   href,
   children,
-  variant = 'primary',
+  variant = 'default',
 }: {
   href: string;
   children: ReactNode;
-  variant?: 'primary' | 'secondary';
+  variant?: 'default' | 'outline';
 }) {
   return (
-    <a
+    <ButtonLink
       href={href}
-      target={href.startsWith('http') ? '_blank' : undefined}
-      rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
-      className={`group inline-flex min-h-12 items-center justify-center gap-2 rounded bg-white px-6 py-3 text-sm font-black uppercase tracking-wide text-[#00002c] transition hover:-translate-y-0.5 hover:bg-[#d0006f] hover:text-white hover:shadow-xl hover:shadow-[#d0006f]/30 ${
-        variant === 'secondary'
-          ? '!border !border-white/25 !bg-transparent !text-white hover:!border-[#d0006f] hover:!bg-[#d0006f]'
-          : ''
-      }`}
+      variant={variant}
+      size="lg"
+      className={cn(
+        'group uppercase hover:-translate-y-0.5 hover:border-brand-pink hover:bg-brand-pink hover:text-white',
+        variant === 'outline' && 'border-input bg-transparent',
+      )}
     >
       {children}
-      <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-    </a>
+      <ArrowRightIcon className="transition group-hover:translate-x-1" />
+    </ButtonLink>
   );
 }
 
 function RtssNavbar() {
   return (
-    <nav className="fixed inset-x-0 top-0 z-[100] bg-[#00002c]">
-      <div className="relative mx-auto flex h-20 max-w-[1500px] items-center justify-between gap-6 px-5 sm:px-8 lg:px-12">
+    <nav className="fixed inset-x-0 top-0 z-100 bg-secondary">
+      <Container size="wide" className="relative flex h-20 items-center justify-between gap-6">
         <Link href="/" className="flex items-center transition hover:opacity-80">
           <Image
             src="/startlogo.svg"
@@ -194,131 +209,130 @@ function RtssNavbar() {
             priority
           />
         </Link>
-
-        <div className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-7 xl:flex">
+        <div className="absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-7 xl:flex">
           {navItems.map(([label, href]) => (
             <a
               key={href}
               href={href}
-              className="text-sm font-black uppercase tracking-wide text-white transition hover:text-[#fc2f72]"
+              className="text-sm font-black tracking-wide uppercase transition-colors hover:text-background"
             >
               {label}
             </a>
           ))}
         </div>
-
-        <div className="hidden overflow-hidden rounded sm:flex">
-          <a
+        <div className="flex gap-0.5 overflow-hidden rounded-lg">
+          <ButtonLink
             href={startupApplyUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-white px-4 py-2 text-sm font-black uppercase tracking-wide text-[#00002c] transition hover:bg-[#fc2f72] hover:text-white"
+            size="sm"
+            className="hidden rounded-none uppercase hover:bg-background hover:text-foreground sm:inline-flex"
           >
             Apply startup
-          </a>
-          <a
+          </ButtonLink>
+          <ButtonLink
             href={attendeeUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="border-l border-[#00002c]/20 bg-white px-4 py-2 text-sm font-black uppercase tracking-wide text-[#00002c] transition hover:bg-[#fc2f72] hover:text-white"
+            size="sm"
+            className="rounded-none uppercase hover:bg-background hover:text-foreground"
           >
             Attend
-          </a>
+          </ButtonLink>
         </div>
-
-        <a
-          href={attendeeUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="rounded bg-white px-4 py-2 text-xs font-black uppercase tracking-wide text-[#00002c] transition hover:bg-[#fc2f72] hover:text-white sm:hidden"
-        >
-          Attend
-        </a>
-      </div>
+      </Container>
     </nav>
   );
 }
 
+/** Road to START Summit microsite. Everything inside `.theme-rtss` picks up the inverted sub-brand. */
 export default function RtssPage() {
   return (
-    <div className="overflow-x-hidden bg-[#fc2f72] pt-20 text-white">
+    <div className="theme-rtss overflow-x-hidden pt-20">
       <RtssNavbar />
       <RtssHeroTitle />
-      <section className="relative z-[60] min-h-[820px] overflow-hidden sm:min-h-[calc(100svh-5rem)] lg:min-h-[900px]">
-        <div
-          className="pointer-events-none absolute inset-0 z-[50]"
-          style={{ background: 'linear-gradient(#fff0 42%, #fc2f72 58%)' }}
-        />
 
-        <div className="relative z-[70] mx-auto min-h-[820px] max-w-[1500px] px-5 sm:min-h-[calc(100svh-5rem)] sm:px-8 lg:min-h-[900px] lg:px-12">
-          <div className="absolute inset-x-5 top-[53%] flex -translate-y-1/2 flex-col items-center text-center sm:inset-x-8 sm:top-[52%] lg:inset-x-12 lg:top-[54%]">
-            <p className="mx-auto max-w-[20rem] px-4 text-base font-bold text-white/85 drop-shadow-[0_2px_14px_rgba(0,0,44,0.5)] sm:max-w-xl sm:text-xl">
+      <section className="relative z-60 min-h-[820px] overflow-hidden sm:min-h-[calc(100svh-5rem)] lg:min-h-[900px]">
+        <div className="pointer-events-none absolute inset-0 z-50 bg-linear-to-b from-transparent from-42% to-background to-58%" />
+        <Container
+          size="wide"
+          className="relative z-70 min-h-[820px] sm:min-h-[calc(100svh-5rem)] lg:min-h-[900px]"
+        >
+          <div className="absolute inset-x-5 top-[53%] flex -translate-y-1/2 flex-col items-center gap-6 text-center sm:inset-x-8 sm:top-[52%] lg:inset-x-12 lg:top-[54%]">
+            <p className="mx-auto max-w-80 px-4 font-bold text-foreground/85 drop-shadow-lg sm:max-w-xl sm:text-xl">
               Join us for START Munich&apos;s biggest event yet.
             </p>
-            <div className="mx-auto mt-6 flex w-full max-w-md flex-col items-center justify-center gap-3 text-sm font-black uppercase tracking-wide text-white sm:max-w-none sm:flex-row sm:text-base">
-              <span className="inline-flex w-full items-center justify-center gap-2 rounded bg-[#00002c]/35 px-4 py-2 shadow-lg shadow-[#00002c]/20 backdrop-blur sm:w-auto">
-                <CalendarDays className="h-4 w-4 text-[#ff7aa7]" />
-                9th December 2025
-              </span>
-              <span className="inline-flex w-full items-center justify-center gap-2 rounded bg-[#00002c]/35 px-4 py-2 shadow-lg shadow-[#00002c]/20 backdrop-blur sm:w-auto">
-                <MapPin className="h-4 w-4 text-[#ff7aa7]" />
-                Munich
-              </span>
+            <div className="flex w-full max-w-md flex-col items-center justify-center gap-3 sm:max-w-none sm:flex-row">
+              {[
+                { Icon: CalendarDaysIcon, label: '9th December 2025' },
+                { Icon: MapPinIcon, label: 'Munich' },
+              ].map(({ Icon, label }) => (
+                <Badge
+                  key={label}
+                  className="h-10 w-full rounded-lg bg-secondary/35 px-4 text-sm font-black tracking-wide text-foreground uppercase shadow-lg shadow-secondary/20 backdrop-blur-sm sm:w-auto sm:text-base [&>svg]:size-4! [&>svg]:text-accent-foreground"
+                >
+                  <Icon />
+                  {label}
+                </Badge>
+              ))}
             </div>
           </div>
-        </div>
-
-        <div className="pointer-events-none absolute inset-x-0 bottom-44 z-[60] sm:bottom-48 lg:bottom-0">
+        </Container>
+        <div className="pointer-events-none absolute inset-x-0 bottom-44 z-60 sm:bottom-48 lg:bottom-0">
           <Image
             src="/eventpage/rtss/mountain.png"
             alt=""
             width={1920}
             height={829}
             priority
-            className="h-auto w-full min-w-[900px] max-w-none translate-x-[-18%] sm:translate-x-0"
+            className="h-auto w-full max-w-none min-w-[900px] -translate-x-[18%] sm:translate-x-0"
           />
-          <div
-            className="absolute inset-0"
-            style={{ background: 'linear-gradient(#fff0 58%, #fc2f72)' }}
-          />
+          <div className="absolute inset-0 bg-linear-to-b from-transparent from-58% to-background" />
         </div>
       </section>
 
-      <section
+      <Section
         id="cta"
-        className="relative z-[60] scroll-mt-20 overflow-hidden bg-[#fc2f72] px-5 py-16 sm:px-8 lg:px-12"
+        spacing="none"
+        className="z-60 scroll-mt-20 py-16"
+        containerClassName="max-w-6xl text-center"
       >
-        <div className="absolute inset-x-0 top-0 mx-auto h-px max-w-6xl bg-white/20" />
-        <div className="mx-auto max-w-6xl text-center">
-          <p className="mx-auto max-w-sm text-lg font-bold text-white/70 sm:max-w-none">
-            Join us for START Munich&apos;s biggest event yet.
-          </p>
-          <h2 className="mt-3 text-[2rem] font-black uppercase leading-none min-[480px]:text-4xl sm:text-7xl lg:text-8xl">
-            <span className="block">Road to</span>
-            <span className="block">START Summit</span>
-          </h2>
-          <p className="mx-auto mt-5 max-w-xs text-xl font-black uppercase text-white/75 min-[480px]:text-2xl sm:max-w-none sm:text-[#ff7aa7]">
-            9th December 2025, Munich
-          </p>
-          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
-            <RtssButton href={startupApplyUrl}>Apply As A Start-up</RtssButton>
-            <RtssButton href={attendeeUrl} variant="secondary">
-              Take part as an attendee
-            </RtssButton>
-          </div>
+        <div className="absolute inset-x-0 top-0 mx-auto h-px max-w-6xl bg-border" />
+        <Text className="mx-auto max-w-sm font-bold text-foreground/70 sm:max-w-none">
+          Join us for START Munich&apos;s biggest event yet.
+        </Text>
+        <Heading
+          as="h2"
+          size="display"
+          className="mt-3 text-[2rem] min-[480px]:text-4xl sm:text-7xl lg:text-8xl"
+        >
+          <span className="block">Road to</span>
+          <span className="block">START Summit</span>
+        </Heading>
+        <p className="mx-auto mt-5 max-w-xs text-xl font-black text-foreground/75 uppercase min-[480px]:text-2xl sm:max-w-none sm:text-accent-foreground">
+          9th December 2025, Munich
+        </p>
+        <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+          <RtssButton href={startupApplyUrl}>Apply As A Start-up</RtssButton>
+          <RtssButton href={attendeeUrl} variant="outline">
+            Take part as an attendee
+          </RtssButton>
         </div>
-      </section>
+      </Section>
 
-      <div className="relative z-[60] space-y-10 bg-[#fc2f72] px-5 pb-16 sm:px-8 lg:px-12">
+      <Section
+        spacing="none"
+        className="z-60 pb-16"
+        containerClassName="flex max-w-6xl flex-col gap-10"
+      >
         {infoSections.map((section) => (
-          <section
+          <Card
             key={section.id}
             id={section.id}
-            className={`mx-auto grid max-w-6xl scroll-mt-24 overflow-hidden rounded border border-white/20 bg-[#09093d] shadow-2xl shadow-black/20 lg:grid-cols-2 ${
-              section.reverse ? 'lg:[&>div:first-child]:order-2' : ''
-            }`}
+            className="scroll-mt-24 gap-0 py-0 shadow-2xl shadow-black/20 lg:grid lg:grid-cols-2"
           >
-            <div className="relative min-h-[360px] overflow-hidden sm:min-h-[520px] lg:min-h-full">
+            <div
+              className={cn(
+                'relative min-h-[360px] overflow-hidden sm:min-h-[520px] lg:min-h-full',
+                section.reverse && 'lg:order-2',
+              )}
+            >
               <Image
                 src={section.image}
                 alt={section.alt}
@@ -326,160 +340,155 @@ export default function RtssPage() {
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#00002c]/55 to-transparent lg:hidden" />
+              <div className="absolute inset-0 bg-linear-to-t from-secondary/55 to-transparent lg:hidden" />
             </div>
-            <div className="flex flex-col justify-center p-6 sm:p-10 lg:p-12">
-              <p className="mb-3 text-sm font-black uppercase tracking-[0.24em] text-[#ff7aa7]">
-                {section.eyebrow}
-              </p>
-              <h2 className="text-4xl font-black uppercase leading-[0.95] sm:text-5xl lg:text-6xl">
-                {section.title}
-              </h2>
-              <div className="text-white/78 mt-7 space-y-4 text-base leading-relaxed sm:text-lg">
+            <div className="flex flex-col justify-center gap-7 p-6 sm:p-10 lg:p-12">
+              <div className="flex flex-col gap-3">
+                <Eyebrow className="tracking-[0.24em] text-accent-foreground">
+                  {section.eyebrow}
+                </Eyebrow>
+                <Heading as="h2" size="h2" className="leading-[0.95]">
+                  {section.title}
+                </Heading>
+              </div>
+              <div className="flex flex-col gap-4">
                 {section.body.map((paragraph) => (
-                  <p key={paragraph}>{paragraph}</p>
+                  <Text key={paragraph}>{paragraph}</Text>
                 ))}
               </div>
-              {section.cta && section.href ? (
-                <div className="mt-8">
+              {section.cta && section.href && (
+                <div>
                   <RtssButton href={section.href}>{section.cta}</RtssButton>
                 </div>
-              ) : null}
+              )}
             </div>
-          </section>
+          </Card>
         ))}
-      </div>
+      </Section>
 
-      <section className="relative z-[60] overflow-hidden border-y border-white/15 bg-[#d0006f] py-5">
-        <a
-          href="#cta"
-          className="animate-scroll-nonstop flex whitespace-nowrap text-2xl font-black uppercase tracking-wide text-white"
-        >
-          {[...Array(2)].map((_, index) => (
-            <span key={index} className="flex gap-8 pr-8">
-              <span>Network Beyond.</span>
-              <span>Pitch Beyond.</span>
-              <span>Connect Beyond.</span>
-              <span>Grow Beyond.</span>
-              <span>Invest Beyond.</span>
-              <span>Scale Beyond.</span>
+      <a href="#cta" className="relative z-60 block border-y border-border bg-brand-pink py-5">
+        <Marquee fade={false}>
+          {beyond.map((word) => (
+            <span
+              key={word}
+              className="pr-8 text-2xl font-black tracking-wide whitespace-nowrap uppercase"
+            >
+              {word} Beyond.
             </span>
           ))}
-        </a>
-      </section>
+        </Marquee>
+      </a>
 
-      <section
+      <Section
         id="partners"
-        className="relative z-[60] scroll-mt-20 bg-[#00002c] px-5 py-20 sm:px-8 lg:px-12"
+        spacing="default"
+        className="z-60 scroll-mt-20 bg-secondary"
+        containerClassName="max-w-6xl text-center"
       >
-        <div className="mx-auto max-w-6xl text-center">
-          <h2 className="text-5xl font-black uppercase sm:text-7xl">Our Partners</h2>
-          <div className="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded border border-white/15 bg-white/15 md:grid-cols-4">
-            {partners.map((partner) => (
-              <div
-                key={partner.name}
-                className="flex min-h-32 items-center justify-center bg-[#09093d] p-7"
-              >
-                <Image
-                  src={partner.logo}
-                  alt={partner.name}
-                  width={240}
-                  height={90}
-                  className="max-h-16 w-auto max-w-full object-contain"
-                />
-              </div>
-            ))}
-          </div>
-          <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
-            <RtssButton href={startupApplyUrl}>Apply As A Start-up</RtssButton>
-            <RtssButton href={attendeeUrl} variant="secondary">
-              Take part as an attendee
-            </RtssButton>
-          </div>
+        <Heading as="h2" size="display" className="text-5xl sm:text-7xl lg:text-7xl">
+          Our Partners
+        </Heading>
+        <div className="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border md:grid-cols-4">
+          {partners.map((partner) => (
+            <div
+              key={partner.name}
+              className="flex min-h-32 items-center justify-center bg-surface p-7"
+            >
+              <Image
+                src={partner.logo}
+                alt={partner.name}
+                width={240}
+                height={90}
+                className="max-h-16 w-auto max-w-full object-contain"
+              />
+            </div>
+          ))}
         </div>
-      </section>
+        <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
+          <RtssButton href={startupApplyUrl}>Apply As A Start-up</RtssButton>
+          <RtssButton href={attendeeUrl} variant="outline">
+            Take part as an attendee
+          </RtssButton>
+        </div>
+      </Section>
 
-      <section
+      <Section
         id="testimonials"
-        className="relative z-[60] scroll-mt-20 bg-white px-5 py-20 text-[#00002c] sm:px-8 lg:px-12"
+        spacing="default"
+        className="z-60 scroll-mt-20 bg-white text-brand-navy"
+        containerClassName="max-w-6xl"
       >
-        <div className="mx-auto max-w-6xl">
-          <h2 className="text-center text-5xl font-black uppercase sm:text-7xl">
-            What participants say
-          </h2>
-          <div className="mt-10 grid gap-4 md:grid-cols-2">
-            {testimonials.map((testimonial) => (
-              <article
-                key={testimonial.name}
-                className="rounded border border-[#00002c]/10 bg-[#f7f7fb] p-6"
-              >
-                <div className="flex items-center gap-4">
-                  <Image
-                    src={testimonial.image}
-                    alt={testimonial.name}
-                    width={72}
-                    height={72}
-                    className="h-[72px] w-[72px] rounded-full object-cover"
-                  />
-                  <div>
-                    <h3 className="text-lg font-black uppercase">{testimonial.name}</h3>
-                    {testimonial.href ? (
-                      <a
-                        href={testimonial.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs font-black uppercase tracking-wide text-[#d0006f] hover:underline"
-                      >
-                        {testimonial.role}
-                      </a>
-                    ) : (
-                      <p className="text-xs font-black uppercase tracking-wide text-[#d0006f]">
-                        {testimonial.role}
-                      </p>
-                    )}
-                  </div>
+        <Heading
+          as="h2"
+          size="display"
+          className="text-center text-5xl text-brand-navy sm:text-7xl lg:text-7xl"
+        >
+          What participants say
+        </Heading>
+        <div className="mt-10 grid gap-4 md:grid-cols-2">
+          {testimonials.map((testimonial) => (
+            <article
+              key={testimonial.name}
+              className="flex flex-col gap-5 rounded-lg border border-brand-navy/10 bg-brand-navy/3 p-6"
+            >
+              <div className="flex items-center gap-4">
+                <Image
+                  src={testimonial.image}
+                  alt={testimonial.name}
+                  width={72}
+                  height={72}
+                  className="size-18 rounded-full object-cover"
+                />
+                <div>
+                  <h3 className="text-lg font-black uppercase">{testimonial.name}</h3>
+                  {testimonial.href ? (
+                    <a
+                      href={testimonial.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-black tracking-wide text-brand-pink uppercase hover:underline"
+                    >
+                      {testimonial.role}
+                    </a>
+                  ) : (
+                    <p className="text-xs font-black tracking-wide text-brand-pink uppercase">
+                      {testimonial.role}
+                    </p>
+                  )}
                 </div>
-                <p className="mt-5 text-base leading-relaxed text-[#00002c]/75">
-                  &ldquo;{testimonial.quote}&rdquo;
-                </p>
-              </article>
-            ))}
-          </div>
+              </div>
+              <p className="leading-relaxed text-brand-navy/75">
+                &ldquo;{testimonial.quote}&rdquo;
+              </p>
+            </article>
+          ))}
         </div>
-      </section>
+      </Section>
 
-      <section
+      <Section
         id="faq"
-        className="relative z-[60] scroll-mt-20 bg-[#fc2f72] px-5 py-20 sm:px-8 lg:px-12"
+        spacing="default"
+        className="z-60 scroll-mt-20"
+        containerClassName="max-w-4xl"
       >
-        <div className="mx-auto max-w-4xl">
-          <p className="text-center text-sm font-black uppercase tracking-[0.24em] text-[#ff7aa7]">
-            Wanna learn more?
-          </p>
-          <h2 className="mt-3 text-center text-5xl font-black uppercase sm:text-7xl">
-            Frequently asked questions
-          </h2>
-          <div className="mt-10 divide-y divide-white/15 rounded border border-white/15">
-            {faqs.map((faq, index) => (
-              <details
-                key={faq.question}
-                className="group bg-white/[0.03] p-5 open:bg-white/[0.06]"
-                open={index === 0}
-              >
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-6 text-lg font-black uppercase">
-                  {faq.question}
-                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded bg-white text-[#00002c] transition group-open:rotate-45">
-                    +
-                  </span>
-                </summary>
-                <p className="mt-4 max-w-3xl text-base leading-relaxed text-white/75">
-                  {faq.answer}
-                </p>
-              </details>
-            ))}
-          </div>
-        </div>
-      </section>
+        <Eyebrow className="text-center tracking-[0.24em] text-accent-foreground">
+          Wanna learn more?
+        </Eyebrow>
+        <Heading
+          as="h2"
+          size="display"
+          className="mt-3 mb-10 text-center text-5xl sm:text-7xl lg:text-7xl"
+        >
+          Frequently asked questions
+        </Heading>
+        <Faq
+          items={faqs}
+          defaultValue={['what']}
+          className="[&_[data-slot=accordion-item]]:bg-foreground/5 [&_[data-slot=accordion-trigger-icon]]:text-foreground [&_[data-slot=accordion-trigger]]:uppercase"
+        />
+      </Section>
+
+      <MicrositeFooter label="Road to START Summit" className="relative z-60 bg-secondary" />
     </div>
   );
 }

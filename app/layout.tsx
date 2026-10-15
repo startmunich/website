@@ -2,7 +2,11 @@ import './globals.css';
 
 import type { Metadata, Viewport } from 'next';
 
-import SiteChrome from '@/components/SiteChrome';
+import { SiteChrome } from '@/components/site/site-chrome';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
+
+import { avenir, jetbrainsMono } from './fonts';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -64,9 +68,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="flex min-h-screen flex-col bg-brand-dark-blue">
-        <SiteChrome>{children}</SiteChrome>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={cn(avenir.variable, jetbrainsMono.variable)}
+    >
+      <body className="flex min-h-screen flex-col">
+        <TooltipProvider>
+          <SiteChrome>{children}</SiteChrome>
+        </TooltipProvider>
       </body>
     </html>
   );

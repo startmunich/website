@@ -1,303 +1,237 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-/* Avenir Next - All weights and styles from TTC v */
-@font-face {
-  font-family: "Avenirnextltpro";
-  src: url("/fonts/AvenirNext-Heavy-09.ttf") format("truetype");
-  font-weight: 900;
-  font-style: normal;
-  font-display: swap;
+/*
+ * ============================================================================
+ * START Munich design system
+ * ============================================================================
+ *
+ * Three layers, each only allowed to reference the one above it:
+ *
+ *   1. Brand palette  (--brand-*)          raw colours, never used in markup
+ *   2. Semantic tokens (--background, ...)  what components and pages use
+ *   3. Tailwind theme (@theme inline)       exposes tokens as utilities
+ *
+ * The site is dark-only, so the semantic tokens live on :root. Sub-brands
+ * (Labs, START Hack, Road to START Summit) re-map the *same* semantic tokens
+ * under a `.theme-*` class, which is why every shared component works inside
+ * them without per-page overrides. See docs/design-system.md.
+ */
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  color-scheme: dark;
+
+  /* 1. Brand palette ------------------------------------------------------ */
+  --brand-pink: #d0006f;
+  --brand-navy: #00002c;
+  --brand-blue: #011152;
+  --brand-indigo: #1a1a3e;
+
+  /* 2. Semantic tokens ---------------------------------------------------- */
+  --background: var(--brand-navy);
+  --foreground: #ffffff;
+
+  /* Raised surfaces are translucent so they pick up whatever is behind them
+     (photography, gradients). `popover` is opaque because it floats above
+     arbitrary content. */
+  --card: rgb(255 255 255 / 0.05);
+  --card-foreground: var(--foreground);
+  --popover: #0a0a3a;
+  --popover-foreground: var(--foreground);
+  --surface: var(--brand-indigo);
+
+  --primary: var(--brand-pink);
+  --primary-foreground: #ffffff;
+  --secondary: var(--brand-blue);
+  --secondary-foreground: #ffffff;
+
+  --muted: rgb(255 255 255 / 0.08);
+  --muted-foreground: rgb(255 255 255 / 0.68);
+  --accent: rgb(255 255 255 / 0.1);
+  --accent-foreground: #ffffff;
+
+  --destructive: #f05252;
+  --success: #10b981;
+
+  --border: rgb(255 255 255 / 0.1);
+  --input: rgb(255 255 255 / 0.16);
+  --ring: var(--primary);
+
+  /* One knob for every corner on the site; the scale below derives from it. */
+  --radius: 0.75rem;
 }
 
-@font-face {
-  font-family: "Avenirnextltpro";
-  src: url("/fonts/AvenirNext-Medium-06.ttf") format("truetype");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
+/* START Labs: monochrome, mono-spaced, teal accent. */
+.theme-labs {
+  --background: #000000;
+  --foreground: #ffffff;
+  --card: #111111;
+  --popover: #111111;
+  --surface: #0a0a0a;
+  --primary: #2dd4bf;
+  --primary-foreground: #000000;
+  --secondary: #1a1a1a;
+  --muted: rgb(255 255 255 / 0.06);
+  --muted-foreground: #888888;
+  --accent: rgb(45 212 191 / 0.1);
+  --border: rgb(255 255 255 / 0.1);
+  --input: rgb(255 255 255 / 0.14);
+  --ring: var(--primary);
+  --radius: 0.25rem;
 }
 
-@layer base {
-  :root {
-    --radius: 0rem;
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.2rem;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-  }
+/* START Hack Munich (RTSH): deep teal with a mint accent. */
+.theme-rtsh {
+  --background: #0c2724;
+  --foreground: #e4f3ee;
+  --card: rgb(20 65 70 / 0.55);
+  --popover: #144146;
+  --surface: #144146;
+  --primary: #34e1b8;
+  --primary-foreground: #0c2724;
+  --secondary: #1b5a68;
+  --secondary-foreground: #e4f3ee;
+  --muted: rgb(52 225 184 / 0.08);
+  --muted-foreground: #8fb6ad;
+  --accent: rgb(52 225 184 / 0.12);
+  --accent-foreground: #34e1b8;
+  --border: rgb(52 225 184 / 0.18);
+  --input: rgb(52 225 184 / 0.28);
+  --ring: var(--primary);
 }
 
-@layer base {
-  * {
-    @apply border-border;
-  }
-
-  html {
-    background-color: #00002c;
-    overscroll-behavior: none;
-  }
-
-  body {
-    @apply bg-background text-foreground;
-    background-color: #00002c;
-    font-family: Avenirnextltpro, sans-serif;
-    font-weight: 500;
-  }
+/* Road to START Summit (RTSS): inverted. Hot-pink page, navy panels, white CTAs. */
+.theme-rtss {
+  --background: #fc2f72;
+  --foreground: #ffffff;
+  --card: #09093d;
+  --card-foreground: #ffffff;
+  --popover: #09093d;
+  --surface: #09093d;
+  --primary: #ffffff;
+  --primary-foreground: var(--brand-navy);
+  --secondary: var(--brand-navy);
+  --secondary-foreground: #ffffff;
+  --muted: rgb(255 255 255 / 0.1);
+  --muted-foreground: rgb(255 255 255 / 0.78);
+  --accent: rgb(255 255 255 / 0.12);
+  --accent-foreground: #ff7aa7;
+  --border: rgb(255 255 255 / 0.2);
+  --input: rgb(255 255 255 / 0.25);
+  --ring: #ffffff;
+  --radius: 0.375rem;
 }
 
-@layer utilities {
-  .font-black {
-    text-transform: uppercase;
-  }
+/* 3. Tailwind theme -------------------------------------------------------- */
+@theme inline {
+  --font-sans: var(--font-avenir), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
 
-  .outline-text {
-    -webkit-text-stroke: 2px white;
-    -webkit-text-fill-color: transparent;
-    paint-order: stroke fill;
-  }
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-surface: var(--surface);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 
-  .outline-text-dark {
-    -webkit-text-stroke: 2px #00002c;
-    -webkit-text-fill-color: transparent;
-    paint-order: stroke fill;
-  }
+  /* Raw brand colours, for the rare case that must not follow a theme
+     (e.g. a partner logo plate). Prefer the semantic names above. */
+  --color-brand-pink: var(--brand-pink);
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-blue: var(--brand-blue);
 
-  .mindmap-line {
-    stroke-dasharray: 12 8;
-    animation: dashFlow 1s linear infinite;
-  }
+  /* Third-party marks. */
+  --color-linkedin: #0077b5;
+  --color-instagram: #e1306c;
 
-  @keyframes dashFlow {
-    0% {
-      stroke-dashoffset: 20;
-    }
-    100% {
-      stroke-dashoffset: 0;
-    }
-  }
+  /* One step below text-xs, for dense metadata (roles under portraits, chips). */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
 
-  @keyframes scroll {
-    0% {
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: calc(var(--radius) * 0.75);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.25);
+  --radius-2xl: calc(var(--radius) * 1.5);
+  --radius-3xl: calc(var(--radius) * 2);
+  --radius-4xl: calc(var(--radius) * 2.5);
+
+  --tracking-eyebrow: 0.3em;
+
+  --shadow-glow: 0 0 32px -4px color-mix(in oklab, var(--primary) 55%, transparent);
+  --shadow-card: 0 10px 30px -12px rgb(0 0 0 / 0.45);
+
+  --animate-marquee: marquee var(--marquee-duration, 30s) linear infinite;
+  --animate-marquee-reverse: marquee-reverse var(--marquee-duration, 30s) linear infinite;
+  --animate-marquee-vertical: marquee-vertical var(--marquee-duration, 20s) linear infinite;
+  --animate-blob: blob 7s infinite;
+  --animate-fly-in: fly-in 0.6s ease-out both;
+  --animate-fade-in-up: fade-in-up 0.6s ease-out both;
+
+  @keyframes marquee {
+    from {
       transform: translateX(0);
     }
-
-    100% {
+    to {
       transform: translateX(-50%);
     }
   }
-
-  .animate-scroll {
-    display: inline-flex;
-    animation: scroll 30s linear infinite;
-    width: max-content;
-  }
-
-  .animate-scroll:hover {
-    animation-play-state: paused;
-  }
-
-  .animate-scroll-nonstop {
-    display: inline-flex;
-    animation: scroll 30s linear infinite;
-    width: max-content;
-  }
-
-  .animate-scroll-slow {
-    display: inline-flex;
-    animation: scroll 60s linear infinite;
-    width: max-content;
-  }
-
-  .animate-scroll-reverse {
-    display: inline-flex;
-    animation: scroll-reverse 30s linear infinite;
-    width: max-content;
-  }
-
-  .animate-scroll-reverse:hover {
-    animation-play-state: paused;
-  }
-
-  @keyframes scroll-reverse {
-    0% {
+  @keyframes marquee-reverse {
+    from {
       transform: translateX(-50%);
     }
-    100% {
+    to {
       transform: translateX(0);
     }
   }
-
-  @media (prefers-reduced-motion: no-preference) {
-    .animate-scroll-vertical {
-      animation: scroll-vertical 20s linear infinite;
-    }
-  }
-
-  @keyframes scroll-vertical {
-    0% {
+  @keyframes marquee-vertical {
+    from {
       transform: translateY(0);
     }
-    100% {
+    to {
       transform: translateY(-50%);
     }
   }
-
-  .animate-ticker {
-    animation: ticker 16s steps(8) infinite;
-  }
-
-  @keyframes ticker {
-    0% {
-      transform: translateY(0);
-    }
-    100% {
-      transform: translateY(-50%);
-    }
-  }
-
   @keyframes blob {
-    0% {
-      transform: translate(0px, 0px) scale(1);
+    0%,
+    100% {
+      transform: translate(0, 0) scale(1);
     }
-
     33% {
       transform: translate(30px, -50px) scale(1.1);
     }
-
     66% {
       transform: translate(-20px, 20px) scale(0.9);
     }
-
-    100% {
-      transform: translate(0px, 0px) scale(1);
-    }
   }
-
-  .animate-blob {
-    animation: blob 7s infinite;
-  }
-
-  .animation-delay-2000 {
-    animation-delay: 2s;
-  }
-
-  .animation-delay-4000 {
-    animation-delay: 4s;
-  }
-
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-
-    to {
-      opacity: 1;
-    }
-  }
-
-  @keyframes scaleIn {
-    from {
-      opacity: 0;
-      transform: scale(0.95) translateY(10px);
-    }
-
-    to {
-      opacity: 1;
-      transform: scale(1) translateY(0);
-    }
-  }
-
-  @keyframes flyInFromTop {
+  @keyframes fly-in {
     from {
       opacity: 0;
       transform: translateY(-100px);
     }
-
     to {
       opacity: 1;
       transform: translateY(0);
     }
   }
-
-  @keyframes yearStampIn {
-    0% {
-      opacity: 0;
-      transform: rotate(-24deg) scale(1.22) translate(36px, -22px);
-      filter: blur(2px);
-    }
-
-    60% {
-      opacity: 1;
-      transform: rotate(-14deg) scale(0.96) translate(-4px, 2px);
-      filter: blur(0);
-    }
-
-    100% {
-      opacity: 1;
-      transform: rotate(-16deg) scale(1) translate(0, 0);
-      filter: blur(0);
-    }
-  }
-
-  .animate-fadeIn {
-    animation: fadeIn 0.3s ease-out;
-  }
-
-  .animate-scaleIn {
-    animation: scaleIn 0.3s ease-out;
-  }
-
-  /* Hide scrollbar for slider */
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-
-  @keyframes fadeInUp {
+  @keyframes fade-in-up {
     from {
       opacity: 0;
       transform: translateY(30px);
@@ -307,210 +241,62 @@
       transform: translateY(0);
     }
   }
+}
 
-  @keyframes slideDown {
-    from {
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply bg-background;
+    overscroll-behavior: none;
+  }
+
+  body {
+    @apply bg-background font-sans font-medium text-foreground antialiased;
+  }
+
+  /* Theme scopes repaint their own subtree. */
+  .theme-labs,
+  .theme-rtsh,
+  .theme-rtss {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Utilities ---------------------------------------------------------------- */
+
+/* Hollow display type, used for the second half of a heading
+   ("What is <outline>START Munich</outline>"). Follows the text colour. */
+@utility text-outline {
+  -webkit-text-stroke: 2px currentColor;
+  -webkit-text-fill-color: transparent;
+  paint-order: stroke fill;
+}
+
+/* Scroll reveal: hidden until something sets `data-visible` (see <Reveal>). */
+@utility reveal {
+  @media (prefers-reduced-motion: no-preference) {
+    transition:
+      opacity 0.7s ease-out,
+      translate 0.7s ease-out;
+    &:not([data-visible]) {
       opacity: 0;
-      max-height: 0;
-    }
-    to {
-      opacity: 1;
-      max-height: 300px;
+      translate: 0 2rem;
     }
   }
+}
 
-  details > div {
-    animation: slideDown 0.3s ease-out;
-  }
+@utility animation-delay-* {
+  animation-delay: calc(--value(integer) * 1ms);
+}
 
-  details summary::-webkit-details-marker {
-    display: none;
-  }
-
-  details[open] .faq-icon {
-    transform: rotate(45deg);
-  }
-
-  /* ========================================
-     LABS PAGE STYLES - Design System
-     ======================================== */
-
-  /* Hide main site Navigation and Footer on /labs page */
-  body:has(.labs-page) > nav,
-  body:has(.labs-page) > footer {
-    display: none !important;
-  }
-
-  /* Remove flex-grow from main on /labs page to prevent extra spacing */
-  body:has(.labs-page) > main {
-    flex-grow: 0 !important;
-  }
-
-  /* Labs Color System - Simplified */
-  .labs-page {
-    /* Backgrounds */
-    --labs-bg: #000000;
-    --labs-bg-card: #111111;
-
-    /* Borders */
-    --labs-border: rgba(255, 255, 255, 0.1);
-
-    /* Text - Only 3 colors */
-    --labs-text-primary: #ffffff; /* Headings */
-    --labs-text-body: #888888; /* Body text */
-    --labs-text-meta: #555555; /* Labels, metadata */
-
-    /* Accent */
-    --labs-accent: #2dd4bf;
-
-    /* Font Sizes - Clear hierarchy */
-    --labs-size-meta: 10px; /* Labels, metadata */
-    --labs-size-body: 14px; /* Body text */
-    --labs-size-heading-sm: 24px; /* Small headings */
-    --labs-size-heading-md: 32px; /* Medium headings */
-    --labs-size-heading-lg: 48px; /* Large headings */
-  }
-
-  /* Labs Utility Classes */
-  .labs-card {
-    background: var(--labs-bg-card);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-  }
-
-  .labs-heading {
-    font-family: Avenirnextltpro, sans-serif;
-    color: var(--labs-text-primary);
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: -0.02em;
-  }
-
-  .labs-body {
-    font-family: "JetBrains Mono", monospace;
-    color: var(--labs-text-body);
-    font-size: var(--labs-size-body);
-  }
-
-  .labs-meta {
-    font-family: "JetBrains Mono", monospace;
-    color: var(--labs-text-meta);
-    font-size: var(--labs-size-meta);
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-  }
-
-  /* CTA Button - Reusable component */
-  .labs-cta-button {
-    font-family: "JetBrains Mono", monospace;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.15em;
-    padding: 16px 48px;
-    background: transparent;
-    border: 1px solid;
-    transition: all 0.25s ease;
-    text-decoration: none;
-    display: inline-block;
-  }
-
-  .labs-cta-button:hover {
-    background: rgba(45, 212, 191, 0.1);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(45, 212, 191, 0.15);
-  }
-
-  .labs-cta-button-small {
-    font-size: var(--labs-size-meta);
-    padding: 10px 24px;
-  }
-
-  /* Manifesto Lines - Enhanced */
-  .labs-manifesto-line {
-    padding: 12px 0;
-    border-left: 2px solid transparent;
-    padding-left: 20px;
-    margin-left: -20px;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    position: relative;
-  }
-
-  .labs-manifesto-line::before {
-    content: "";
-    position: absolute;
-    left: -20px;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: var(--labs-accent);
-    transform: scaleY(0);
-    transform-origin: top;
-    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  .labs-manifesto-line:hover {
-    background: linear-gradient(90deg, rgba(45, 212, 191, 0.03) 0%, transparent 100%);
-    padding-left: 24px;
-  }
-
-  .labs-manifesto-line:hover::before {
-    transform: scaleY(1);
-  }
-
-  /* Reveal animation for scroll - More subtle */
-  .labs-reveal {
-    opacity: 0;
-    transform: translateY(12px);
-    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  .labs-reveal.active {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  /* Timeline Styles */
-  .labs-timeline-dot {
-    transition: all 0.25s ease;
-  }
-
-  .labs-timeline-active .labs-timeline-dot {
-    background: var(--labs-text-body) !important;
-    border-color: var(--labs-text-body) !important;
-    transform: scale(1.15);
-  }
-
-  .labs-timeline-active .labs-timeline-title {
-    color: var(--labs-text-primary) !important;
-  }
-
-  /* FAQ Styles - Industrial Accordion */
-  .labs-faq-item {
-    position: relative;
-  }
-
-  /* Labs: Carousel scroll */
-  .carousel-scroll {
-    scrollbar-width: thin;
-    scroll-behavior: smooth;
-    scrollbar-color: #2a2a2a transparent;
-  }
-
-  .carousel-scroll::-webkit-scrollbar {
-    height: 4px;
-  }
-
-  .carousel-scroll::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .carousel-scroll::-webkit-scrollbar-thumb {
-    background: #2a2a2a;
-    border-radius: 999px;
-  }
-
-  .carousel-scroll::-webkit-scrollbar-thumb:hover {
-    background: #3a3a3a;
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee,
+  .animate-marquee-reverse,
+  .animate-marquee-vertical,
+  .animate-blob {
+    animation-play-state: paused;
   }
 }

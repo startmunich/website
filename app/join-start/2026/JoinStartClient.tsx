@@ -1,31 +1,25 @@
 'use client';
 
 import Image from 'next/image';
-import Script from 'next/script';
 import posthog from 'posthog-js';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import { ScrollIndicator } from '@/components/EventComponents';
-import Hero from '@/components/Hero';
-import HeroCard from '@/components/HeroCard';
-import UpcomingEventTile from '@/components/UpcomingEventTile';
+import { EventCard } from '@/components/site/event-card';
+import { HorizontalScroller } from '@/components/site/horizontal-scroller';
+import { PageHero } from '@/components/site/page-hero';
+import { ButtonLink } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Section, SectionHeader } from '@/components/ui/section';
+import { Heading, Text } from '@/components/ui/typography';
+import { cn } from '@/lib/utils';
 
-const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
-
-declare global {
-  interface Window {
-    turnstile?: {
-      reset: (widgetIdOrContainer?: string | HTMLElement) => void;
-    };
-  }
-}
+import { WaitlistForm } from './WaitlistForm';
 
 const TARGET_DATE = new Date('2026-10-25T23:59:59+01:00').getTime();
 const CLOSE_DATE = new Date('2026-10-26T00:00:00+01:00').getTime();
+const APPLICATION_URL = 'https://tally.so/r/Y5ND8N';
 
-function pad(n: number) {
-  return String(n).padStart(2, '0');
-}
+const pad = (n: number) => String(n).padStart(2, '0');
 
 interface ApplyEvent {
   id: string;
@@ -41,67 +35,33 @@ interface ApplyEvent {
 // Info events for the current application round. The events section is hidden while this is empty.
 const applyEvents: ApplyEvent[] = [];
 
-interface JoinStartClientProps {
-  isLive: boolean;
-  isClosed: boolean;
-}
+const reasons = [
+  {
+    title: 'Values Over Grades',
+    image: '/join-start/volleyball.png',
+    text: "No one here cares about your GPA. What matters is the courage to share an idea and the drive to make it real. That's how programmers end up brainstorming with psychologists, and musicians sketch out business models. Different worlds, same fire.",
+  },
+  {
+    title: 'No Playbook',
+    image: '/memberJourney/SF-opt.png',
+    text: 'The Bay Area trip, START Labs, the Hacking Legal hackathon were never assigned. They started as ideas someone cared enough to make real. No hierarchy. No bureaucracy. Just people taking the leap of faith and building things that matter.',
+  },
+  {
+    title: 'Failure Celebrated',
+    image: '/events/eventCards/fail-opt.jpg',
+    text: "At events like Founder Fail Tales, screw-ups don't get buried. We hand failures the mic, laugh at them together, and learn out loud. Because if you never fail, you never dared to build.",
+  },
+  {
+    title: 'A Living Global Network',
+    image: '/join-start/start-summit.jpeg',
+    text: "START doesn't end when you leave Munich. It stays with you through new ventures, new cities, new chapters. You'll find co-founders, investors, and friends across the world. It's more than a network. It's a family you keep building with.",
+  },
+];
 
-export default function JoinStartClient({ isLive, isClosed }: JoinStartClientProps) {
-  const [timeLeft, setTimeLeft] = useState({
-    days: 0,
-    hours: 0,
-    minutes: 0,
-    seconds: 0,
-  });
+function useCountdown() {
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
   const [mounted, setMounted] = useState(false);
-  const [closedNow, setClosedNow] = useState(isClosed);
-  const [waitlistEmail, setWaitlistEmail] = useState('');
-  const [waitlistStatus, setWaitlistStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>(
-    'idle',
-  );
-  const [waitlistMessage, setWaitlistMessage] = useState<string | null>(null);
-  const eventsSliderRef = useRef<HTMLDivElement>(null);
-  const dragState = useRef({ isDragging: false, startX: 0, scrollLeft: 0 });
-
-  const handleWaitlistSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (waitlistStatus === 'submitting') return;
-    const formData = new FormData(e.currentTarget);
-    const turnstileToken = formData.get('cf-turnstile-response');
-    if (typeof turnstileToken !== 'string' || !turnstileToken) {
-      setWaitlistStatus('error');
-      setWaitlistMessage('Please complete the captcha challenge.');
-      return;
-    }
-    setWaitlistStatus('submitting');
-    setWaitlistMessage(null);
-    try {
-      const res = await fetch('/api/waitlist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: waitlistEmail, turnstileToken }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setWaitlistStatus('error');
-        setWaitlistMessage(data?.error || 'Something went wrong. Please try again.');
-        window.turnstile?.reset();
-        return;
-      }
-      posthog.capture('waitlist_signup', { location: 'join_start_2026_closed' });
-      setWaitlistStatus('success');
-      setWaitlistMessage(
-        data?.alreadyOnList
-          ? "You're already on the list. We'll be in touch when applications reopen."
-          : "You're on the list. We'll be in touch when applications reopen.",
-      );
-      setWaitlistEmail('');
-    } catch {
-      setWaitlistStatus('error');
-      setWaitlistMessage('Something went wrong. Please try again.');
-      window.turnstile?.reset();
-    }
-  };
+  const [closed, setClosed] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -113,417 +73,239 @@ export default function JoinStartClient({ isLive, isClosed }: JoinStartClientPro
         minutes: Math.floor((diff / (1000 * 60)) % 60),
         seconds: Math.floor((diff / 1000) % 60),
       });
-      if (Date.now() >= CLOSE_DATE) setClosedNow(true);
+      if (Date.now() >= CLOSE_DATE) setClosed(true);
     };
     update();
     const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
   }, []);
 
-  const handleDrag = {
-    start: (e: React.MouseEvent) => {
-      const slider = eventsSliderRef.current;
-      if (!slider) return;
-      dragState.current = {
-        isDragging: true,
-        startX: e.pageX - slider.offsetLeft,
-        scrollLeft: slider.scrollLeft,
-      };
-    },
-    move: (e: React.MouseEvent) => {
-      if (!dragState.current.isDragging || !eventsSliderRef.current) return;
-      e.preventDefault();
-      const x = e.pageX - eventsSliderRef.current.offsetLeft;
-      eventsSliderRef.current.scrollLeft =
-        dragState.current.scrollLeft - (x - dragState.current.startX) * 2;
-    },
-    end: () => {
-      dragState.current.isDragging = false;
-    },
-  };
+  return { timeLeft, mounted, closed };
+}
 
+function CountdownCard({
+  timeLeft,
+  mounted,
+}: Pick<ReturnType<typeof useCountdown>, 'timeLeft' | 'mounted'>) {
   const units = [
     { value: timeLeft.days, label: 'Days' },
     { value: timeLeft.hours, label: 'Hours' },
     { value: timeLeft.minutes, label: 'Minutes' },
     { value: timeLeft.seconds, label: 'Seconds' },
   ];
-
-  if (closedNow) {
-    return (
-      <div className="min-h-screen bg-brand-dark-blue text-white">
-        <section className="relative overflow-hidden">
-          <div className="absolute inset-0">
-            <Image
-              src="/join-start-2026-bg.png"
-              alt=""
-              fill
-              priority
-              sizes="100vw"
-              className="object-cover"
-              style={{ objectPosition: 'center center' }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-brand-dark-blue/95 via-brand-dark-blue/80 to-brand-dark-blue/70" />
-            <div className="absolute inset-x-0 bottom-0 h-1/6 bg-gradient-to-b from-transparent to-brand-dark-blue" />
-          </div>
-
-          <div className="relative mx-auto flex min-h-[calc(100vh-5rem)] max-w-5xl flex-col justify-center px-4 py-20 sm:px-6 lg:px-8">
-            <h1 className="text-4xl font-black leading-[0.95] tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
-              JOIN BOLD,
-              <br />
-              <span className="outline-text">STAY AHEAD</span>
-            </h1>
-
-            <form
-              className="mt-10 flex w-full max-w-2xl flex-col gap-3"
-              onSubmit={handleWaitlistSubmit}
+  return (
+    <Card
+      variant="glass"
+      size="lg"
+      className="w-full items-center text-center lg:max-w-[380px] xl:max-w-[440px]"
+    >
+      <div className="flex w-full flex-col gap-6 px-(--card-spacing)">
+        <Text variant="label" className="tracking-[0.35em] text-foreground/75 sm:text-sm">
+          Applications close in
+        </Text>
+        <div
+          className={cn(
+            'grid grid-cols-4 gap-2 transition-opacity duration-400 sm:gap-4 lg:gap-2 xl:gap-3',
+            mounted ? 'opacity-100' : 'opacity-0',
+          )}
+        >
+          {units.map((unit) => (
+            <div
+              key={unit.label}
+              className="rounded-xl border border-border bg-background/40 px-2 py-3 sm:py-5 lg:py-3"
             >
-              <div className="flex w-full flex-col overflow-hidden rounded-md sm:flex-row">
-                <label htmlFor="waitlist-email" className="sr-only">
-                  Email address
-                </label>
-                <input
-                  id="waitlist-email"
-                  type="email"
-                  required
-                  value={waitlistEmail}
-                  onChange={(e) => setWaitlistEmail(e.target.value)}
-                  disabled={waitlistStatus === 'submitting' || waitlistStatus === 'success'}
-                  placeholder="Email address"
-                  className="flex-1 bg-white px-5 py-3 text-sm text-brand-dark-blue placeholder:text-gray-400 focus:outline-none disabled:opacity-70 sm:text-base"
-                />
-                <button
-                  type="submit"
-                  disabled={waitlistStatus === 'submitting' || waitlistStatus === 'success'}
-                  className="bg-brand-pink px-6 py-3 text-xs font-bold uppercase tracking-wide text-white transition-all duration-300 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70 sm:text-sm"
-                >
-                  {waitlistStatus === 'submitting'
-                    ? 'Submitting...'
-                    : waitlistStatus === 'success'
-                      ? "You're on the list"
-                      : '> Join the waiting list'}
-                </button>
-              </div>
-              {TURNSTILE_SITE_KEY && (
-                <div className="cf-turnstile" data-sitekey={TURNSTILE_SITE_KEY} data-theme="dark" />
-              )}
-            </form>
-            {waitlistMessage && (
-              <p
-                className={`mt-3 max-w-2xl text-xs sm:text-sm ${
-                  waitlistStatus === 'success' ? 'text-emerald-300' : 'text-red-300'
-                }`}
-                role={waitlistStatus === 'error' ? 'alert' : 'status'}
-              >
-                {waitlistMessage}
-              </p>
-            )}
-            {TURNSTILE_SITE_KEY && (
-              <Script
-                src="https://challenges.cloudflare.com/turnstile/v0/api.js"
-                strategy="afterInteractive"
-                async
-                defer
-              />
-            )}
-
-            <p className="mt-8 max-w-2xl text-xs font-bold uppercase tracking-wide text-white/90 sm:text-sm">
-              Our application for the summer semester 2026 phase ended on Sunday, April 26th. Stay
-              tuned for the next phase that will open in October 2026.
-            </p>
-          </div>
-        </section>
+              <span className="block text-3xl font-black text-foreground tabular-nums sm:text-5xl lg:text-4xl">
+                {pad(unit.value)}
+              </span>
+              <span className="mt-1 block text-2xs tracking-wide text-muted-foreground uppercase">
+                {unit.label}
+              </span>
+            </div>
+          ))}
+        </div>
+        <Text variant="small" className="hidden sm:block">
+          Don&apos;t miss your chance to join START Munich. Applications only open once per
+          semester.
+        </Text>
+        <ButtonLink
+          href={APPLICATION_URL}
+          size="lg"
+          className="w-full"
+          onClick={() => posthog.capture('application_started', { location: 'hero_card' })}
+        >
+          Start Application
+        </ButtonLink>
       </div>
+    </Card>
+  );
+}
+
+interface JoinStartClientProps {
+  isLive: boolean;
+  isClosed: boolean;
+}
+
+export default function JoinStartClient({ isLive, isClosed }: JoinStartClientProps) {
+  const { timeLeft, mounted, closed } = useCountdown();
+
+  if (isClosed || closed) {
+    return (
+      <PageHero
+        image="/join-start-2026-bg.png"
+        imagePosition="center center"
+        size="full"
+        scrim="strong"
+        aura={false}
+        title="Join bold,"
+        outlineTitle="stay ahead"
+      >
+        <WaitlistForm />
+        <p className="mt-4 max-w-2xl text-sm font-bold tracking-wide text-foreground/90 uppercase">
+          Our application for the summer semester 2026 phase ended on Sunday, April 26th. Stay tuned
+          for the next phase that will open in October 2026.
+        </p>
+      </PageHero>
     );
   }
 
   if (!isLive) {
     return (
-      <div className="min-h-screen bg-brand-dark-blue text-white">
-        <Hero
-          aura={false}
-          backgroundImage="/memberJourney/hero-opt.png"
-          title={
-            <>
-              JOIN <span className="outline-text">START MUNICH</span>
-            </>
-          }
-          description="Applications for 2026 will open soon. Stay tuned."
-        />
-      </div>
+      <PageHero
+        image="/memberJourney/hero-opt.png"
+        aura={false}
+        title={
+          <>
+            Join <span className="text-outline">START Munich</span>
+          </>
+        }
+        description="Applications for 2026 will open soon. Stay tuned."
+      />
     );
   }
 
   return (
-    <div className="bg-brand-dark-blue">
-      <Hero
-        aura={false}
-        backgroundImage="/join-start-2026-bg.png"
-        className="min-h-[calc(100vh-30rem)] lg:min-h-[calc(100vh-5rem)]"
-        overlayOpacity="bg-gradient-to-r from-brand-dark-blue/95 via-brand-dark-blue/80 to-brand-dark-blue/70"
+    <>
+      <PageHero
+        image="/join-start-2026-bg.png"
         imagePosition="center center"
+        scrim="strong"
+        aura={false}
+        className="min-h-[calc(100vh-30rem)] lg:min-h-[calc(100vh-5rem)]"
         title={
           <>
-            JOIN
+            Join
             <br />
-            <span className="text-brand-pink">START</span>
-            <br />
-            <span className="outline-text">MUNICH</span>
+            <span className="text-primary">START</span>
           </>
         }
-        titleClassName="mb-4 text-6xl leading-[0.94] tracking-tight sm:mb-6 sm:text-6xl lg:text-8xl"
-        descriptionClassName="max-w-xl text-base text-gray-200 sm:text-lg"
-        description={
-          <>
-            Become part of Germany&apos;s leading student-run entrepreneurship initiative. At START
-            Munich, you&apos;ll gain hands-on experience, connect with top-tier founders and
-            investors, and build with one of Munich&apos;s most ambitious student communities.
-          </>
-        }
-        childrenWrapperClassName="lg:mt-0 lg:max-w-[380px] xl:max-w-[440px]"
-      >
-        <HeroCard className="w-full border-sky-300/20 bg-sky-500/10 shadow-[0_20px_60px_rgba(8,47,73,0.35)]">
-          <p className="text-center text-xs font-bold uppercase tracking-[0.35em] text-white/75 sm:text-sm">
-            Applications close in
-          </p>
-          <div
-            className="mt-6 grid grid-cols-4 gap-2 sm:gap-4 lg:gap-2 xl:gap-3"
-            style={{ opacity: mounted ? 1 : 0, transition: 'opacity 0.4s ease' }}
-          >
-            {units.map((unit) => (
-              <div
-                key={unit.label}
-                className="rounded-xl border border-white/10 bg-brand-dark-blue/40 px-2 py-3 text-center sm:rounded-2xl sm:px-4 sm:py-5 lg:px-2 lg:py-3 xl:px-3"
-              >
-                <span className="block text-[1.9rem] font-black tabular-nums text-white sm:text-[3rem] lg:text-[2.2rem] xl:text-[2.4rem]">
-                  {pad(unit.value)}
-                </span>
-                <span className="mt-1 block text-[8px] uppercase tracking-[0.02em] text-white/55 sm:mt-2 sm:text-[11px] lg:mt-1 lg:text-[9px] xl:text-[10px]">
-                  {unit.label}
-                </span>
-              </div>
-            ))}
-          </div>
-          <p className="mt-6 hidden text-center text-sm leading-relaxed text-white/70 sm:block">
-            Don&apos;t miss your chance to join START Munich. Applications only open once per
-            semester.
-          </p>
-          <a
-            href="https://tally.so/r/Y5ND8N"
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => posthog.capture('application_started', { location: 'hero_card' })}
-            className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-brand-pink px-8 py-3 font-bold text-white transition-all duration-300 hover:shadow-[0_0_30px_rgba(208,0,111,0.4)]"
-          >
-            Start Application
-          </a>
-        </HeroCard>
-      </Hero>
+        outlineTitle="Munich"
+        description="Become part of Germany's leading student-run entrepreneurship initiative. At START Munich, you'll gain hands-on experience, connect with top-tier founders and investors, and build with one of Munich's most ambitious student communities."
+        aside={<CountdownCard timeLeft={timeLeft} mounted={mounted} />}
+      />
 
-      {/* YouTube video section */}
-      <section id="video" className="scroll-mt-8 py-12 md:py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="relative aspect-video w-full overflow-hidden rounded-xl">
-            <iframe
-              src="https://www.youtube.com/embed/T63USk9W_IY"
-              title="START Munich Application Video"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              className="absolute inset-0 h-full w-full"
-            />
-          </div>
+      <Section id="video" spacing="sm" className="scroll-mt-8">
+        <div className="relative aspect-video w-full overflow-hidden rounded-2xl">
+          <iframe
+            src="https://www.youtube.com/embed/T63USk9W_IY"
+            title="START Munich Application Video"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="absolute inset-0 size-full"
+          />
         </div>
-      </section>
+      </Section>
 
-      {/* Events */}
       {applyEvents.length > 0 && (
-        <section className="py-12 md:py-20">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-black text-brand-pink md:text-4xl lg:text-5xl">
-              Got Questions? Let&apos;s Talk.
-            </h2>
-            <p className="mt-4 max-w-3xl text-sm leading-relaxed text-white/70 md:text-base">
-              Curious about START Munich or unsure about the application process? Join one of our
-              upcoming events and get all your questions answered. Meet the team, learn what
-              we&apos;re all about, and find out how you can become part of our entrepreneurial
-              community.
-            </p>
-          </div>
-
-          <div className="mx-auto mt-12 max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div
-              ref={eventsSliderRef}
-              onMouseDown={handleDrag.start}
-              onMouseUp={handleDrag.end}
-              onMouseMove={handleDrag.move}
-              onMouseLeave={handleDrag.end}
-              className="scrollbar-hide flex cursor-grab select-none gap-6 overflow-x-auto pb-4 active:cursor-grabbing"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-            >
-              {applyEvents.map((event) => (
-                <UpcomingEventTile
-                  key={event.id}
-                  title={event.name}
-                  date={event.month}
-                  imageUrl={event.image}
-                  description={event.description}
-                  className="flex h-[35.5rem] w-[86vw] max-w-[320px] flex-none flex-col self-stretch sm:w-[300px] lg:w-[320px]"
-                  ctaHref={event.ctaHref}
-                  ctaLabel={event.ctaLabel}
-                  ctaDisabledLabel="Registration opens soon"
-                  onCtaClick={() =>
-                    posthog.capture('application_event_registration_clicked', {
-                      event_id: event.id,
-                      event_name: event.name,
-                    })
-                  }
-                />
-              ))}
-            </div>
-            <ScrollIndicator sliderRef={eventsSliderRef} />
-          </div>
-        </section>
+        <Section spacing="sm">
+          <SectionHeader
+            title="Got Questions? Let's Talk."
+            description="Curious about START Munich or unsure about the application process? Join one of our upcoming events and get all your questions answered. Meet the team, learn what we're all about, and find out how you can become part of our entrepreneurial community."
+          />
+          <HorizontalScroller contentClassName="gap-6">
+            {applyEvents.map((event) => (
+              <EventCard
+                key={event.id}
+                title={event.name}
+                date={event.month}
+                imageUrl={event.image}
+                description={event.description}
+                className="w-[86vw] max-w-[320px] flex-none sm:w-[300px] lg:w-[320px]"
+                ctaHref={event.ctaHref}
+                ctaLabel={event.ctaLabel}
+                onCtaClick={() =>
+                  posthog.capture('application_event_registration_clicked', {
+                    event_id: event.id,
+                    event_name: event.name,
+                  })
+                }
+              />
+            ))}
+          </HorizontalScroller>
+        </Section>
       )}
 
-      {/* What Makes START Unique */}
-      <section className="py-12 md:py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl font-black uppercase text-brand-pink sm:text-4xl md:text-5xl lg:text-6xl">
-            What Makes START Unique
-          </h2>
-          <p className="mt-4 text-base text-white md:text-lg">
-            START Munich is more than a student initiative, it&apos;s a launchpad for future
-            entrepreneurs. Here&apos;s why you should be part of it:
-          </p>
-
-          {/* Row 1 */}
-          <div className="mt-12 grid grid-cols-1 gap-12 md:grid-cols-2">
-            {/* Values Over Grades */}
-            <div className="flex flex-col items-center text-center">
-              <div className="relative aspect-[2/1] w-full overflow-hidden rounded-lg">
+      <Section spacing="sm">
+        <SectionHeader
+          title={<span className="text-primary">What Makes START Unique</span>}
+          description="START Munich is more than a student initiative, it's a launchpad for future entrepreneurs. Here's why you should be part of it:"
+        />
+        <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
+          {reasons.map((reason) => (
+            <article key={reason.title} className="flex flex-col items-center gap-3 text-center">
+              <div className="relative mb-3 aspect-2/1 w-full overflow-hidden rounded-2xl">
                 <Image
-                  src="/join-start/volleyball.png"
-                  alt="Values Over Grades"
+                  src={reason.image}
+                  alt={reason.title}
                   fill
                   sizes="(max-width: 768px) 100vw, 50vw"
                   className="object-cover"
                 />
               </div>
-              <h3 className="mt-6 text-xl font-black uppercase text-white md:text-2xl">
-                Values Over Grades
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-white/70 md:text-base">
-                No one here cares about your GPA. What matters is the courage to share an idea and
-                the drive to make it real. That&apos;s how programmers end up brainstorming with
-                psychologists, and musicians sketch out business models. Different worlds, same
-                fire.
-              </p>
-            </div>
-
-            {/* No Playbook */}
-            <div className="flex flex-col items-center text-center">
-              <div className="relative aspect-[2/1] w-full overflow-hidden rounded-lg">
-                <Image
-                  src="/memberJourney/SF-opt.png"
-                  alt="No Playbook"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover"
-                />
-              </div>
-              <h3 className="mt-6 text-xl font-black uppercase text-white md:text-2xl">
-                No Playbook
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-white/70 md:text-base">
-                The Bay Area trip, START Labs, the Hacking Legal hackathon were never assigned. They
-                started as ideas someone cared enough to make real. No hierarchy. No bureaucracy.
-                Just people taking the leap of faith and building things that matter.
-              </p>
-            </div>
-          </div>
-
-          {/* Row 2 */}
-          <div className="mt-12 grid grid-cols-1 gap-12 md:grid-cols-2">
-            {/* Failure Celebrated */}
-            <div className="flex flex-col items-center text-center">
-              <div className="relative aspect-[2/1] w-full overflow-hidden rounded-lg">
-                <Image
-                  src="/events/eventCards/fail-opt.jpg"
-                  alt="Failure Celebrated"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover"
-                />
-              </div>
-              <h3 className="mt-6 text-xl font-black uppercase text-white md:text-2xl">
-                Failure Celebrated
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-white/70 md:text-base">
-                At events like Founder Fail Tales, screw-ups don&apos;t get buried. We hand failures
-                the mic, laugh at them together, and learn out loud. Because if you never fail, you
-                never dared to build.
-              </p>
-            </div>
-
-            {/* A Living Global Network */}
-            <div className="flex flex-col items-center text-center">
-              <div className="relative aspect-[2/1] w-full overflow-hidden rounded-lg">
-                <Image
-                  src="/join-start/start-summit.jpeg"
-                  alt="A Living Global Network"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  className="object-cover"
-                />
-              </div>
-              <h3 className="mt-6 text-xl font-black uppercase text-white md:text-2xl">
-                A Living Global Network
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-white/70 md:text-base">
-                START doesn&apos;t end when you leave Munich. It stays with you through new
-                ventures, new cities, new chapters. You&apos;ll find co-founders, investors, and
-                friends across the world. It&apos;s more than a network. It&apos;s a family you keep
-                building with.
-              </p>
-            </div>
-          </div>
+              <Heading as="h3" size="h4" className="text-xl font-black uppercase md:text-2xl">
+                {reason.title}
+              </Heading>
+              <Text variant="small" className="md:text-base">
+                {reason.text}
+              </Text>
+            </article>
+          ))}
         </div>
-      </section>
+      </Section>
 
-      {/* Jumpstart Into Entrepreneurship */}
-      <section className="py-12 md:py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="relative aspect-[4/1] w-full overflow-hidden rounded-lg">
-            <Image
-              src="/join-start/jumpstart.png"
-              alt="Jumpstart Into Entrepreneurship"
-              fill
-              sizes="100vw"
-              className="object-cover"
-            />
-          </div>
-          <h3 className="mt-8 text-center text-xl font-black uppercase text-white md:text-2xl lg:text-3xl">
+      <Section spacing="sm" className="pb-16 md:pb-24">
+        <div className="relative aspect-4/1 w-full overflow-hidden rounded-2xl">
+          <Image
+            src="/join-start/jumpstart.png"
+            alt="Jumpstart Into Entrepreneurship"
+            fill
+            sizes="100vw"
+            className="object-cover"
+          />
+        </div>
+        <div className="mt-8 flex flex-col items-center gap-4 text-center">
+          <Heading
+            as="h3"
+            size="h4"
+            className="text-xl font-black uppercase md:text-2xl lg:text-3xl"
+          >
             Jumpstart Into Entrepreneurship
-          </h3>
-          <p className="mx-auto mt-4 max-w-4xl text-center text-sm leading-relaxed text-white/70 md:text-base">
+          </Heading>
+          <Text variant="small" className="max-w-4xl md:text-base">
             At START, your first step is the Sprint. In just 30 days, you turn a raw idea into an
             MVP and pitch it to a jury. After that, you dive into the departments, the heart of
             START, where you keep building, drive projects, and shape the community. Some go on to
             launch startups, everyone learns by doing.
-          </p>
-          <div className="mt-8 flex justify-center">
-            <a
-              href="https://tally.so/r/Y5ND8N"
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={() => posthog.capture('application_started', { location: 'bottom_cta' })}
-              className="inline-flex items-center justify-center rounded-xl bg-brand-pink px-10 py-4 text-lg font-bold text-white transition-all duration-1000 hover:shadow-[0_0_30px_rgba(208,0,111,0.4)]"
-            >
-              Start Application Now
-            </a>
-          </div>
+          </Text>
+          <ButtonLink
+            href={APPLICATION_URL}
+            size="lg"
+            className="mt-4"
+            onClick={() => posthog.capture('application_started', { location: 'bottom_cta' })}
+          >
+            Start Application Now
+          </ButtonLink>
         </div>
-      </section>
-    </div>
+      </Section>
+    </>
   );
 }

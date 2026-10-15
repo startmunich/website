@@ -4,8 +4,8 @@
  * Simpler than the flare pipeline by design. There is no scene texture, no
  * target ping-pong and no logo to rasterize, so the whole pass is a single
  * `frame().pass()` with the shared blue-noise texture and a 64-byte uniform
- * block. The colour and drift values are the `brand-pink` and
- * `brand-secondary-blue` tokens from `tailwind.config.ts`.
+ * block. The colour and drift values are the `--brand-pink` and
+ * `--brand-blue` tokens from `app/globals.css`.
  */
 import { type Effect, effect, frame, type Gpu, type Target } from 'vgpu';
 
@@ -19,15 +19,15 @@ import {
 
 import fieldWgsl from './field.wgsl';
 
-/** `brand-pink` (`#d0006f`). */
+/** `--brand-pink` (`#d0006f`). */
 const PINK = [208 / 255, 0, 111 / 255] as const;
-/** `brand-secondary-blue` (`#011152`). */
+/** `--brand-blue` (`#011152`). */
 const BLUE = [1 / 255, 17 / 255, 82 / 255] as const;
 
 /**
  * Peak alpha of the brightest part of the field.
  *
- * The hero already sits under a 70% `brand-dark-blue` scrim, so this is a veil
+ * The hero already sits under a 70% `background` scrim, so this is a veil
  * over an already dark image rather than a light source in its own right. The
  * first pass used 0.34 and read as a barely-there tint rather than as light, so
  * it sits higher now; past roughly 0.7 the `outline-text` headlines start to

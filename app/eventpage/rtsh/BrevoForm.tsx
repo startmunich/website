@@ -41,14 +41,13 @@ export default function BrevoForm() {
   return (
     <iframe
       ref={iframeRef}
-      className="block w-full max-w-[520px]"
+      className="block w-full max-w-[520px] border-0 transition-[height] duration-200"
       src={FORM_SRC}
       title="Join the Road to START Hack 2026 waitlist"
       height={560}
       loading="lazy"
       allow="clipboard-write"
       sandbox="allow-forms allow-popups allow-same-origin allow-scripts"
-      style={{ border: 'none', transition: 'height 0.2s ease' }}
     />
   );
 }

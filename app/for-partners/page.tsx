@@ -1,14 +1,26 @@
+import { ArrowRightIcon, MailIcon } from 'lucide-react';
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import Script from 'next/script';
+import Link from 'next/link';
 
-import Hero from '@/components/Hero';
-import HeroCard from '@/components/HeroCard';
+import { BrandPanel } from '@/components/site/cta-banner';
+import { Faq } from '@/components/site/faq';
+import { FeatureCard } from '@/components/site/feature-card';
+import { LogoImage, LogoTile } from '@/components/site/logo-image';
+import { PageHero } from '@/components/site/page-hero';
+import { ButtonLink } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Marquee } from '@/components/ui/marquee';
+import { Container, Section, SectionHeader } from '@/components/ui/section';
+import { Eyebrow, Heading, Text } from '@/components/ui/typography';
 import { OG_IMAGES } from '@/lib/metadata';
 import { getAllPartners } from '@/lib/sanityContent';
 
+import { EmbedHeightReporter } from '../home/EmbedHeightReporter';
 import PartnerCTAButton from './PartnerCTAButton';
 import PhotoGallery from './PhotoGallery';
+
+const CONTACT_URL = 'https://tally.so/r/3xpGQG';
 
 export const metadata: Metadata = {
   title: 'Partner With Us',
@@ -33,11 +45,8 @@ const faqs = [
     answer: (
       <>
         We can move fast and sometimes launch within days. Please check our event{' '}
-        <a href="/domain/events" className="text-brand-pink hover:underline">
-          calendar
-        </a>{' '}
-        first. If you want to join a specific event, contact us as early as possible so we can plan
-        it with you.
+        <Link href="/events">calendar</Link> first. If you want to join a specific event, contact us
+        as early as possible so we can plan it with you.
       </>
     ),
   },
@@ -133,6 +142,40 @@ const whyStartSpecial = [
   },
 ];
 
+const universityLogos = [
+  {
+    src: '/forPartners/Logo_of_the_Technical_University_of_Munich.svg',
+    alt: 'TUM Logo',
+    unoptimized: true,
+  },
+  { src: '/forPartners/LMU_Muenchen_Logo.svg.png', alt: 'LMU Logo' },
+  { src: '/forPartners/HM_Logo.png', alt: 'HM Logo' },
+];
+
+function ContactCard() {
+  return (
+    <Card variant="glass" size="lg" className="items-center text-center lg:w-80">
+      <div className="flex w-full flex-col items-center gap-1 px-(--card-spacing)">
+        <div className="relative mb-3 size-40 overflow-hidden rounded-full border-2 border-foreground/20">
+          <Image
+            src="/forPartners/md-partnerships-younus.jpg"
+            alt="MD Partnerships"
+            fill
+            sizes="160px"
+            className="object-cover"
+          />
+        </div>
+        <h3 className="text-lg font-bold">Younus M&uuml;hlenweg</h3>
+        <p className="mb-4 text-sm font-semibold text-primary">Head of Partnerships</p>
+        <PartnerCTAButton href={CONTACT_URL} size="lg" shape="pill" className="group/btn w-full">
+          <MailIcon className="size-5 transition-transform group-hover/btn:scale-110" />
+          Get in Touch
+        </PartnerCTAButton>
+      </div>
+    </Card>
+  );
+}
+
 export default async function ForPartnersPage() {
   const partners = await getAllPartners();
 
@@ -154,393 +197,199 @@ export default async function ForPartnersPage() {
     })),
   };
 
+  const featuredPartners = partners.filter((p) => p.featured);
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
-      <Script id="iframe-height-sender" strategy="afterInteractive">
-        {`
-          function sendHeight() {
-            const h = Math.max(
-              document.documentElement.scrollHeight,
-              document.body.scrollHeight
-            );
-            parent.postMessage({ type: "EMBED_HEIGHT", height: h }, "*");
-          }
+      <EmbedHeightReporter />
 
-          window.addEventListener("load", sendHeight);
-          const ro = new ResizeObserver(sendHeight);
-          ro.observe(document.documentElement);
-          document.addEventListener("DOMContentLoaded", sendHeight);
-        `}
-      </Script>
+      <PageHero
+        image="/forPartners/hero-opt.jpg"
+        title="For"
+        outlineTitle="Partners"
+        description="Partner with Europe's leading student entrepreneurship community and shape the future of innovation"
+        aside={<ContactCard />}
+      />
 
-      <main className="min-h-screen bg-brand-dark-blue">
-        {/* Hero Section */}
-        <Hero
-          backgroundImage="/forPartners/hero-opt.jpg"
-          title={
-            <>
-              FOR
-              <br />
-              <span className="outline-text">PARTNERS</span>
-            </>
-          }
-          description="Partner with Europe's leading student entrepreneurship community and shape the future of innovation"
-        >
-          {/* MD Partnerships Card */}
-          <HeroCard>
-            <div className="relative mx-auto mb-4 h-40 w-40 overflow-hidden rounded-full border-2 border-white/20 transition-all duration-300 group-hover:border-brand-pink/50">
-              <Image
-                src="/forPartners/md-partnerships-younus.jpg"
-                alt="MD Partnerships"
-                fill
-                className="object-cover"
-              />
-            </div>
-            <h3 className="mb-1 text-lg font-bold text-white">Younus M&uuml;hlenweg</h3>
-            <p className="mb-4 text-sm font-semibold text-brand-pink">Head of Partnerships</p>
-
-            {/* Contact Button */}
-            <PartnerCTAButton
-              href="https://tally.so/r/3xpGQG"
-              className="group/btn inline-flex w-full items-center justify-center gap-2 rounded-full bg-brand-pink px-6 py-3 font-bold text-white transition-all duration-300 hover:bg-brand-pink/90 hover:shadow-lg hover:shadow-brand-pink/50"
-            >
-              <svg
-                className="h-5 w-5 transition-transform duration-300 group-hover/btn:scale-110"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                />
-              </svg>
-              <span>Get in Touch</span>
-            </PartnerCTAButton>
-          </HeroCard>
-        </Hero>
-
-        {/* Partner Overview - Logos - Full Width */}
-        <section className="overflow-hidden pb-6 pt-16 lg:py-20">
-          <div className="mx-auto mb-12 max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="mb-4 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-              <div>
-                <p className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-brand-pink">
-                  Partners & Collaborators
-                </p>
-                <h2 className="mb-3 text-3xl font-black text-white md:text-4xl">
-                  WHO WE <span className="outline-text">WORK</span> WITH
-                </h2>
-                <p className="max-w-3xl text-lg text-gray-400">
-                  Trusted by leading companies and organizations
-                </p>
-              </div>
-              <a
+      <Section spacing="sm" container={false} className="pt-16 pb-6 lg:py-20">
+        <Container>
+          <SectionHeader
+            eyebrow="Partners & Collaborators"
+            title={
+              <>
+                Who we <span className="text-outline">work</span> with
+              </>
+            }
+            description="Trusted by leading companies and organizations"
+            actions={
+              <ButtonLink
                 href="/partners"
-                className="hidden whitespace-nowrap rounded-full border-2 border-brand-pink px-6 py-2.5 text-center font-bold text-brand-pink transition-all duration-300 hover:bg-brand-pink hover:text-white md:inline-flex"
+                variant="soft"
+                shape="pill"
+                className="hidden md:inline-flex"
               >
-                View All Partners →
-              </a>
-            </div>
+                View All Partners <ArrowRightIcon />
+              </ButtonLink>
+            }
+          />
+          {featuredPartners.length > 0 && (
+            <Marquee>
+              {featuredPartners.map((partner) => (
+                <LogoTile key={partner.id} className="mx-6 hover:scale-100">
+                  <LogoImage
+                    src={partner.logoUrl}
+                    name={partner.name}
+                    sizes="144px"
+                    className="size-full"
+                  />
+                </LogoTile>
+              ))}
+            </Marquee>
+          )}
+          <div className="mt-10 text-center md:hidden">
+            <Link
+              href="/partners"
+              className="group inline-flex items-center gap-2 font-semibold text-muted-foreground transition-colors hover:text-primary"
+            >
+              View all our partners
+              <ArrowRightIcon className="size-4 transition-transform group-hover:translate-x-1" />
+            </Link>
           </div>
+        </Container>
+      </Section>
 
-          <div className="relative mx-auto max-w-7xl overflow-hidden px-4 sm:px-6 lg:px-8">
-            <div className="absolute bottom-0 left-0 top-0 z-10 w-32 bg-gradient-to-r from-brand-dark-blue to-transparent" />
-            <div className="absolute bottom-0 right-0 top-0 z-10 w-32 bg-gradient-to-l from-brand-dark-blue to-transparent" />
-            <div className="animate-scroll-nonstop">
-              {[...partners.filter((p) => p.featured), ...partners.filter((p) => p.featured)].map(
-                (partner, i) => (
+      <Section
+        spacing="sm"
+        className="lg:py-20"
+        containerClassName="flex flex-col gap-24 md:gap-32"
+      >
+        <section>
+          <SectionHeader
+            eyebrow="Why START"
+            title={
+              <>
+                Why partner <span className="text-outline">with START</span>
+              </>
+            }
+            description="A practical partnership model built around academic excellence, thought leadership, branding, and strong network effects in Munich."
+          />
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <FeatureCard
+              variant="highlight"
+              className="motion-safe:animate-fade-in-up md:row-span-2"
+              title={whyStartSpecial[0].title}
+              description={whyStartSpecial[0].description}
+            >
+              <div className="mb-2 flex flex-wrap gap-3">
+                {universityLogos.map((logo) => (
                   <div
-                    key={`${partner.id}-${i}`}
-                    className="mx-6 inline-flex flex-shrink-0 items-center justify-center"
+                    key={logo.src}
+                    className="flex h-16 w-full max-w-40 items-center justify-center rounded-2xl bg-white p-3 shadow-md"
                   >
-                    <div className="relative flex h-20 w-36 items-center justify-center rounded-xl bg-white p-4">
-                      <Image
-                        src={partner.logoUrl}
-                        alt={partner.name}
-                        fill
-                        className="object-contain p-4"
-                        sizes="144px"
-                      />
-                    </div>
+                    <Image
+                      src={logo.src}
+                      alt={logo.alt}
+                      width={134}
+                      height={40}
+                      className="max-h-full max-w-full object-contain"
+                      unoptimized={logo.unoptimized}
+                    />
                   </div>
-                ),
-              )}
-            </div>
-          </div>
-        </section>
-        <div className="mb-16 text-center md:hidden">
-          <a
-            href="/partners"
-            className="group inline-flex items-center gap-2 font-medium text-white/70 transition-colors hover:text-brand-pink"
-          >
-            View all our partners{' '}
-            <span className="transition-transform group-hover:translate-x-1">→</span>
-          </a>
-        </div>
-
-        {/* Content Below Hero */}
-        <div className="mx-auto max-w-7xl space-y-32 px-4 py-8 sm:px-6 lg:px-8 lg:py-20">
-          {/* Why Partner with START - Modern Card Grid */}
-          <section className="relative">
-            <div className="mb-12">
-              <p className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-brand-pink">
-                Why START
-              </p>
-              <h2 className="mb-3 text-3xl font-black text-white md:text-4xl">
-                WHY PARTNER <span className="outline-text">WITH START</span>
-              </h2>
-              <p className="max-w-3xl text-lg text-gray-400">
-                A practical partnership model built around academic excellence, thought leadership,
-                branding, and strong network effects in Munich.
-              </p>
-            </div>
-
-            <div className="relative grid grid-cols-1 gap-6 md:grid-cols-2">
-              {/* Large featured card with university logos */}
-              <div
-                className="group md:row-span-2"
-                style={{ animation: `fadeInUp 0.6s ease-out 0s both` }}
-              >
-                <div className="relative flex h-full flex-col justify-center rounded-3xl border border-white/15 bg-gradient-to-br from-brand-pink/15 via-white/10 to-white/5 p-8 backdrop-blur-sm transition-all duration-500 hover:border-brand-pink/40 lg:p-10">
-                  <div className="mb-6">
-                    <div className="mb-4 flex flex-wrap gap-3">
-                      <div className="flex h-16 w-full max-w-[160px] items-center justify-center rounded-2xl bg-white p-3 shadow-md">
-                        <Image
-                          src="/forPartners/Logo_of_the_Technical_University_of_Munich.svg"
-                          alt="TUM Logo"
-                          width={134}
-                          height={40}
-                          className="max-h-full max-w-full object-contain"
-                          unoptimized
-                        />
-                      </div>
-                      <div className="flex h-16 w-full max-w-[160px] items-center justify-center rounded-2xl bg-white p-3 shadow-md">
-                        <Image
-                          src="/forPartners/LMU_Muenchen_Logo.svg.png"
-                          alt="LMU Logo"
-                          width={134}
-                          height={40}
-                          className="max-h-full max-w-full object-contain"
-                        />
-                      </div>
-                      <div className="flex h-16 w-full max-w-[160px] items-center justify-center rounded-2xl bg-white p-3 shadow-md">
-                        <Image
-                          src="/forPartners/HM_Logo.png"
-                          alt="HM Logo"
-                          width={134}
-                          height={40}
-                          className="max-h-full max-w-full object-contain"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <h3 className="mb-3 text-2xl font-black text-white transition-colors group-hover:text-brand-pink">
-                    {whyStartSpecial[0].title}
-                  </h3>
-                  <p className="leading-relaxed text-gray-300">{whyStartSpecial[0].description}</p>
-                </div>
-              </div>
-
-              {/* Two cards on the right */}
-              {whyStartSpecial.slice(1, 3).map((reason, index) => (
-                <div
-                  key={index + 1}
-                  className="group"
-                  style={{ animation: `fadeInUp 0.6s ease-out ${(index + 1) * 0.1}s both` }}
-                >
-                  <div className="relative h-full rounded-3xl border border-white/10 bg-white/[0.06] p-7 backdrop-blur-sm transition-all duration-500 hover:border-brand-pink/30 hover:bg-white/[0.09]">
-                    <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-pink/15">
-                      <span className="text-3xl">{reason.icon}</span>
-                    </div>
-                    <h3 className="mb-2 text-lg font-bold text-white transition-colors group-hover:text-brand-pink">
-                      {reason.title}
-                    </h3>
-                    <p className="text-sm leading-relaxed text-gray-400">{reason.description}</p>
-                  </div>
-                </div>
-              ))}
-
-              {/* Partner Network - Horizontal card spanning full width */}
-              <div
-                className="group md:col-span-2"
-                style={{ animation: `fadeInUp 0.6s ease-out 0.3s both` }}
-              >
-                <div className="relative flex h-full items-center gap-6 rounded-3xl border border-white/10 bg-gradient-to-r from-white/[0.06] to-white/[0.03] p-7 backdrop-blur-sm transition-all duration-500 hover:border-brand-pink/30 hover:bg-white/[0.08]">
-                  <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl bg-brand-pink/15">
-                    <span className="text-4xl">{whyStartSpecial[3].icon}</span>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="mb-2 text-xl font-bold text-white transition-colors group-hover:text-brand-pink">
-                      {whyStartSpecial[3].title}
-                    </h3>
-                    <p className="text-sm leading-relaxed text-gray-400">
-                      {whyStartSpecial[3].description}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* What Partners Can Do With Us */}
-          <section className="relative">
-            <div className="mb-12">
-              <p className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-brand-pink">
-                Collaborate
-              </p>
-              <h2 className="mb-3 text-3xl font-black text-white md:text-4xl">
-                WHAT <span className="outline-text">PARTNERS CAN DO</span> WITH US
-              </h2>
-              <p className="max-w-3xl text-lg text-gray-400">
-                Multiple ways to engage with our entrepreneurial community
-              </p>
-            </div>
-
-            <div className="relative grid grid-cols-1 gap-6 md:grid-cols-3">
-              {/* Featured large card */}
-              <div
-                className="group md:row-span-2"
-                style={{ animation: `fadeInUp 0.6s ease-out 0s both` }}
-              >
-                <div className="relative flex h-full min-h-[400px] flex-col justify-between rounded-3xl border border-white/15 bg-gradient-to-br from-brand-pink/15 via-white/10 to-white/5 p-10 backdrop-blur-sm transition-all duration-500 hover:border-brand-pink/40">
-                  <div>
-                    <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-brand-pink/15">
-                      <span className="text-5xl">{partnershipOpportunities[0].icon}</span>
-                    </div>
-                    <h3 className="mb-4 text-2xl font-black text-white transition-colors group-hover:text-brand-pink">
-                      {partnershipOpportunities[0].title}
-                    </h3>
-                    <p className="leading-relaxed text-gray-300">
-                      {partnershipOpportunities[0].description}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Top right horizontal card */}
-              <div
-                className="group md:col-span-2"
-                style={{ animation: `fadeInUp 0.6s ease-out 0.1s both` }}
-              >
-                <div className="relative flex h-full items-center gap-8 rounded-3xl border border-white/10 bg-white/[0.06] p-8 backdrop-blur-sm transition-all duration-500 hover:border-brand-pink/30 hover:bg-white/[0.09]">
-                  <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl bg-brand-pink/15">
-                    <span className="text-4xl">{partnershipOpportunities[1].icon}</span>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="mb-2 text-xl font-bold text-white transition-colors group-hover:text-brand-pink">
-                      {partnershipOpportunities[1].title}
-                    </h3>
-                    <p className="text-sm leading-relaxed text-gray-400">
-                      {partnershipOpportunities[1].description}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Two square cards */}
-              {partnershipOpportunities.slice(2, 4).map((opportunity, index) => (
-                <div
-                  key={index + 2}
-                  className="group"
-                  style={{ animation: `fadeInUp 0.6s ease-out ${(index + 2) * 0.1}s both` }}
-                >
-                  <div className="relative flex h-full min-h-[200px] flex-col rounded-3xl border border-white/10 bg-white/[0.06] p-8 backdrop-blur-sm transition-all duration-500 hover:border-brand-pink/30 hover:bg-white/[0.09]">
-                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-pink/15">
-                      <span className="text-4xl">{opportunity.icon}</span>
-                    </div>
-                    <h3 className="mb-3 text-xl font-bold text-white transition-colors group-hover:text-brand-pink">
-                      {opportunity.title}
-                    </h3>
-                    <p className="text-sm leading-relaxed text-gray-400">
-                      {opportunity.description}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Pictures of Partners at Events */}
-          <PhotoGallery />
-
-          {/* FAQ Section */}
-          <section>
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:gap-16">
-              {/* Left Column - Header */}
-              <div className="lg:col-span-2">
-                <p className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-brand-pink">
-                  Have Questions?
-                </p>
-                <h2 className="mb-4 text-3xl font-black text-white md:text-4xl">
-                  FREQUENTLY ASKED <span className="outline-text">QUESTIONS</span>
-                </h2>
-                <p className="mb-4 text-lg text-gray-400 lg:mb-8">
-                  Everything you need to know about partnering with START
-                </p>
-              </div>
-
-              {/* Right Column - Accordion */}
-              <div className="space-y-4 lg:col-span-3">
-                {faqs.map((faq) => (
-                  <details
-                    key={faq.id}
-                    className="group overflow-hidden rounded-2xl border border-white/10 bg-white/[0.06] transition-all duration-300 hover:border-brand-pink/30"
-                  >
-                    <summary className="flex w-full cursor-pointer list-none items-center justify-between rounded-2xl px-7 py-5 transition-colors duration-200 hover:bg-white/[0.04]">
-                      <h3 className="pr-8 text-lg font-bold text-white">{faq.question}</h3>
-                      <span className="faq-icon flex-shrink-0 text-2xl text-brand-pink transition-transform duration-300">
-                        +
-                      </span>
-                    </summary>
-                    <div className="px-7 pb-5">
-                      <p className="leading-relaxed text-gray-400">{faq.answer}</p>
-                    </div>
-                  </details>
                 ))}
               </div>
-            </div>
-          </section>
+            </FeatureCard>
+            {whyStartSpecial.slice(1, 3).map((reason) => (
+              <FeatureCard
+                key={reason.title}
+                icon={reason.icon}
+                title={reason.title}
+                description={reason.description}
+              />
+            ))}
+            <FeatureCard
+              className="md:col-span-2"
+              layout="row"
+              icon={whyStartSpecial[3].icon}
+              title={whyStartSpecial[3].title}
+              description={whyStartSpecial[3].description}
+            />
+          </div>
+        </section>
 
-          {/* Call to Action */}
-          <section id="get-in-touch">
-            <div className="relative overflow-hidden rounded-[2rem] border border-brand-pink/30 bg-gradient-to-br from-[#1a1a3e] via-brand-dark-blue to-[#0d0d1f] shadow-2xl shadow-brand-pink/10">
-              {/* Decorative Elements */}
-              <div className="absolute right-0 top-0 h-80 w-80 rounded-full bg-brand-pink/10 blur-[100px]"></div>
-              <div className="absolute bottom-0 left-0 h-64 w-64 rounded-full bg-brand-pink/5 blur-[80px]"></div>
+        <section>
+          <SectionHeader
+            eyebrow="Collaborate"
+            title={
+              <>
+                What <span className="text-outline">partners can do</span> with us
+              </>
+            }
+            description="Multiple ways to engage with our entrepreneurial community"
+          />
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <FeatureCard
+              variant="highlight"
+              size="lg"
+              className="min-h-[400px] md:row-span-2"
+              icon={partnershipOpportunities[0].icon}
+              title={partnershipOpportunities[0].title}
+              description={partnershipOpportunities[0].description}
+            />
+            <FeatureCard
+              className="md:col-span-2"
+              layout="row"
+              icon={partnershipOpportunities[1].icon}
+              title={partnershipOpportunities[1].title}
+              description={partnershipOpportunities[1].description}
+            />
+            {partnershipOpportunities.slice(2, 4).map((opportunity) => (
+              <FeatureCard
+                key={opportunity.title}
+                className="min-h-[200px]"
+                icon={opportunity.icon}
+                title={opportunity.title}
+                description={opportunity.description}
+              />
+            ))}
+          </div>
+        </section>
 
-              <div className="relative p-8 md:p-10">
-                <div className="mx-auto max-w-2xl text-center">
-                  <p className="mb-4 text-sm font-bold uppercase tracking-[0.2em] text-brand-pink">
-                    Let&apos;s Connect
-                  </p>
-                  <h3 className="mb-5 text-3xl font-black text-white md:text-5xl">
-                    READY TO <span className="outline-text">PARTNER?</span>
-                  </h3>
-                  <p className="mb-8 text-lg text-gray-300">
-                    Join our network of leading companies and get in touch with ambitious students
-                    from TUM, LMU, and other Munich universities.
-                  </p>
-                  <div className="flex justify-center">
-                    <PartnerCTAButton
-                      href="https://tally.so/r/3xpGQG"
-                      className="rounded-full bg-brand-pink px-10 py-4 text-lg font-bold text-white transition-all duration-300 hover:bg-brand-pink/90 hover:shadow-lg hover:shadow-brand-pink/50"
-                    >
-                      Get in Touch
-                    </PartnerCTAButton>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
-      </main>
+        <PhotoGallery />
+
+        <section className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:gap-16">
+          <SectionHeader
+            className="lg:col-span-2"
+            eyebrow="Have Questions?"
+            title={
+              <>
+                Frequently asked <span className="text-outline">questions</span>
+              </>
+            }
+            description="Everything you need to know about partnering with START"
+          />
+          <Faq items={faqs} className="lg:col-span-3" />
+        </section>
+
+        <BrandPanel id="get-in-touch" className="rounded-4xl md:p-10">
+          <div className="mx-auto flex max-w-2xl flex-col items-center gap-5 text-center">
+            <Eyebrow>Let&apos;s Connect</Eyebrow>
+            <Heading as="h3" size="h2" className="md:text-5xl">
+              Ready to <span className="text-outline">partner?</span>
+            </Heading>
+            <Text variant="lead">
+              Join our network of leading companies and get in touch with ambitious students from
+              TUM, LMU, and other Munich universities.
+            </Text>
+            <PartnerCTAButton href={CONTACT_URL} size="lg" shape="pill" className="mt-3">
+              Get in Touch
+            </PartnerCTAButton>
+          </div>
+        </BrandPanel>
+      </Section>
     </>
   );
 }

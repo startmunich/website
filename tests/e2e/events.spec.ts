@@ -23,8 +23,8 @@ test.describe('events page', () => {
   test('renders the page with every section present', async ({ page }) => {
     const response = await page.goto('/events');
     expect(response?.status()).toBe(200);
-    // The layout has its own <main>, so the page's is the one with the events background.
-    await expect(page.locator('main.min-h-screen')).toBeVisible();
+    // The root layout owns the page's single <main>; sections render inside it.
+    await expect(page.getByRole('main')).toBeVisible();
     await expect(page.getByRole('heading', { name: /upcoming events/i })).toBeVisible();
     await expect(page.getByRole('heading', { name: /past events/i })).toBeVisible();
   });

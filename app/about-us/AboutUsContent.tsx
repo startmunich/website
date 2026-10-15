@@ -1,12 +1,20 @@
-'use client';
-
+import { EyeIcon, ZapIcon } from 'lucide-react';
 import Image from 'next/image';
-import { useEffect, useRef, useState } from 'react';
 
-import CTA from '@/components/CTA';
-import Hero from '@/components/Hero';
-import HeroCard from '@/components/HeroCard';
-import { useAnimatedNumber, useInView } from '@/lib/hooks';
+import { CtaBanner } from '@/components/site/cta-banner';
+import { PageHero } from '@/components/site/page-hero';
+import { ProfileCard } from '@/components/site/profile-card';
+import { HeroStat, HeroStats } from '@/components/site/stat';
+import { Card } from '@/components/ui/card';
+import { IconTile } from '@/components/ui/icon-tile';
+import { Reveal } from '@/components/ui/reveal';
+import { Container, Section, SectionHeader } from '@/components/ui/section';
+import { Separator } from '@/components/ui/separator';
+import { Eyebrow, Heading, Text } from '@/components/ui/typography';
+import { siteLinks } from '@/lib/site';
+import { cn } from '@/lib/utils';
+
+import { AdvisoryBoard } from './AdvisoryBoard';
 
 const executiveBoard = [
   {
@@ -62,40 +70,6 @@ const departmentBoard = [
   },
 ];
 
-const advisoryBoard = [
-  {
-    name: 'Dr. Jennifer Kaiser-Steiner',
-    role: 'Learning & Exchange Center, UnternehmerTUM',
-    bio: "Dr. Jennifer Kaiser-Steiner leads the Learning & Exchange Center at UnternehmerTUM, Europe's largest entrepreneurship hub. She supports startup factories and innovation ecosystems in strengthening their professionalism by sharing best practices and establishing KPI-driven performance frameworks. Previously, she worked as a personal advisor to a member of the German Bundestag, where she contributed to legislative initiatives. Jennifer earned her doctorate in economics from the University of the Federal Armed Forces, with a research focus on corporate innovation.",
-    photo: '/aboutUs/AdvBoard/Jennifer.jpg',
-  },
-  {
-    name: 'Prof. Dr. Bettina Maisch',
-    role: 'Head of Entrepreneurship Education, SCE',
-    bio: 'Prof. Dr. Bettina Maisch is Head of Entrepreneurship Education and Qualification at the Strascheg Center for Entrepreneurship (SCE). Her work focuses on Entrepreneurial Life Design, Design Thinking, and Innovation Management to empower individuals and organizations to develop and implement innovative ideas. She combines academic research with hands-on, iterative approaches to (Corporate) Entrepreneurship and venture creation.',
-    photo: '/aboutUs/AdvBoard/Maisch.jpg',
-  },
-  {
-    name: 'Felix Haas',
-    role: 'Co-founder, 10x Founders VC',
-    bio: "Felix Haas is a German entrepreneur, investor, and serial founder, having co-founded START Munich in 2003, the ticketing platform amiando, the identity verification company IDnow, and the startup venture firm 10x Founders VC. He has invested in over 50 tech startups, co-hosts Germany's leading founders' conference Bits & Pretzels, and is a founding partner of FLEX Capital, recognized for mentoring founders and driving innovation in the startup ecosystem.",
-    photo: '/aboutUs/AdvBoard/Felix.png',
-    objectPosition: 'center',
-  },
-  {
-    name: 'Jean Paul Buján',
-    role: 'Former Vice President',
-    bio: null,
-    photo: '/aboutUs/AdvBoard/JP-opt.png',
-  },
-  {
-    name: 'Fabian Rieht',
-    role: 'Former President',
-    bio: null,
-    photo: '/aboutUs/AdvBoard/Fabian-opt.png',
-  },
-];
-
 const missionPartners = [
   {
     name: 'MTZ',
@@ -133,551 +107,255 @@ const missionPartners = [
   },
 ];
 
-type AdvisoryMember = (typeof advisoryBoard)[number];
-
-function AdvisorDetail({ member, onClose }: { member: AdvisoryMember; onClose: () => void }) {
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setVisible(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
-
-  const t = () =>
-    `transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`;
-
+function LogoBadge({ src, alt, light = false }: { src?: string; alt: string; light?: boolean }) {
   return (
     <div
-      className={`flex items-start gap-6 rounded-2xl border border-white/10 bg-white/[0.03] p-6 transition-all duration-700 lg:p-8 ${visible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}
+      className={cn(
+        'flex size-12 shrink-0 items-center justify-center rounded-xl border border-border',
+        light ? 'bg-white' : 'bg-card',
+      )}
     >
-      <div
-        className={`relative hidden h-24 w-20 flex-shrink-0 overflow-hidden rounded-xl border-2 border-brand-pink sm:block ${t()}`}
-        style={{ transitionDelay: '0ms' }}
-      >
-        <Image
-          src={member.photo}
-          alt={member.name}
-          fill
-          sizes="80px"
-          className="object-cover object-top"
-        />
-      </div>
-      <div className="flex-1">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h3
-              className={`text-xl font-black uppercase tracking-tight text-white lg:text-2xl ${t()}`}
-              style={{ transitionDelay: '100ms' }}
-            >
-              {member.name}
-            </h3>
-            <p
-              className={`mt-1 text-sm font-semibold text-brand-pink ${t()}`}
-              style={{ transitionDelay: '200ms' }}
-            >
-              {member.role}
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="flex-shrink-0 text-white/30 transition-colors hover:text-white"
-          >
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        <p
-          className={`mt-4 text-sm leading-relaxed text-gray-400 lg:text-base ${t()}`}
-          style={{ transitionDelay: '300ms' }}
-        >
-          {member.bio}
-        </p>
-      </div>
+      {src ? (
+        <Image src={src} alt={alt} width={28} height={28} className="object-contain" />
+      ) : (
+        <span className="text-xs font-bold text-muted-foreground uppercase">{alt.charAt(0)}</span>
+      )}
     </div>
   );
 }
 
-const showAdvisoryBoard = true;
-
-export default function AboutUsPage() {
-  const [selectedAdvisor, setSelectedAdvisor] = useState<number | null>(0);
-  const advisorDetailRef = useRef<HTMLDivElement>(null);
-  const animatedYears = useAnimatedNumber(20);
-  const animatedMembers = useAnimatedNumber(600);
-  const missionView = useInView(0.1);
-  const partnersView = useInView(0.1);
-  const execView = useInView(0.1);
-  const deptView = useInView(0.1);
-  const advView = useInView(0.1);
-
+export default function AboutUsContent() {
   return (
-    <main className="min-h-screen overflow-x-hidden bg-brand-dark-blue text-white">
-      <Hero
-        backgroundImage="/aboutUs/hero-opt.jpg"
-        title={
-          <>
-            WHO WE
-            <br />
-            <span className="outline-text">ARE</span>
-          </>
-        }
+    <>
+      <PageHero
+        image="/aboutUs/hero-opt.jpg"
+        title="Who we"
+        outlineTitle="are"
         description="A student-led community at the heart of Munich's startup scene — turning bold ideas into real ventures since 2003."
-      >
-        <div className="grid grid-cols-2 gap-4 lg:flex lg:flex-col lg:gap-6">
-          <HeroCard>
-            <div className="mb-3 flex items-baseline justify-center gap-2">
-              <span className="bg-gradient-to-br from-white to-gray-300 bg-clip-text text-4xl font-black text-transparent lg:text-6xl">
-                {animatedYears}
-              </span>
-              <span className="text-xl font-bold text-brand-pink lg:text-3xl">+</span>
-            </div>
-            <p className="text-xs font-bold uppercase tracking-widest text-gray-300">
-              Years Active
-            </p>
-          </HeroCard>
-          <HeroCard>
-            <div className="mb-3 flex items-baseline justify-center gap-2">
-              <span className="bg-gradient-to-br from-white to-gray-300 bg-clip-text text-4xl font-black text-transparent lg:text-6xl">
-                {animatedMembers}
-              </span>
-              <span className="text-xl font-bold text-brand-pink lg:text-3xl">+</span>
-            </div>
-            <p className="text-xs font-bold uppercase tracking-widest text-gray-300">Members</p>
-          </HeroCard>
-        </div>
-      </Hero>
+        aside={
+          <HeroStats>
+            <HeroStat label="Years Active" value={20} animate suffix="+" />
+            <HeroStat label="Members" value={600} animate suffix="+" />
+          </HeroStats>
+        }
+      />
 
-      {/* ═══ 01 VISION & MISSION — bold editorial ═══ */}
-      <section className="px-4 pb-16 pt-28 sm:px-6 lg:px-8" ref={missionView.ref}>
-        <div className="mx-auto max-w-7xl">
-          <div
-            className={`mb-10 transition-all duration-700 ${missionView.visible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}
-          >
-            <div>
-              <span className="mb-4 block text-xs font-bold uppercase tracking-[0.4em] text-brand-pink">
-                Our Purpose
-              </span>
-              <h2 className="text-5xl font-black leading-none tracking-tight sm:text-6xl lg:text-7xl">
-                VISION
+      {/* Vision & mission */}
+      <Section spacing="lg" className="pb-16 md:pb-16">
+        <Reveal>
+          <SectionHeader
+            eyebrow="Our Purpose"
+            title={
+              <>
+                Vision
                 <br />
-                &amp; MISSION
-              </h2>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div
-              className={`rounded-3xl border border-brand-pink/20 bg-gradient-to-br from-brand-pink/15 via-brand-pink/5 to-transparent p-10 transition-all delay-150 duration-700 lg:p-14 ${missionView.visible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}
-            >
-              <div className="mb-10 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-brand-pink/30 bg-brand-pink/20">
-                  <svg
-                    className="h-5 w-5 text-brand-pink"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M13 10V3L4 14h7v7l9-11h-7z"
-                    />
-                  </svg>
+                &amp; Mission
+              </>
+            }
+          />
+        </Reveal>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <Reveal delay={150}>
+            <Card variant="highlight" size="lg" className="h-full">
+              <div className="flex flex-col gap-10 px-(--card-spacing)">
+                <div className="flex items-center gap-3">
+                  <IconTile>
+                    <ZapIcon />
+                  </IconTile>
+                  <Eyebrow render={<span />}>Mission</Eyebrow>
                 </div>
-                <span className="text-xs font-bold uppercase tracking-[0.35em] text-brand-pink">
-                  Mission
-                </span>
+                <Heading as="h3" size="h3" className="leading-[1.05] xl:text-5xl">
+                  Empowering
+                  <br />
+                  founders of
+                  <br />
+                  <span className="text-primary">tomorrow.</span>
+                </Heading>
+                <Text className="max-w-md">
+                  A self-driven community where learning happens by doing — and every member gets
+                  what is needed to build things that truly matters.
+                </Text>
               </div>
-              <h3 className="mb-10 text-3xl font-black leading-[1.05] text-white lg:text-4xl xl:text-5xl">
-                Empowering
-                <br />
-                founders of
-                <br />
-                <span className="text-brand-pink">tomorrow.</span>
-              </h3>
-              <p className="max-w-md text-base leading-relaxed text-gray-400 lg:text-lg">
-                A self-driven community where learning happens by doing — and every member gets what
-                is needed to build things that truly matters.
-              </p>
-            </div>
-
-            <div
-              className={`rounded-3xl border border-white/10 bg-white/[0.03] p-10 transition-all delay-300 duration-700 lg:p-14 ${missionView.visible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}
-            >
-              <div className="mb-10 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/10">
-                  <svg
-                    className="h-5 w-5 text-white"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                    />
-                  </svg>
+            </Card>
+          </Reveal>
+          <Reveal delay={300}>
+            <Card size="lg" className="h-full">
+              <div className="flex flex-col gap-10 px-(--card-spacing)">
+                <div className="flex items-center gap-3">
+                  <IconTile variant="neutral">
+                    <EyeIcon />
+                  </IconTile>
+                  <Eyebrow render={<span />} className="text-muted-foreground">
+                    Vision
+                  </Eyebrow>
                 </div>
-                <span className="text-xs font-bold uppercase tracking-[0.35em] text-white/50">
-                  Vision
-                </span>
+                <Heading as="h3" size="h3" className="leading-[1.05] xl:text-5xl">
+                  Being the launchpad for <span className="text-foreground/30">innovation</span>
+                </Heading>
+                <Text className="max-w-md">
+                  We envision START as <i>the</i> place for ambitious students in Munich, where
+                  ideas are turned into real innovations.
+                </Text>
               </div>
-              <h3 className="mb-10 text-3xl font-black leading-[1.05] text-white lg:text-4xl xl:text-5xl">
-                Being the launchpad for <span className="text-white/30">innovation</span>
-              </h3>
-              <p className="max-w-md text-base leading-relaxed text-gray-400 lg:text-lg">
-                We envision START as <i>the</i> place for ambitious students in Munich, where ideas
-                are turned into real innovations.
-              </p>
-            </div>
-          </div>
+            </Card>
+          </Reveal>
         </div>
-      </section>
+      </Section>
 
-      {/* ═══ 02 MISSION PARTNERS ═══ */}
-      <section className="px-4 pb-16 pt-1 sm:px-6 lg:px-8" ref={partnersView.ref}>
-        <div className="mx-auto max-w-7xl">
-          <div
-            className={`mb-10 transition-all duration-700 ${partnersView.visible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}
-          >
-            <span className="text-sm font-bold uppercase tracking-[0.35em] text-brand-pink">
-              Mission Partners
-            </span>
-            <p className="mt-2 text-base text-gray-500">
-              Organisations who share our mission and support us in building Munich&apos;s next
-              generation of founders.
-            </p>
-          </div>
-
-          <div
-            className={`flex flex-col gap-6 transition-all delay-200 duration-700 ${partnersView.visible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}
-          >
-            {missionPartners.map((partner, i) => (
+      {/* Mission partners */}
+      <Section spacing="none" className="pb-16">
+        <Reveal className="mb-10 flex flex-col gap-2">
+          <Eyebrow>Mission Partners</Eyebrow>
+          <Text>
+            Organisations who share our mission and support us in building Munich&apos;s next
+            generation of founders.
+          </Text>
+        </Reveal>
+        <Reveal delay={200} className="flex flex-col gap-6">
+          {missionPartners.map((partner) => (
+            <Card key={partner.name} className="flex-col py-0 md:flex-row">
               <div
-                key={i}
-                className="flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] md:flex-row"
+                className={cn(
+                  'relative h-48 shrink-0 overflow-hidden md:w-72 lg:w-80',
+                  partner.image2 && 'md:h-auto',
+                )}
               >
-                <div
-                  className={`relative flex-shrink-0 overflow-hidden md:w-72 lg:w-80 ${partner.image2 ? 'h-48 md:h-auto' : 'h-48'}`}
-                >
+                {partner.image2 ? (
+                  <div className="flex h-full gap-1 bg-background">
+                    {[partner.image, partner.image2].map((src) => (
+                      <Image
+                        key={src}
+                        src={src}
+                        alt={partner.name}
+                        width={200}
+                        height={150}
+                        className="h-full w-1/2 bg-white object-contain p-3"
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <Image
+                    src={partner.image}
+                    alt={partner.name}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 320px"
+                    className="object-cover"
+                  />
+                )}
+              </div>
+              <div className="flex flex-col justify-center gap-4 p-8 lg:p-10">
+                <div className="flex items-center gap-4">
                   {partner.image2 ? (
-                    <div className="flex h-full">
-                      <Image
-                        src={partner.image}
-                        alt={partner.name}
-                        width={200}
-                        height={150}
-                        className="h-full w-1/2 bg-white object-contain p-3"
-                      />
-                      <div className="w-1 flex-shrink-0 bg-brand-dark-blue" />
-                      <Image
-                        src={partner.image2}
-                        alt={partner.name}
-                        width={200}
-                        height={150}
-                        className="h-full w-1/2 bg-white object-contain p-3"
-                      />
-                    </div>
+                    <>
+                      <LogoBadge src={partner.image} alt="CDTM" />
+                      <LogoBadge src={partner.image2} alt="Manage and More" />
+                    </>
                   ) : (
-                    <Image
-                      src={partner.image}
+                    <LogoBadge
+                      src={partner.logo}
                       alt={partner.name}
-                      fill
-                      sizes="(max-width: 768px) 100vw, 320px"
-                      className="object-cover"
+                      light={partner.logoOnLightTile}
                     />
                   )}
+                  <Heading as="h3" size="h4" className="font-black tracking-wide uppercase">
+                    {partner.name}
+                  </Heading>
                 </div>
-                <div className="flex flex-col justify-center gap-4 p-8 lg:p-10">
-                  <div className="flex items-center gap-4">
-                    {partner.image2 ? (
-                      <>
-                        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5">
-                          <Image
-                            src={partner.image}
-                            alt="CDTM"
-                            width={28}
-                            height={28}
-                            className="object-contain"
-                          />
-                        </div>
-                        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5">
-                          <Image
-                            src={partner.image2}
-                            alt="Manage and More"
-                            width={28}
-                            height={28}
-                            className="object-contain"
-                          />
-                        </div>
-                      </>
-                    ) : (
-                      <div
-                        className={`flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl border border-white/10 ${
-                          partner.logoOnLightTile ? 'bg-white' : 'bg-white/5'
-                        }`}
-                      >
-                        {partner.logo ? (
-                          <Image
-                            src={partner.logo}
-                            alt={partner.name}
-                            width={28}
-                            height={28}
-                            className="object-contain"
-                          />
-                        ) : (
-                          <span className="text-xs font-bold uppercase text-white/30">
-                            {partner.name.charAt(0)}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                    <h3 className="text-lg font-black uppercase tracking-wide text-white">
-                      {partner.name}
-                    </h3>
-                  </div>
-                  <p className="text-sm leading-relaxed text-gray-400">
-                    {'descriptionParts' in partner
-                      ? partner.descriptionParts?.map((part, i) => (
-                          <span key={i} className={part.pink ? 'text-brand-pink' : undefined}>
-                            {part.text}
-                          </span>
-                        ))
-                      : partner.description}
-                  </p>
-                </div>
+                <Text variant="small">
+                  {'descriptionParts' in partner
+                    ? partner.descriptionParts?.map((part, i) => (
+                        <span key={i} className={part.pink ? 'text-primary' : undefined}>
+                          {part.text}
+                        </span>
+                      ))
+                    : partner.description}
+                </Text>
               </div>
+            </Card>
+          ))}
+        </Reveal>
+      </Section>
+
+      <Container>
+        <Separator className="bg-linear-to-r from-transparent via-border to-transparent" />
+      </Container>
+
+      {/* Executive board */}
+      <Section spacing="lg" className="pb-4 md:pb-4">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute top-0 right-0 size-[500px] rounded-full bg-primary/5 blur-[160px]"
+        />
+        <Reveal className="relative grid grid-cols-1 items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-16">
+          <SectionHeader
+            eyebrow="Meet the Team"
+            className="mb-0 md:mb-0"
+            title={
+              <>
+                The
+                <br />
+                Executive
+                <br />
+                Board
+              </>
+            }
+          />
+          <div className="grid grid-cols-2 justify-items-center gap-8 sm:grid-cols-3">
+            {executiveBoard.map((member, i) => (
+              <Reveal key={member.name} delay={200 + i * 100}>
+                <ProfileCard
+                  name={member.name}
+                  role={member.role}
+                  imageUrl={member.photo}
+                  linkedinUrl={member.linkedinUrl}
+                  size="lg"
+                />
+              </Reveal>
             ))}
           </div>
-        </div>
-      </section>
+        </Reveal>
+      </Section>
 
-      {/* Divider */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-      </div>
-
-      {/* ═══ 03 EXECUTIVE BOARD — side-by-side layout ═══ */}
-      <section className="relative px-4 pb-4 pt-28 sm:px-6 lg:px-8" ref={execView.ref}>
-        <div className="pointer-events-none absolute right-0 top-0 h-[500px] w-[500px] rounded-full bg-brand-pink/5 blur-[160px]" />
-
-        <div className="relative mx-auto max-w-7xl">
-          <div
-            className={`grid grid-cols-1 items-center gap-12 transition-all duration-700 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-16 ${execView.visible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}
-          >
-            {/* Left: heading */}
-            <div>
-              <span className="mb-4 block text-xs font-bold uppercase tracking-[0.4em] text-brand-pink">
-                Meet the Team
-              </span>
-              <h2 className="text-5xl font-black leading-none tracking-tight sm:text-6xl lg:text-7xl">
-                THE
-                <br />
-                EXECUTIVE
-                <br />
-                BOARD
-              </h2>
-            </div>
-
-            {/* Right: portrait cards */}
-            <div
-              className={`grid grid-cols-2 justify-items-center gap-x-8 gap-y-8 transition-all delay-200 duration-700 sm:grid-cols-3 ${execView.visible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}
-            >
-              {executiveBoard.map((member, i) => (
-                <a
-                  key={member.name}
-                  href={member.linkedinUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`group flex flex-col items-center text-center transition-all duration-500 ${execView.visible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'}`}
-                  style={{ transitionDelay: `${200 + i * 100}ms` }}
-                >
-                  <div className="relative mb-3 h-48 w-36 select-none overflow-hidden rounded-xl border-2 border-white/10 transition-colors group-hover:border-brand-pink/50 sm:h-[15rem] sm:w-48">
-                    <Image
-                      src={member.photo}
-                      alt={member.name}
-                      fill
-                      sizes="(max-width: 640px) 144px, 192px"
-                      className="object-cover object-top"
-                      draggable={false}
-                    />
-                  </div>
-                  <p className="text-xs font-black uppercase leading-tight tracking-wide text-white transition-colors group-hover:text-brand-pink lg:text-sm">
-                    {member.name}
-                  </p>
-                  <p className="mt-1 text-[11px] font-semibold uppercase tracking-widest text-gray-500 lg:text-xs">
-                    {member.role}
-                  </p>
-                </a>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ 04 DEPARTMENT BOARD — compact row with circles ═══ */}
-      <section className="px-4 pb-28 pt-4 sm:px-6 lg:px-8" ref={deptView.ref}>
-        <div className="mx-auto max-w-7xl">
-          <div
-            className={`rounded-[2rem] border border-white/10 bg-white/[0.03] p-8 transition-all duration-700 lg:p-10 ${deptView.visible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}
-          >
-            <div className="mb-8 flex items-center gap-3">
-              <div className="h-px w-6 bg-brand-pink" />
-              <span className="text-xs font-bold uppercase tracking-[0.35em] text-brand-pink">
-                The Department Board
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 justify-items-center gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-5">
-              {departmentBoard.map((member, i) => (
-                <a
-                  key={member.name}
-                  href={member.linkedinUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`group flex flex-col items-center text-center transition-all duration-500 ${deptView.visible ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'}`}
-                  style={{ transitionDelay: `${200 + i * 100}ms` }}
-                >
-                  <div className="relative mb-3 h-48 w-36 select-none overflow-hidden rounded-xl border-2 border-white/10 transition-colors group-hover:border-brand-pink/50 sm:h-56 sm:w-44">
-                    <Image
-                      src={member.photo}
-                      alt={member.name}
-                      fill
-                      sizes="(max-width: 640px) 144px, 176px"
-                      className="object-cover object-top"
-                      draggable={false}
-                    />
-                  </div>
-                  <p className="text-xs font-black uppercase leading-tight tracking-wide text-white transition-colors group-hover:text-brand-pink lg:text-sm">
-                    {member.name}
-                  </p>
-                  <p className="mt-1 text-[11px] uppercase tracking-wider text-gray-500 lg:text-xs">
-                    {member.role}
-                  </p>
-                </a>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ 05 ADVISORY BOARD — thumbnail grid with expandable detail ═══ */}
-      {showAdvisoryBoard && (
-        <section className="px-4 pb-28 pt-4 sm:px-6 lg:px-8" ref={advView.ref}>
-          <div className="mx-auto max-w-7xl">
-            <div
-              className={`mb-10 transition-all duration-700 ${advView.visible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}
-            >
-              <div className="mb-4 flex items-center justify-end gap-3">
-                <span className="text-sm font-bold uppercase tracking-[0.35em] text-brand-pink">
-                  Meet our Experts
-                </span>
-                <div className="h-px w-6 bg-brand-pink" />
+      {/* Department board */}
+      <Section spacing="none" className="pt-4 pb-20 md:pb-28">
+        <Reveal>
+          <Card size="lg">
+            <div className="px-(--card-spacing)">
+              <div className="mb-8 flex items-center gap-3">
+                <span className="h-px w-6 bg-primary" />
+                <Eyebrow render={<span />}>The Department Board</Eyebrow>
               </div>
-              <h2 className="text-right text-3xl font-black uppercase tracking-tight text-white sm:text-4xl lg:text-5xl">
-                The Advisory Board
-              </h2>
-              <p className="ml-auto mt-3 max-w-2xl text-right text-sm text-gray-400 sm:text-base">
-                Our advisory board supports our long-term vision, connects us with key ecosystem
-                players, and advises us on strategic decisions.
-              </p>
-            </div>
-
-            {/* thumbnail grid */}
-            <div className="grid grid-cols-2 items-start justify-items-center gap-3 sm:grid-cols-5 lg:gap-4">
-              {advisoryBoard.map((member, i) => (
-                <button
-                  key={i}
-                  onClick={() => {
-                    if (!member.bio) return;
-                    const next = selectedAdvisor === i ? null : i;
-                    setSelectedAdvisor(next);
-                    if (next !== null) {
-                      setTimeout(
-                        () =>
-                          advisorDetailRef.current?.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'nearest',
-                          }),
-                        100,
-                      );
-                    }
-                  }}
-                  className={`group w-full max-w-[144px] text-left transition-all duration-700 sm:max-w-none ${advView.visible ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'} ${!member.bio ? 'cursor-default' : ''} ${selectedAdvisor === i ? 'scale-[0.97]' : ''}`}
-                  style={{}}
-                >
-                  <div
-                    className={`relative aspect-[3/4] overflow-hidden rounded-xl border-2 transition-colors duration-300 ${selectedAdvisor === i ? 'border-brand-pink' : 'border-white/10 hover:border-white/30'}`}
-                  >
-                    <Image
-                      src={member.photo}
-                      alt={member.name}
-                      fill
-                      sizes="(max-width: 640px) 33vw, 15vw"
-                      className="object-cover"
-                      style={{
-                        objectPosition: 'objectPosition' in member ? member.objectPosition : 'top',
-                      }}
+              <div className="grid grid-cols-2 justify-items-center gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-5">
+                {departmentBoard.map((member, i) => (
+                  <Reveal key={member.name} delay={200 + i * 100}>
+                    <ProfileCard
+                      name={member.name}
+                      role={member.role}
+                      imageUrl={member.photo}
+                      linkedinUrl={member.linkedinUrl}
+                      sizes="(max-width: 640px) 144px, 176px"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#05112a]/80 via-transparent to-transparent" />
-                  </div>
-                  <p
-                    className={`mt-2 line-clamp-2 text-xs font-bold uppercase leading-tight tracking-wide transition-colors ${selectedAdvisor === i ? 'text-brand-pink' : 'text-white'}`}
-                  >
-                    {member.name}
-                  </p>
-                  <p className="mt-0.5 line-clamp-2 text-[10px] uppercase tracking-wider text-gray-500">
-                    {member.role}
-                  </p>
-                </button>
-              ))}
+                  </Reveal>
+                ))}
+              </div>
             </div>
+          </Card>
+        </Reveal>
+      </Section>
 
-            {/* Expandable detail panel */}
-            <div
-              ref={advisorDetailRef}
-              className={`overflow-hidden transition-all duration-500 ease-in-out ${selectedAdvisor !== null ? 'mt-6 max-h-[800px] opacity-100' : 'mt-0 max-h-0 opacity-0'}`}
-            >
-              {selectedAdvisor !== null && advisoryBoard[selectedAdvisor].bio && (
-                <AdvisorDetail
-                  key={selectedAdvisor}
-                  member={advisoryBoard[selectedAdvisor]}
-                  onClose={() => setSelectedAdvisor(null)}
-                />
-              )}
-            </div>
-          </div>
-        </section>
-      )}
+      <AdvisoryBoard />
 
-      {/* ═══ CTA ═══ */}
-      <section className="px-4 pb-28 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <CTA
-            title="Want to Learn More About Us?"
-            description="Discover how you can grow with START Munich — whether as a member shaping your entrepreneurial journey or as a partner connecting with Munich's most ambitious talents."
-            buttons={[
-              { label: 'Our Member Journey', href: '/member-journey', variant: 'secondary' },
-              { label: 'Contact Us', href: 'https://tally.so/r/w7WY0a', variant: 'secondary' },
-              { label: 'Become a Partner', href: '/for-partners', variant: 'secondary' },
-            ]}
-          />
-        </div>
-      </section>
-    </main>
+      <Section spacing="none" className="pb-20 md:pb-28">
+        <CtaBanner
+          title="Want to Learn More About Us?"
+          description="Discover how you can grow with START Munich — whether as a member shaping your entrepreneurial journey or as a partner connecting with Munich's most ambitious talents."
+          actions={[
+            { label: 'Our Member Journey', href: '/member-journey', variant: 'soft' },
+            { label: 'Contact Us', href: siteLinks.contact, variant: 'soft' },
+            { label: 'Become a Partner', href: '/for-partners', variant: 'soft' },
+          ]}
+        />
+      </Section>
+    </>
   );
 }

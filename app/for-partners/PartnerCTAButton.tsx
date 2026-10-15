@@ -2,20 +2,16 @@
 
 import posthog from 'posthog-js';
 
-interface PartnerCTAButtonProps {
-  href: string;
-  className: string;
-  children: React.ReactNode;
-}
+import { ButtonLink, type ButtonLinkProps } from '@/components/ui/button';
 
-export default function PartnerCTAButton({ href, className, children }: PartnerCTAButtonProps) {
+/** A contact button that records the click in PostHog before navigating. */
+export default function PartnerCTAButton({ href, ...props }: ButtonLinkProps) {
   return (
-    <a
+    <ButtonLink
       href={href}
+      external={false}
       onClick={() => posthog.capture('partner_contact_clicked', { href }, { send_instantly: true })}
-      className={className}
-    >
-      {children}
-    </a>
+      {...props}
+    />
   );
 }

@@ -1,6 +1,10 @@
 /** @type {import('prettier').Config & import('prettier-plugin-tailwindcss').PluginOptions} */
 const config = {
   plugins: ['prettier-plugin-tailwindcss'],
+  // Tailwind v4 has no JS config; the plugin reads the theme (and our custom
+  // tokens and utilities) from the CSS entry point to sort classes correctly.
+  tailwindStylesheet: './app/globals.css',
+  tailwindFunctions: ['cn', 'cva'],
   printWidth: 100,
   useTabs: false,
   tabWidth: 2,

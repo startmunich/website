@@ -10,8 +10,8 @@
  *  - Which mark is drawn is a `LogoVariant`, not a constant, because the panel
  *    is a wide rectangle on desktop and a 1:1 square on mobile and the 80:36
  *    wordmark reads as a sliver once the canvas is square.
- *  - The flare tint and the vignette base are the `brand-pink` and
- *    `brand-dark-blue` tokens from `tailwind.config.ts`.
+ *  - The flare tint and the vignette base are the `--brand-pink` and
+ *    `--brand-navy` tokens from `app/globals.css`.
  *
  * The pass graph, target ping-pong, uniform packing, and the constructor/
  * replace/dispose cleanup protocol are unchanged.
@@ -69,9 +69,9 @@ interface BoundLogo extends LogoRaster {
 const MAX_RENDER_WIDTH = 1920;
 const PULSE_TRANSITION_SECONDS = 2;
 const PULSE_FLOOR = 0.2;
-/** `brand-pink` (`#d0006f`). The logo itself stays white; only the light is tinted. */
+/** `--brand-pink` (`#d0006f`). The logo itself stays white; only the light is tinted. */
 const FLARE_COLOR = [208 / 255, 0, 111 / 255] as const;
-/** `brand-dark-blue` (`#00002c`), so the vignette blends into the page. */
+/** `--brand-navy` (`#00002c`), so the vignette blends into the page. */
 const BACKGROUND_COLOR = [0, 0, 44 / 255] as const;
 const BLUR_CENTER_WEIGHT = 0.0799404796215474;
 const BLUR_TAPS = [

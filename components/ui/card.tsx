@@ -1,56 +1,138 @@
+import { mergeProps } from '@base-ui/react/merge-props';
+import { useRender } from '@base-ui/react/use-render';
+import { cva, type VariantProps } from 'class-variance-authority';
 import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
-const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
+const cardVariants = cva(
+  'group/card relative flex flex-col gap-(--card-spacing) overflow-hidden rounded-2xl border py-(--card-spacing) text-card-foreground has-data-[slot=card-footer]:pb-0 has-data-[slot=card-media]:pt-0 has-[>img:first-child]:pt-0',
+  {
+    variants: {
+      variant: {
+        /** Translucent surface: the default for content on the page background. */
+        default: 'border-border bg-card',
+        /** Brand-tinted surface for the one featured item in a group. */
+        highlight: 'border-primary/20 bg-linear-to-br from-primary/20 via-primary/5 to-transparent',
+        /** Frosted surface for cards that sit on photography (hero stats). */
+        glass: 'border-foreground/15 bg-foreground/8 shadow-card backdrop-blur-md',
+        /** Opaque, slightly lifted surface for panels that need separation. */
+        solid: 'border-border bg-surface',
+      },
+      size: {
+        sm: '[--card-spacing:--spacing(4)]',
+        default: '[--card-spacing:--spacing(6)]',
+        lg: '[--card-spacing:--spacing(8)] lg:[--card-spacing:--spacing(10)]',
+      },
+      interactive: {
+        true: 'transition-all duration-300 hover:border-primary/40 hover:bg-accent',
+        false: '',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+      size: 'default',
+      interactive: false,
+    },
+  },
+);
+
+type CardProps = useRender.ComponentProps<'div'> & VariantProps<typeof cardVariants>;
+
+/** Pass `render={<a href="…" />}` to make the whole card a link. */
+function Card({ className, variant, size, interactive, render, ...props }: CardProps) {
+  return useRender({
+    defaultTagName: 'div',
+    render,
+    props: mergeProps<'div'>(
+      {
+        className: cn(cardVariants({ variant, size, interactive }), className),
+        'data-size': size ?? 'default',
+      } as React.ComponentProps<'div'>,
+      props,
+    ),
+    state: { slot: 'card' },
+  });
+}
+
+/** Full-bleed media (image, video) at the top of a card. */
+function CardMedia({ className, ...props }: React.ComponentProps<'div'>) {
+  return (
     <div
-      ref={ref}
-      className={cn('rounded-lg border bg-card text-card-foreground shadow-sm', className)}
+      data-slot="card-media"
+      className={cn('relative w-full overflow-hidden', className)}
       {...props}
     />
-  ),
-);
-Card.displayName = 'Card';
+  );
+}
 
-const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('flex flex-col space-y-1.5 p-6', className)} {...props} />
-  ),
-);
-CardHeader.displayName = 'CardHeader';
+function CardHeader({ className, ...props }: React.ComponentProps<'div'>) {
+  return (
+    <div
+      data-slot="card-header"
+      className={cn(
+        'group/card-header @container/card-header grid auto-rows-min items-start gap-1.5 px-(--card-spacing) has-data-[slot=card-action]:grid-cols-[1fr_auto] has-data-[slot=card-description]:grid-rows-[auto_auto]',
+        className,
+      )}
+      {...props}
+    />
+  );
+}
 
-const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
-  ({ className, ...props }, ref) => (
+function CardTitle({ className, ...props }: React.ComponentProps<'h3'>) {
+  return (
     <h3
-      ref={ref}
-      className={cn('text-2xl font-semibold leading-none tracking-tight', className)}
+      data-slot="card-title"
+      className={cn('text-lg leading-snug font-bold text-foreground', className)}
       {...props}
     />
-  ),
-);
-CardTitle.displayName = 'CardTitle';
+  );
+}
 
-const CardDescription = React.forwardRef<
-  HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement>
->(({ className, ...props }, ref) => (
-  <p ref={ref} className={cn('text-sm text-muted-foreground', className)} {...props} />
-));
-CardDescription.displayName = 'CardDescription';
+function CardDescription({ className, ...props }: React.ComponentProps<'p'>) {
+  return (
+    <p
+      data-slot="card-description"
+      className={cn('text-sm leading-relaxed text-muted-foreground', className)}
+      {...props}
+    />
+  );
+}
 
-const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('p-6 pt-0', className)} {...props} />
-  ),
-);
-CardContent.displayName = 'CardContent';
+function CardAction({ className, ...props }: React.ComponentProps<'div'>) {
+  return (
+    <div
+      data-slot="card-action"
+      className={cn('col-start-2 row-span-2 row-start-1 self-start justify-self-end', className)}
+      {...props}
+    />
+  );
+}
 
-const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('flex items-center p-6 pt-0', className)} {...props} />
-  ),
-);
-CardFooter.displayName = 'CardFooter';
+function CardContent({ className, ...props }: React.ComponentProps<'div'>) {
+  return (
+    <div data-slot="card-content" className={cn('px-(--card-spacing)', className)} {...props} />
+  );
+}
 
-export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle };
+function CardFooter({ className, ...props }: React.ComponentProps<'div'>) {
+  return (
+    <div
+      data-slot="card-footer"
+      className={cn('mt-auto flex items-center gap-3 p-(--card-spacing) pt-0', className)}
+      {...props}
+    />
+  );
+}
+
+export {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardMedia,
+  CardTitle,
+  cardVariants,
+};

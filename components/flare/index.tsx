@@ -7,7 +7,7 @@
  * black canvas. The differences are all about dropping into this site:
  *  - the canvas is a decorative panel in the "About START" section rather than a
  *    full-viewport hero, so it sizes from its container;
- *  - the vignette blends into `brand-dark-blue` (the page background) instead of
+ *  - the vignette blends into `background` (the page background) instead of
  *    black, so the panel has no hard edge;
  *  - the mark is the round icon below the `sm` breakpoint and the wordmark from
  *    tablet width up, because the panel is still a 1:1 square there and the 80:36
@@ -54,7 +54,7 @@ import { ICON_LOGO, WORDMARK_LOGO } from './logo-variants';
  * picked in JS, so the correct mark is in the server HTML and needs no effect.
  * Only the visible one reaches the accessibility tree; the canvas is decorative.
  */
-const FALLBACK_WORDMARK_CLASSES = 'relative hidden aspect-[80/36] w-[62%] max-h-[40%] sm:block';
+const FALLBACK_WORDMARK_CLASSES = 'relative hidden aspect-80/36 w-[62%] max-h-[40%] sm:block';
 const FALLBACK_ICON_CLASSES = 'relative aspect-square w-1/2 max-h-1/2 sm:hidden';
 
 /** The crossfade window, matching the one the canvas uses. */
@@ -146,7 +146,7 @@ export function LogoFlare() {
   return (
     // The parent supplies the rounded frame and `overflow-hidden`; only the
     // surface colour belongs here, so the panel edge is not drawn twice.
-    <div className="relative h-full w-full bg-brand-dark-blue">
+    <div className="relative h-full w-full bg-background">
       {/* First paint, and the whole render until WebGPU is ruled either way. */}
       <div
         aria-hidden={!showMark}
@@ -201,7 +201,7 @@ export function LogoFlare() {
         {/* The flare blends into the page through a vignette; the photograph gets
             the same hand-off at the bottom edge so the panel does not end in a
             hard line against the dark background. */}
-        <div className="absolute inset-0 bg-gradient-to-t from-brand-dark-blue/50 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-background/50 via-transparent to-transparent" />
       </div>
 
       <canvas

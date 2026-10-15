@@ -12,9 +12,10 @@ NocoDB — see [`docs/nocodb-migration.md`](docs/nocodb-migration.md) for why.
 
 ## Tech Stack
 
-- **Next.js 15** (App Router, React 18, Server Components, ISR, route handlers)
+- **Next.js 15** (App Router, React 19, Server Components, ISR, route handlers)
 - **TypeScript 5.9** (strict)
-- **Tailwind CSS 3.4** + **shadcn/ui** (plus Aceternity and Magic UI registry components)
+- **Tailwind CSS 4** + **shadcn/ui on Base UI** (`base-nova`); design tokens and components are
+  documented in [`docs/design-system.md`](docs/design-system.md)
 - **PostHog** for analytics (EU-hosted, proxied through Next.js rewrites)
 - **Playwright** for end-to-end smoke tests
 - **Sanity** as the CMS/content source (public `production` dataset, read via `next-sanity`)
@@ -204,12 +205,13 @@ Three things to know when editing this code:
 
 ```
 app/           Routes, layouts, API route handlers
-components/    Shared components; components/ui holds shadcn + registry components,
-               components/flare the WebGPU logo flare (see below)
+components/    components/ui: shadcn/ui primitives (Base UI) + typography/layout primitives;
+               components/site: site composites (header, footer, hero, cards, CTA, FAQ);
+               components/flare + components/aura: the WebGPU visuals (see below)
 lib/           Data fetching (startups, partners, startNetwork), types, metadata, hooks
 scripts/       Repo scripts: pnpm enforcement/hygiene, image compression
 tests/e2e/     Playwright specs
-docs/          Setup guides
+docs/          Setup guides and the design-system reference
 .github/       CI workflows, Renovate config, copilot-instructions.md
 ```
 
@@ -250,8 +252,8 @@ preview URL via `PLAYWRIGHT_TEST_BASE_URL`.
 `components/flare` is the [vgpu](https://vgpu.dev) `nextjs-flare` example applied to the START
 Munich wordmark. It renders the logo through a five-pass WebGPU pipeline (logo → rim → separable
 blur → composite) with an animated light source that follows the pointer, and sits in the "About
-START" panel above the footer. Colours come from the brand tokens: the flare is `brand-pink` and the
-vignette fades to `brand-dark-blue` so the panel has no visible edge against the page.
+START" panel above the footer. Colours come from the brand tokens: the flare is `--brand-pink` and
+the vignette fades to the page `background` so the panel has no visible edge against the page.
 
 Three things to know before changing it:
 
@@ -430,34 +432,24 @@ deliberate cost trade-off (each additional format is billed as a separate transf
 Analytics requests are rewritten to the EU PostHog endpoints from the browser, so no
 `api.east-*.posthog.com` calls leave the EU.
 
-## Brand Colors
+## Design System
 
-The brand palette lives in the `colors.brand` section of `tailwind.config.ts`. The UI font is
-`Avenirnextltpro` (`fontFamily.sans`).
+Colours, radii, typography, spacing and motion are tokens in [`app/globals.css`](app/globals.css)
+(Tailwind 4, CSS-first; there is no `tailwind.config.ts`). Pages are composed from the shadcn/ui
+primitives in `components/ui/` (Base UI, `base-nova` style) and the site composites in
+`components/site/`. The full reference, including the sub-brand themes for Labs, START Hack and Road
+to START Summit, is [`docs/design-system.md`](docs/design-system.md).
 
-| Color              | Hex Code  | Tailwind Class         | Usage                                     |
-| ------------------ | --------- | ---------------------- | ----------------------------------------- |
-| **Pink**           | `#d0006f` | `brand-pink`           | Primary accent color, buttons, highlights |
-| **Dark Blue**      | `#00002c` | `brand-dark-blue`      | Main background color                     |
-| **Secondary Blue** | `#011152` | `brand-secondary-blue` | Department cards, secondary backgrounds   |
+| Token                    | Value     | Utility examples                          |
+| ------------------------ | --------- | ----------------------------------------- |
+| `--primary` (brand pink) | `#d0006f` | `bg-primary`, `text-primary`, `ring-ring` |
+| `--background` (navy)    | `#00002c` | `bg-background`                           |
+| `--secondary` (blue)     | `#011152` | `bg-secondary`                            |
+| `--card`                 | 5% white  | `bg-card`                                 |
+| `--muted-foreground`     | 68% white | `text-muted-foreground`                   |
+| `--radius`               | `0.75rem` | `rounded-lg` … `rounded-3xl`              |
 
-```tsx
-className = 'bg-brand-pink';
-className = 'text-brand-pink';
-className = 'border-brand-pink';
-className = 'bg-brand-pink/20';
-className = 'hover:bg-brand-pink/90';
-```
-
-To change them, edit `colors.brand` in `tailwind.config.ts`:
-
-```typescript
-brand: {
-  pink: "#d0006f",
-  "dark-blue": "#00002c",
-  "secondary-blue": "#011152",
-}
-```
+To change the brand, edit the palette at the top of `app/globals.css`; every component follows.
 
 ## Data Sources
 
