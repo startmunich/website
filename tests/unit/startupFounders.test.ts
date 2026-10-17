@@ -4,9 +4,6 @@ import { describe, expect, test, vi } from 'vitest';
 /**
  * Runs the real startup queries against in-memory documents, so the GROQ that
  * ships is what gets checked — not a hand-written stand-in for its output.
- *
- * Startups moved from a single nested `founder` to a `founders` list. Until the
- * CMS migration has run, the dataset holds both shapes, and both must render.
  */
 
 const documents: Record<string, unknown>[] = [];
@@ -40,12 +37,7 @@ documents.push(
       { _key: 'c', _type: 'founder', role: 'Unnamed' },
     ],
   }),
-  startup('2', { founder: { name: 'Linus', role: 'CTO' } }),
-  startup('3', {
-    founders: [{ _key: 'a', _type: 'founder', name: 'New' }],
-    founder: { name: 'Old' },
-  }),
-  startup('4', {}),
+  startup('2', {}),
 );
 
 describe('startup founders', () => {
@@ -57,28 +49,13 @@ describe('startup founders', () => {
     ]);
   });
 
-  test('reads a legacy single founder as a one-item list', async () => {
+  test('returns no founders when none are set', async () => {
     const company = await content.getStartupById('2');
-    expect(company?.founders.map((f) => f.name)).toEqual(['Linus']);
-  });
-
-  test('prefers the founders list over the legacy field', async () => {
-    const company = await content.getStartupById('3');
-    expect(company?.founders.map((f) => f.name)).toEqual(['New']);
-  });
-
-  test('returns no founders when neither field is set', async () => {
-    const company = await content.getStartupById('4');
     expect(company?.founders).toEqual([]);
   });
 
   test('the directory query resolves founders the same way', async () => {
     const companies = await content.getAllStartups();
-    expect(companies.map((c) => c.founders.map((f) => f.name))).toEqual([
-      ['Ada', 'Grace'],
-      ['Linus'],
-      ['New'],
-      [],
-    ]);
+    expect(companies.map((c) => c.founders.map((f) => f.name))).toEqual([['Ada', 'Grace'], []]);
   });
 });
