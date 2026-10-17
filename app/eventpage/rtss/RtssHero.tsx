@@ -24,11 +24,11 @@ export default function RtssHero() {
     <header
       ref={ref}
       id="top"
-      className="relative isolate h-svh max-h-[1100px] min-h-[720px] overflow-hidden bg-brand-pink text-brand-navy max-[900px]:min-h-[700px] max-sm:h-[100svh] max-sm:min-h-[700px]"
+      className="relative isolate h-svh min-h-[720px] overflow-hidden bg-brand-pink text-brand-navy max-[900px]:min-h-[700px] max-sm:h-[100svh] max-sm:min-h-[700px]"
     >
       <nav
         aria-label="Main navigation"
-        className="relative z-5 flex h-[54px] items-center justify-between gap-10 bg-brand-navy px-7 py-1.5 text-white max-sm:h-auto max-sm:min-h-11 max-sm:flex-col max-sm:flex-nowrap max-sm:gap-1 max-sm:px-3 max-sm:py-1"
+        className="relative z-5 flex h-[54px] items-center justify-between gap-10 bg-brand-pink px-7 py-1.5 text-white max-sm:h-auto max-sm:min-h-11 max-sm:flex-col max-sm:flex-nowrap max-sm:gap-1 max-sm:px-3 max-sm:py-1"
       >
         <Link
           href="/"
@@ -73,8 +73,11 @@ export default function RtssHero() {
         <SplitCta />
       </div>
 
+      {/* The composition is anchored to the bottom edge, so it scales with the
+          viewport rather than stranding a gap above it on tall displays. The
+          1050px / -315px floor reproduces the intended framing at 900px tall. */}
       <motion.div
-        className="absolute bottom-[-315px] left-1/2 z-1 h-[1050px] w-[1050px] max-w-none max-[1100px]:bottom-[-240px] max-[1100px]:h-[950px] max-[1100px]:w-[950px] max-[900px]:bottom-[-230px] max-[900px]:h-[900px] max-[900px]:w-[900px] max-sm:hidden min-[1601px]:bottom-[-350px] min-[1601px]:h-[1200px] min-[1601px]:w-[1200px]"
+        className="absolute bottom-[max(-315px,-35svh)] left-1/2 z-1 h-[max(1050px,116.7svh)] w-[max(1050px,116.7svh)] max-w-none max-[1100px]:bottom-[-240px] max-[1100px]:h-[950px] max-[1100px]:w-[950px] max-[900px]:bottom-[-230px] max-[900px]:h-[900px] max-[900px]:w-[900px] max-sm:hidden"
         style={{ x: '-50%', y: reduce ? 0 : y }}
       >
         <Image
