@@ -9,14 +9,21 @@
  * with a scrim so the type stays readable over the lettering.
  *
  * The copy is read from `app/eventpage/rtss/rtss-data.ts` rather than repeated
- * here, so a date change cannot leave a stale card behind. Re-run this after
- * editing that file.
+ * here, so the card cannot disagree with the page for any reason other than
+ * forgetting to re-run this. Nothing in CI regenerates or diffs
+ * `og-image.png`, so that step is manual — run it after editing the data file
+ * and commit the result.
  */
+
+import { fileURLToPath } from 'node:url';
 
 import { chromium } from '@playwright/test';
 import { readFile } from 'fs/promises';
 
-const ROOT = new URL('..', import.meta.url).pathname;
+// fileURLToPath, not `new URL(..).pathname`: the latter percent-encodes, so a
+// checkout under a path containing a space (or any other reserved character)
+// resolved to a directory that doesn't exist.
+const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const DATA_FILE = `${ROOT}app/eventpage/rtss/rtss-data.ts`;
 
 /** 1.91:1 — the aspect ratio Facebook, LinkedIn, Slack and X all crop to. */
@@ -31,9 +38,11 @@ const dataUri = async (relative, mime) =>
 /** Pulls one `key: 'value'` string literal out of the RTSS data module. */
 async function configValue(key) {
   const source = await readFile(DATA_FILE, 'utf8');
-  const match = source.match(new RegExp(`\\b${key}:\\s*'([^']+)'`));
+  // Both quote styles: Prettier switches to double quotes as soon as a value
+  // contains an apostrophe, and the old single-quote-only pattern then threw.
+  const match = source.match(new RegExp(`\\b${key}:\\s*(?:"([^"]+)"|'([^']+)')`));
   if (!match) throw new Error(`Could not find \`${key}\` in ${DATA_FILE}`);
-  return match[1];
+  return match[1] ?? match[2];
 }
 
 const [title, longDate, venue, artwork, logo, font] = await Promise.all([

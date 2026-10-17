@@ -29,7 +29,9 @@ export default function RtssSchedule() {
       </div>
 
       <div>
-        <h3 className="border-b border-border pb-6 text-[18px] font-normal">Schedule</h3>
+        {/* A column label, not a session: as an <h3> it sat alongside the session
+            titles and read as one more session in the heading outline. */}
+        <p className="border-b border-border pb-6 text-[18px] font-normal">Schedule</p>
         {schedule.map((session) => (
           <article
             key={`${session.start}-${session.title}`}

@@ -71,7 +71,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en"
       suppressHydrationWarning
-// The site is dark-only: `color-scheme: dark` and the semantic tokens live
+      // The site is dark-only: `color-scheme: dark` and the semantic tokens live
       // on `:root`. The `dark` class is what `@custom-variant dark
       // (&:is(.dark *))` matches, so without it every `dark:` branch in
       // components/ui/ is dead code.

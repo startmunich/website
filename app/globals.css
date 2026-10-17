@@ -120,7 +120,9 @@
   --popover: #494b67;
   --surface: #494b67;
   --primary: var(--brand-pink);
-  --primary-foreground: var(--brand-navy);
+  /* White, not --brand-navy: navy on #d0006f is 3.8:1 and the Pills and hero
+     CTAs set this pair at 12-14px, where AA needs 4.5:1. White is 5.4:1. */
+  --primary-foreground: #ffffff;
   --secondary: var(--brand-navy);
   --secondary-foreground: #ffffff;
   --muted: #838695;

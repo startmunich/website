@@ -1,5 +1,3 @@
-'use client';
-
 import { ParallaxPhoto } from './rtss-motion';
 
 /** Three frames from the last edition, drifting at different speeds. */

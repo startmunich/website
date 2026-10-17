@@ -11,9 +11,14 @@ import { rtssImage } from './rtss-ui';
 /**
  * Scroll-driven pieces of the RTSS microsite.
  *
- * `prefers-reduced-motion` is read after hydration on purpose: the first paint
- * has to match the server render, and a visitor who asks for reduced motion
- * should never see content animate in before it settles.
+ * The hidden start state is applied *after* mount rather than in `initial`.
+ * `prefers-reduced-motion` can only be read in the browser, so an `initial`
+ * derived from it guesses `false` on the server and ships `opacity: 0` in the
+ * HTML — which left the about copy and both audience CTAs invisible whenever JS
+ * was unavailable or hydration failed. Rendering visible first and hiding on
+ * mount costs nothing visually (everything wrapped in `Reveal` sits below the
+ * fold, so nothing visible ever flashes) and means the server HTML always
+ * carries the content. Reduced-motion visitors get no animation at all.
  */
 export function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(false);
@@ -42,15 +47,26 @@ export function Reveal({
   id?: string;
 }) {
   const reduce = usePrefersReducedMotion();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  const hidden = mounted && !reduce;
+  const ease = [0.22, 1, 0.36, 1] as const;
 
   return (
     <motion.div
       id={id}
       className={className}
-      initial={reduce ? false : { opacity: 0, y: 45 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      // `false` tells motion not to emit a hidden initial style on the server.
+      initial={false}
+      // Hiding is instant; revealing is what animates.
+      animate={
+        hidden
+          ? { opacity: 0, y: 45, transition: { duration: 0 } }
+          : { opacity: 1, y: 0, transition: { duration: 0.8, delay, ease } }
+      }
+      whileInView={{ opacity: 1, y: 0, transition: { duration: 0.8, delay, ease } }}
       viewport={{ once: true, amount: 0.12 }}
-      transition={{ duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] }}
     >
       {children}
     </motion.div>

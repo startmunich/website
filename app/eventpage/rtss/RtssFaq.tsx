@@ -47,12 +47,15 @@ export default function RtssFaq() {
                   aria-expanded={isOpen}
                   aria-controls={`faq-answer-${index}`}
                   onClick={() => setOpen(isOpen ? null : index)}
-                  className="flex w-full cursor-pointer items-center justify-between gap-5 py-[42px] text-left text-[24px] leading-[1.3] tracking-[-0.045em] transition-colors hover:text-brand-pink aria-expanded:pb-4 max-[1100px]:text-[22px] max-sm:py-[27px] max-sm:text-[20px] max-sm:tracking-[-0.035em]"
+                  // `group` so the "+" can read the button's own aria-expanded;
+                  // on itself `aria-expanded:rotate-45` matched nothing, so it
+                  // never turned.
+                  className="group flex w-full cursor-pointer items-center justify-between gap-5 py-[42px] text-left text-[24px] leading-[1.3] tracking-[-0.045em] transition-colors group-aria-expanded:pb-4 hover:text-brand-pink max-[1100px]:text-[22px] max-sm:py-[27px] max-sm:text-[20px] max-sm:tracking-[-0.035em]"
                 >
                   {faq.question}
                   <span
                     aria-hidden="true"
-                    className="text-[28px] font-normal transition-transform duration-300 aria-expanded:rotate-45"
+                    className="text-[28px] font-normal transition-transform duration-300 group-aria-expanded:rotate-45"
                   >
                     +
                   </span>

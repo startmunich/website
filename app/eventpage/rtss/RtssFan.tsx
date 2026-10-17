@@ -8,8 +8,15 @@ import { usePrefersReducedMotion } from './rtss-motion';
 import { RtssPhoto } from './rtss-ui';
 
 /** One card of the fan. Cards 0 and 6 are the outer pair, card 3 the anchor. */
-function FanCard({ index, progress }: { index: number; progress: MotionValue<number> }) {
-  const reduce = usePrefersReducedMotion();
+function FanCard({
+  index,
+  progress,
+  reduce,
+}: {
+  index: number;
+  progress: MotionValue<number>;
+  reduce: boolean;
+}) {
   const offset = index - 3;
 
   const x = useTransform(
@@ -53,6 +60,9 @@ function FanCard({ index, progress }: { index: number; progress: MotionValue<num
  */
 export default function RtssFan() {
   const ref = useRef<HTMLElement>(null);
+  // Read once here rather than once per card: each of the seven cards was
+  // attaching its own matchMedia listener for the same query.
+  const reduce = usePrefersReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end end'] });
 
   return (
@@ -76,7 +86,7 @@ export default function RtssFan() {
         <div className="relative mt-[85px] h-[340px] w-full max-sm:mt-[70px] max-sm:h-[240px]">
           <div className="relative h-full w-full max-[1100px]:scale-[0.9] max-sm:origin-top max-sm:scale-[0.38]">
             {fanImages.map((image, index) => (
-              <FanCard key={image.src} index={index} progress={scrollYProgress} />
+              <FanCard key={image.src} index={index} progress={scrollYProgress} reduce={reduce} />
             ))}
           </div>
         </div>

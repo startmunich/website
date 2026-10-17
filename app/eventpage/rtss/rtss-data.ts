@@ -125,7 +125,7 @@ export const faqs: FaqItem[] = [
   {
     question: 'Where and when does it take place?',
     answer:
-      'Join us on 9 December 2026 at Freiheitshalle in Munich. The evening runs from 17:00 to 22:30. Join the waitlist for first access to early-bird passes.',
+      'Join us on 9 December 2026 at Freiheitshalle in Munich. Doors open at 17:00 and the evening runs late. Join the waitlist for first access to early-bird passes.',
   },
   {
     question: 'What are the requirements for startups?',

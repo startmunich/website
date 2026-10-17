@@ -1,6 +1,8 @@
 import Image from 'next/image';
 import type { ReactNode } from 'react';
 
+import { cn } from '@/lib/utils';
+
 import { rtssConfig } from './rtss-data';
 
 /**
@@ -71,24 +73,21 @@ export function RtssPhoto({
   sizes,
   className,
   frameClassName,
-  priority = false,
 }: {
   file: string;
   alt: string;
   sizes: string;
   className?: string;
   frameClassName?: string;
-  priority?: boolean;
 }) {
   return (
-    <div className={`relative overflow-hidden rounded-2xl bg-card ${frameClassName ?? ''}`}>
+    <div className={cn('relative overflow-hidden rounded-2xl bg-card', frameClassName)}>
       <Image
         src={rtssImage(file)}
         alt={alt}
         fill
         sizes={sizes}
-        priority={priority}
-        className={`object-cover ${className ?? ''}`}
+        className={cn('object-cover', className)}
       />
     </div>
   );

@@ -1,13 +1,29 @@
 'use client';
 
 import { motion, useScroll, useTransform } from 'motion/react';
-import Image from 'next/image';
+import Image, { getImageProps } from 'next/image';
 import Link from 'next/link';
 import { useRef } from 'react';
 
 import { navItems, rtssConfig } from './rtss-data';
 import { usePrefersReducedMotion } from './rtss-motion';
 import { rtssImage, SplitCta } from './rtss-ui';
+
+const HERO_ALT = 'White RTSS lettering layered through a robotic hand on midnight blue';
+
+const heroBase = { alt: HERO_ALT, fill: true, sizes: '100vw' } as const;
+
+/** The wide crop, for anything 640px and up. */
+const { props: desktopHero } = getImageProps({
+  ...heroBase,
+  src: rtssImage('hero-desktop.png'),
+});
+
+/** The portrait crop of the same composition, for phones. */
+const { props: mobileHero } = getImageProps({
+  ...heroBase,
+  src: rtssImage('hero-mobile.png'),
+});
 
 /**
  * Opening composition: the midnight stage, the pink brand bar, and the supplied
@@ -30,7 +46,11 @@ export default function RtssHero() {
     >
       <nav
         aria-label="Main navigation"
-        className="relative z-10 flex h-[54px] items-center justify-between gap-10 bg-brand-pink px-7 py-1.5 max-sm:h-11 max-sm:min-h-0 max-sm:flex-nowrap max-sm:flex-wrap max-sm:justify-center max-sm:gap-x-[18px] max-sm:gap-y-0 max-sm:overflow-hidden max-sm:px-3 max-sm:py-0"
+        // On phones the five links need ~376px but only ~296px is available at
+        // 320px, so let them wrap to a second row and let the bar grow with
+        // them. The old `flex-nowrap` + `overflow-hidden` pair silently clipped
+        // "FAQ" off the end instead of showing it.
+        className="relative z-10 flex h-[54px] items-center justify-between gap-10 bg-brand-pink px-7 py-1.5 max-sm:h-auto max-sm:min-h-11 max-sm:flex-wrap max-sm:justify-center max-sm:gap-x-[18px] max-sm:gap-y-1 max-sm:px-3 max-sm:py-2"
       >
         <Link
           href="/"
@@ -45,7 +65,7 @@ export default function RtssHero() {
             className="h-auto w-[104px] max-sm:w-[84px]"
           />
         </Link>
-        <div className="flex flex-1 items-center justify-around gap-6 max-sm:w-full max-sm:min-w-0 max-sm:flex-nowrap max-sm:justify-center max-sm:gap-x-[18px] max-sm:gap-y-0 max-sm:overflow-hidden">
+        <div className="flex flex-1 items-center justify-around gap-6 max-sm:w-full max-sm:min-w-0 max-sm:flex-wrap max-sm:justify-center max-sm:gap-x-[18px] max-sm:gap-y-1">
           {navItems.map(([label, href]) => (
             <a
               key={href}
@@ -75,26 +95,30 @@ export default function RtssHero() {
         <SplitCta />
       </div>
 
-      <motion.div className="absolute inset-0 z-1 max-sm:hidden" style={{ y: reduce ? 0 : y }}>
-        <Image
-          src={rtssImage('hero-desktop.png')}
-          alt="White RTSS lettering layered through a robotic hand on midnight blue"
-          fill
-          sizes="100vw"
-          priority
-          className="object-cover"
-        />
-      </motion.div>
-
-      {/* Phones get a portrait crop of the same composition. */}
-      <Image
-        src={rtssImage('hero-mobile.png')}
-        alt="White RTSS lettering layered through a robotic hand on midnight blue"
-        fill
-        sizes="100vw"
-        loading="eager"
-        className="absolute inset-0 z-1 hidden h-full w-full object-contain object-bottom max-sm:block"
+      {/* One <picture>, not two <Image>s. With both mounted, every viewport
+          downloaded both files: `priority` preloaded the desktop crop on phones
+          even though it was `max-sm: hidden`, and the 1.2MB mobile crop was
+          fetched on desktops while `display: none`. A <picture> lets the
+          browser resolve exactly one source before it requests anything. */}
+      <link
+        rel="preload"
+        as="image"
+        href={mobileHero.src}
+        imageSrcSet={mobileHero.srcSet}
+        imageSizes="100vw"
+        media="(max-width: 639px)"
       />
+      <motion.div className="absolute inset-0 z-1" style={{ y: reduce ? 0 : y }}>
+        <picture>
+          <source media="(max-width: 639px)" srcSet={mobileHero.srcSet} />
+          <img
+            {...desktopHero}
+            // Restated after the spread so the a11y linter can see it.
+            alt={HERO_ALT}
+            className="object-contain object-bottom min-[640px]:object-cover"
+          />
+        </picture>
+      </motion.div>
 
       <h1 className="sr-only">{rtssConfig.title}</h1>
 
