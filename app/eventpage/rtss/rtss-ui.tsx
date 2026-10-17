@@ -47,7 +47,7 @@ export function SplitCta() {
     >
       <a
         href={rtssConfig.waitlistUrl}
-        className="flex items-center justify-center gap-2.5 py-1.5 pr-[18px] pl-1.5 text-base whitespace-nowrap transition-colors hover:bg-white max-sm:gap-0 max-sm:py-3 max-sm:pr-2.5 max-sm:pl-2.5 max-sm:text-xs"
+        className="flex items-center justify-center gap-2.5 py-[7px] pr-[18px] pl-1.5 text-base whitespace-nowrap transition-colors hover:bg-white max-sm:gap-0 max-sm:py-3 max-sm:pr-2.5 max-sm:pl-2.5 max-sm:text-xs"
       >
         <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand-navy text-foreground max-sm:hidden">
           <TicketIcon className="size-6 max-sm:size-5" />
@@ -56,7 +56,7 @@ export function SplitCta() {
       </a>
       <a
         href={rtssConfig.applicationUrl}
-        className="flex items-center justify-center gap-2.5 border-l border-muted px-[18px] text-base whitespace-nowrap transition-colors hover:bg-white max-sm:px-2.5 max-sm:text-xs"
+        className="flex items-center justify-center gap-2.5 border-l border-muted px-[18px] py-[7px] text-base whitespace-nowrap transition-colors hover:bg-white max-sm:px-2.5 max-sm:py-3 max-sm:text-xs"
       >
         Start-Ups
       </a>
