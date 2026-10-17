@@ -107,26 +107,32 @@
   --ring: var(--primary);
 }
 
-/* Road to START Summit (RTSS): inverted. Hot-pink page, navy panels, white CTAs. */
+/*
+ * Road to START Summit (RTSS): the campaign microsite. A midnight-navy stage
+ * with the brand pink as the single accent, and its own display face (Figtree)
+ * so the microsite reads as a poster rather than a page of the main site.
+ */
 .theme-rtss {
-  --background: #fc2f72;
+  --background: var(--brand-navy);
   --foreground: #ffffff;
-  --card: #09093d;
+  --card: #494b67;
   --card-foreground: #ffffff;
-  --popover: #09093d;
-  --surface: #09093d;
+  --popover: #494b67;
+  --surface: #494b67;
   --primary: #ffffff;
   --primary-foreground: var(--brand-navy);
-  --secondary: var(--brand-navy);
+  --secondary: var(--brand-pink);
   --secondary-foreground: #ffffff;
-  --muted: rgb(255 255 255 / 0.1);
-  --muted-foreground: rgb(255 255 255 / 0.78);
-  --accent: rgb(255 255 255 / 0.12);
-  --accent-foreground: #ff7aa7;
-  --border: rgb(255 255 255 / 0.2);
-  --input: rgb(255 255 255 / 0.25);
+  --muted: #838695;
+  --muted-foreground: #ccd0cf;
+  --accent: var(--brand-pink);
+  --accent-foreground: #ffffff;
+  --border: #494b67;
+  --input: #494b67;
   --ring: #ffffff;
   --radius: 0.375rem;
+
+  font-family: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
 }
 
 /* 3. Tailwind theme -------------------------------------------------------- */
@@ -302,5 +308,16 @@
   .animate-marquee-vertical,
   .animate-blob {
     animation-play-state: paused;
+  }
+
+  /* The RTSS technology fan is a tall sticky stage that exists only to give the
+     cards scroll distance. Without that motion it would leave a screen of empty
+     space, so collapse it back to a normal block. */
+  [data-rtss-fan] {
+    height: 850px;
+  }
+
+  [data-rtss-fan-sticky] {
+    position: relative;
   }
 }

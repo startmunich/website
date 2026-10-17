@@ -1,4 +1,4 @@
-import { JetBrains_Mono } from 'next/font/google';
+import { Figtree, JetBrains_Mono } from 'next/font/google';
 import localFont from 'next/font/local';
 
 /**
@@ -22,5 +22,16 @@ export const avenir = localFont({
 export const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
   variable: '--font-jetbrains-mono',
+  display: 'swap',
+});
+
+/**
+ * Geometric sans for the Road to START Summit microsite (`.theme-rtss`), which
+ * sets its own display face. It is only applied inside that theme, so loading it
+ * here keeps every other route on Avenir Next.
+ */
+export const figtree = Figtree({
+  subsets: ['latin'],
+  variable: '--font-figtree',
   display: 'swap',
 });

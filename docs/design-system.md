@@ -105,7 +105,7 @@ semantic tokens under a class, so every shared component works inside them uncha
 | ------------- | ------------------------------------------------------- |
 | `.theme-labs` | Black, teal accent, mono body copy, near-square corners |
 | `.theme-rtsh` | Deep teal, mint accent                                  |
-| `.theme-rtss` | Inverted: hot-pink page, navy panels, white CTAs        |
+| `.theme-rtss` | Midnight navy, brand-pink accent, Figtree display face  |
 
 Wrap the microsite root in the class. Do not hard-code a sub-brand's colours in markup.
 

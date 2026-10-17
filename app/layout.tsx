@@ -6,7 +6,7 @@ import { SiteChrome } from '@/components/site/site-chrome';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
-import { avenir, jetbrainsMono } from './fonts';
+import { avenir, figtree, jetbrainsMono } from './fonts';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -71,11 +71,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en"
       suppressHydrationWarning
-      // The site is dark-only: `color-scheme: dark` and the semantic tokens live
+// The site is dark-only: `color-scheme: dark` and the semantic tokens live
       // on `:root`. The `dark` class is what `@custom-variant dark
       // (&:is(.dark *))` matches, so without it every `dark:` branch in
       // components/ui/ is dead code.
-      className={cn('dark', avenir.variable, jetbrainsMono.variable)}
+      className={cn('dark', avenir.variable, figtree.variable, jetbrainsMono.variable)}
     >
       <body className="flex min-h-screen flex-col">
         <TooltipProvider>
