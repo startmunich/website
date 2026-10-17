@@ -109,6 +109,13 @@ semantic tokens under a class, so every shared component works inside them uncha
 
 Wrap the microsite root in the class. Do not hard-code a sub-brand's colours in markup.
 
+**Re-declare every token a sub-brand changes.** `:root` defines `--card-foreground` and
+`--popover-foreground` as `var(--foreground)`, and that `var()` is substituted _at `:root`_ — the
+resulting value is then inherited down, so overriding only `--foreground` leaves cards and popovers
+on the old colour. A theme that changes `--foreground` must set `--card-foreground` and
+`--popover-foreground` alongside it. Same for `--ring: var(--primary)`: declare it per theme rather
+than relying on the `:root` substitution.
+
 ## Components
 
 ### Primitives: `components/ui/`

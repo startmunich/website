@@ -3,14 +3,13 @@
 import { useEffect, useState } from 'react';
 
 import { BrandPanel } from '@/components/site/cta-banner';
+import { EmbedHeightReporter } from '@/components/site/embed-height-reporter';
 import { EmptyState } from '@/components/site/empty-state';
 import { LogoImage, LogoTile } from '@/components/site/logo-image';
 import { PageHero } from '@/components/site/page-hero';
 import { Section } from '@/components/ui/section';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Heading, Text } from '@/components/ui/typography';
-
-import { EmbedHeightReporter } from '../home/EmbedHeightReporter';
 
 interface Company {
   id: string;

@@ -6,6 +6,8 @@ import posthog from 'posthog-js';
 import type { ReactNode } from 'react';
 
 import { LinkedInIcon } from '@/components/site/brand-icons';
+import { LogoImage } from '@/components/site/logo-image';
+import { initials } from '@/components/site/profile-card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button, ButtonLink } from '@/components/ui/button';
@@ -61,9 +63,9 @@ export default function StartupDetailsContent({ company }: { company: Company })
         <div className="flex flex-col gap-6 px-(--card-spacing) md:flex-row">
           <div className="flex h-48 w-full shrink-0 items-center justify-center rounded-xl border-2 border-border bg-white p-6 transition-colors hover:border-primary md:w-48">
             {/* Variable-aspect company logo; max-w/max-h with auto-sizing. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <LogoImage
               src={company.logoUrl}
+              name={company.name}
               alt={`${company.name} logo`}
               className="h-auto max-h-full w-auto max-w-full object-contain"
             />
@@ -156,7 +158,7 @@ export default function StartupDetailsContent({ company }: { company: Company })
                     <Avatar className="size-16 border-2 border-border">
                       <AvatarImage src={founder.imageUrl} alt={founder.name} />
                       <AvatarFallback className="bg-primary font-bold text-primary-foreground">
-                        {founder.name.charAt(0)}
+                        {initials(founder.name)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="min-w-0 flex-1">

@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { BrandPanel } from '@/components/site/cta-banner';
+import { EmbedHeightReporter } from '@/components/site/embed-height-reporter';
 import { Faq } from '@/components/site/faq';
 import { FeatureCard } from '@/components/site/feature-card';
 import { LogoImage, LogoTile } from '@/components/site/logo-image';
@@ -16,7 +17,6 @@ import { Eyebrow, Heading, Text } from '@/components/ui/typography';
 import { OG_IMAGES } from '@/lib/metadata';
 import { getAllPartners } from '@/lib/sanityContent';
 
-import { EmbedHeightReporter } from '../home/EmbedHeightReporter';
 import PartnerCTAButton from './PartnerCTAButton';
 import PhotoGallery from './PhotoGallery';
 

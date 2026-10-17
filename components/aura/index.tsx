@@ -2,7 +2,8 @@
 
 /**
  * Aura — a slow, ambient light field over the hero background, rendered with
- * vgpu. Used by `components/Hero`, and therefore on every page with a hero.
+ * vgpu. Mounted by `components/site/page-hero.tsx`, and therefore on every page
+ * with a hero.
  *
  * Two rules govern this file, and both exist to keep the GPU out of the critical
  * path:

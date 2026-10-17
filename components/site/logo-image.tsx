@@ -9,6 +9,8 @@ type LogoImageProps = Omit<React.ComponentProps<'img'>, 'src' | 'alt'> & {
   src?: string | null;
   /** Company name: the alt text, and what renders if the image is missing or fails. */
   name: string;
+  /** Overrides the alt text when it should read differently to the fallback name. */
+  alt?: string;
   /**
    * Pass `sizes` to render an optimised `next/image` that fills the box given by
    * `className` (object-contain, so nothing distorts). Without it, a plain <img>
@@ -25,6 +27,7 @@ type LogoImageProps = Omit<React.ComponentProps<'img'>, 'src' | 'alt'> & {
 export function LogoImage({
   src,
   name,
+  alt,
   sizes,
   className,
   fallbackClassName,
@@ -46,7 +49,7 @@ export function LogoImage({
       <span className={cn('relative block', className)}>
         <Image
           src={src}
-          alt={name}
+          alt={alt ?? name}
           fill
           sizes={sizes}
           className="object-contain"
@@ -61,7 +64,7 @@ export function LogoImage({
     // eslint-disable-next-line @next/next/no-img-element
     <img
       src={src}
-      alt={name}
+      alt={alt ?? name}
       loading="lazy"
       className={cn('object-contain', className)}
       onError={(e) => {

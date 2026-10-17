@@ -4,6 +4,7 @@ import { BriefcaseIcon, MapPinIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 import { BrandPanel, CtaBanner } from '@/components/site/cta-banner';
+import { EmbedHeightReporter } from '@/components/site/embed-height-reporter';
 import { EmptyState } from '@/components/site/empty-state';
 import { InfoPopover } from '@/components/site/info-popover';
 import { PageHero } from '@/components/site/page-hero';
@@ -28,7 +29,6 @@ import { Heading, Text } from '@/components/ui/typography';
 import { siteLinks } from '@/lib/site';
 import type { Company } from '@/lib/types';
 
-import { EmbedHeightReporter } from '../home/EmbedHeightReporter';
 import StartupCard from './StartupCard';
 
 // Fetch companies from API

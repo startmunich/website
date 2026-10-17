@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test';
 
 // The hero aura (components/aura) is decorative WebGPU, and it sits on every page
-// that renders `components/Hero` — which is most of the site. So a runtime
-// failure here is not cosmetic: it is the top of the page going blank, on a lot
-// of URLs at once.
+// that renders a `PageHero` (components/site/page-hero.tsx) — which is most of the
+// site. So a runtime failure here is not cosmetic: it is the top of the page going
+// blank, on a lot of URLs at once.
 //
 // As with the flare, WebGPU is simply absent on plenty of real browsers and on CI
 // runners, so the contract these tests pin is the *fallback*, which has to hold

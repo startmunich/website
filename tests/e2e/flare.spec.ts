@@ -118,8 +118,8 @@ test('the flare panel shows the event photo instead of the mark without WebGPU',
  * `lg` (1:1 square up to it, tall 600px above) while the mark switches earlier, at
  * `sm` (round icon on phones, wordmark from tablet width up). So 640-1023px gets a
  * large square panel with the wordmark in it. Both breakpoints are duplicated in
- * CSS (HomeClient), in the renderer (WORDMARK_QUERY) and here, so this test is
- * what keeps the three from drifting apart.
+ * CSS (app/home/CommunitySection.tsx), in the renderer (WORDMARK_QUERY) and here,
+ * so this test is what keeps the three from drifting apart.
  */
 test('flare panel shows the icon on phones, the wordmark from tablet width up', async ({
   page,

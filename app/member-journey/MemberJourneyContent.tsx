@@ -4,6 +4,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 import { CtaBanner } from '@/components/site/cta-banner';
+import { EmbedHeightReporter } from '@/components/site/embed-height-reporter';
 import { HorizontalScroller } from '@/components/site/horizontal-scroller';
 import { PageHero } from '@/components/site/page-hero';
 import { HeroStat, HeroStats } from '@/components/site/stat';
@@ -14,7 +15,6 @@ import { Card, CardMedia } from '@/components/ui/card';
 import { Container, Section, SectionHeader } from '@/components/ui/section';
 import { Heading, Text } from '@/components/ui/typography';
 
-import { EmbedHeightReporter } from '../home/EmbedHeightReporter';
 import { memberStories, timelineEvents } from './data';
 import { DepartmentPicker } from './DepartmentPicker';
 import { InternalEvents } from './InternalEvents';

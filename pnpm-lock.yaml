@@ -187,9 +187,6 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
-      cn:
-        specifier: ^0.4.0
-        version: 0.4.0
       dotenv:
         specifier: ^17.4.2
         version: 17.4.2
@@ -3428,11 +3425,6 @@ packages:
     engines: {node: '>=20'}
     hasBin: true
 
-  cn@0.4.0:
-    resolution: {integrity: sha512-qOAeUhPwPzBxx6jaeQdo646XIKliKHc2j1ZF7Ngb1o0pJZKH5gq8FkA0aVdUdPFUDXNXyUCXpCtoJISo6dhizg==}
-    engines: {node: '>=20'}
-    hasBin: true
-
   code-block-writer@13.0.3:
     resolution: {integrity: sha512-Oofo0pq3IKnsFtuHqSF7TqBfr71aeyZDVJ0HpmqB7FBM2qEigL0iPONSCZSO9pE9dZTAxANe5XHG9Uy0YMv8cg==}
 
@@ -5857,10 +5849,6 @@ packages:
     peerDependencies:
       react: ^19.2
       rxjs: ^7.2
-
-  react@19.3.0:
-    resolution: {integrity: sha512-E8LUcbtBWt20bbl2YoHfx4ZDBdxVTfOKtCZn9cDSJ4l6/nuoApcpIBcj47t2wZoVX8g2ZHuMHbiShgCR1T5Sog==}
-    engines: {node: '>=0.10.0'}
 
   react@19.3.1:
     resolution: {integrity: sha512-QNhWdt7nrgVWWQG58QuGsAR3jv3Hbe4mb4vz7w2csnHavciZJgda1CPNaldF6eVxv90ud3jUXpKlHL69gO38yw==}
@@ -9011,7 +8999,7 @@ snapshots:
       '@sanity/cli-core': 3.9.0(@noble/hashes@2.4.0)(@types/node@24.19.2)(vitest@5.0.3(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(jsdom@29.1.1(@noble/hashes@2.4.0))(vite@8.3.4(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1)))(yaml@2.9.1)
       '@sanity/generate-help-url': 4.0.0
       '@sanity/schema': 6.18.0(@types/react@19.3.0)(vitest@5.0.3(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(jsdom@29.1.1(@noble/hashes@2.4.0))(vite@8.3.4(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1)))
-      '@sanity/telemetry': 1.1.0(react@19.3.0)
+      '@sanity/telemetry': 1.1.0(react@19.3.1)
       '@sanity/types': 6.18.0(@types/react@19.3.0)(vitest@5.0.3(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(jsdom@29.1.1(@noble/hashes@2.4.0))(vite@8.3.4(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1)))
       '@sanity/workbench-cli': 2.8.4(@noble/hashes@2.4.0)(@rolldown/plugin-babel@0.2.4(@babel/core@7.29.7(supports-color@8.1.1))(@babel/runtime@7.29.10)(rolldown@1.2.13)(vite@8.3.4(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1)))(@types/node@24.19.2)(@types/react@19.3.0)(jiti@2.7.0)(typescript@5.9.3)(vitest@5.0.3(@opentelemetry/api@1.9.1)(@types/node@24.19.2)(jsdom@29.1.1(@noble/hashes@2.4.0))(vite@8.3.4(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1)))(yaml@2.9.1)
       '@vitejs/plugin-react': 6.1.2(@rolldown/plugin-babel@0.2.4(@babel/core@7.29.7(supports-color@8.1.1))(@babel/runtime@7.29.10)(rolldown@1.2.13)(vite@8.3.4(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1)))(vite@8.3.4(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1))
@@ -9025,7 +9013,7 @@ snapshots:
       node-html-parser: 7.1.0
       oneline: 2.0.0
       picomatch: 4.0.7
-      react: 19.3.0
+      react: 19.3.1
       react-is: 19.3.0
       semver: 7.8.5
       vite: 8.3.4(@types/node@24.19.2)(jiti@2.7.0)(yaml@2.9.1)
@@ -9527,13 +9515,6 @@ snapshots:
     dependencies:
       '@noble/ed25519': 3.2.0
       '@noble/hashes': 2.4.0
-
-  '@sanity/telemetry@1.1.0(react@19.3.0)':
-    dependencies:
-      rxjs: 7.8.2
-      typeid-js: 0.3.0
-    optionalDependencies:
-      react: 19.3.0
 
   '@sanity/telemetry@1.1.0(react@19.3.1)':
     dependencies:
@@ -10635,8 +10616,6 @@ snapshots:
   clsx@2.1.1: {}
 
   cn@0.2.6: {}
-
-  cn@0.4.0: {}
 
   code-block-writer@13.0.3: {}
 
@@ -13024,8 +13003,6 @@ snapshots:
     dependencies:
       react: 19.3.1
       rxjs: 7.8.2
-
-  react@19.3.0: {}
 
   react@19.3.1: {}
 

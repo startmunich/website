@@ -3,6 +3,8 @@
 import Link from 'next/link';
 import posthog from 'posthog-js';
 
+import { LogoImage } from '@/components/site/logo-image';
+import { initials } from '@/components/site/profile-card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardMedia } from '@/components/ui/card';
@@ -14,14 +16,6 @@ interface Founder {
   imageUrl: string;
   linkedinUrl?: string;
 }
-
-const initials = (name: string) =>
-  name
-    .split(/\s+/)
-    .map((part) => part[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
 
 function FounderChip({ founder }: { founder: Founder }) {
   const content = (
@@ -94,9 +88,9 @@ export default function StartupCard({
     <Card interactive className={cn('group/card h-full', showDetails ? 'gap-4' : 'gap-3')}>
       <CardMedia className="flex h-48 items-center justify-center bg-white p-8">
         {/* Logos have arbitrary aspect ratios, which next/image would distort. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <LogoImage
           src={logoUrl}
+          name={name}
           alt={`${name} logo`}
           className="h-auto max-h-full w-auto max-w-full object-contain transition-transform duration-300 group-hover/card:scale-105"
         />

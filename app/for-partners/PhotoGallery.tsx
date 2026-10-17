@@ -72,7 +72,12 @@ const pad = (n: number) => String(n).padStart(2, '0');
 
 /** Partner photos from recent events, six at a time. */
 export default function PhotoGallery() {
-  const [start, setStart] = useState(0);
+  // A page index, not a scroll offset: the last page starts at
+  // (photos.length - 1) * PAGE_SIZE, which isn't a multiple of PAGE_SIZE, so
+  // deriving the page number from an offset reported the last page as page 1.
+  const pageCount = Math.ceil(eventPhotos.length / PAGE_SIZE);
+  const [page, setPage] = useState(0);
+  const start = page * PAGE_SIZE;
 
   return (
     <section>
@@ -87,16 +92,15 @@ export default function PhotoGallery() {
         actions={
           <>
             <span className="text-sm text-muted-foreground tabular-nums">
-              {pad(Math.floor(start / PAGE_SIZE) + 1)} /{' '}
-              {pad(Math.ceil(eventPhotos.length / PAGE_SIZE))}
+              {pad(page + 1)} / {pad(pageCount)}
             </span>
             <Button
               variant="outline"
               size="icon-lg"
               shape="pill"
               aria-label="Previous photos"
-              onClick={() => setStart(Math.max(0, start - PAGE_SIZE))}
-              disabled={start === 0}
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0}
             >
               <ChevronLeftIcon className="size-5" />
             </Button>
@@ -104,8 +108,8 @@ export default function PhotoGallery() {
               size="icon-lg"
               shape="pill"
               aria-label="Next photos"
-              onClick={() => setStart(Math.min(eventPhotos.length - PAGE_SIZE, start + PAGE_SIZE))}
-              disabled={start + PAGE_SIZE >= eventPhotos.length}
+              onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+              disabled={page >= pageCount - 1}
             >
               <ChevronRightIcon className="size-5" />
             </Button>

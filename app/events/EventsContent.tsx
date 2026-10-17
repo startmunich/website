@@ -1,6 +1,7 @@
 import { LockIcon } from 'lucide-react';
 
 import { CtaBanner } from '@/components/site/cta-banner';
+import { EmbedHeightReporter } from '@/components/site/embed-height-reporter';
 import { EmptyState } from '@/components/site/empty-state';
 import { PageHero } from '@/components/site/page-hero';
 import { SocialLinks } from '@/components/site/social-links';
@@ -10,7 +11,6 @@ import { Section, SectionHeader } from '@/components/ui/section';
 import type { YearlyStats } from '@/lib/eventCalendar';
 import type { StartEvent } from '@/lib/eventTypes';
 
-import { EmbedHeightReporter } from '../home/EmbedHeightReporter';
 import { EventTimeline } from './EventTimeline';
 import PastEventsList from './PastEventsList';
 import UpcomingEventsList from './UpcomingEventsList';

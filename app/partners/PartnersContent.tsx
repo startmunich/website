@@ -4,6 +4,7 @@ import { SearchIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 import { CtaBanner } from '@/components/site/cta-banner';
+import { EmbedHeightReporter } from '@/components/site/embed-height-reporter';
 import { EmptyState } from '@/components/site/empty-state';
 import { LogoImage, LogoTile } from '@/components/site/logo-image';
 import { PageHero } from '@/components/site/page-hero';
@@ -13,8 +14,6 @@ import { Container, Section } from '@/components/ui/section';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Heading } from '@/components/ui/typography';
-
-import { EmbedHeightReporter } from '../home/EmbedHeightReporter';
 
 interface Partner {
   id: string;

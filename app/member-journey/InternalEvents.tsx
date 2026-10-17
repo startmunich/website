@@ -132,7 +132,10 @@ export function InternalEvents() {
   return (
     <div
       ref={sectionRef}
-      className="grid grid-cols-1 items-stretch gap-6 lg:h-[620px] lg:grid-cols-2"
+      // min-h, not h: the events list is taller than 620px at narrow desktop
+      // widths, and the Card clips (overflow-hidden), which cut off the last
+      // row's description. Let the grid grow instead of overflowing.
+      className="grid grid-cols-1 items-stretch gap-6 lg:min-h-[620px] lg:grid-cols-2"
     >
       <Card size="lg" className="order-2 backdrop-blur-xs lg:order-1">
         <div className="flex flex-col gap-1 px-(--card-spacing)">

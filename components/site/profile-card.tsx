@@ -7,7 +7,7 @@ import { isObjectStorageImage } from '@/lib/images';
 import { cn } from '@/lib/utils';
 
 const portraitVariants = cva(
-  'relative overflow-hidden rounded-xl border-2 border-border bg-card transition-colors duration-300 select-none group-hover/profile:border-primary/50',
+  'relative overflow-hidden rounded-xl border-2 border-border bg-card transition-colors duration-300 select-none group-hover/profile:border-primary/50 group-focus-visible/profile:ring-3 group-focus-visible/profile:ring-ring group-focus-visible/profile:ring-offset-2 group-focus-visible/profile:ring-offset-background',
   {
     variants: {
       size: {

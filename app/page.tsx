@@ -11,6 +11,7 @@
  */
 import type { Metadata } from 'next';
 
+import { EmbedHeightReporter } from '@/components/site/embed-height-reporter';
 import { OG_IMAGES } from '@/lib/metadata';
 import { getFeaturedPartners, getFeaturedStartups, getNewsItems } from '@/lib/sanityContent';
 import { siteLinks } from '@/lib/site';
@@ -18,7 +19,6 @@ import type { NewsItem } from '@/lib/types';
 
 import { AboutStartSection } from './home/AboutStartSection';
 import { CommunitySection } from './home/CommunitySection';
-import { EmbedHeightReporter } from './home/EmbedHeightReporter';
 import { FactsSection } from './home/FactsSection';
 import { ApplicationBanner, HomeHero } from './home/HomeHero';
 import { NetworkSection } from './home/NetworkSection';

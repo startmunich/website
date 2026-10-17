@@ -69,7 +69,9 @@
   --background: #000000;
   --foreground: #ffffff;
   --card: #111111;
+  --card-foreground: #ffffff;
   --popover: #111111;
+  --popover-foreground: #ffffff;
   --surface: #0a0a0a;
   --primary: #2dd4bf;
   --primary-foreground: #000000;
@@ -88,7 +90,9 @@
   --background: #0c2724;
   --foreground: #e4f3ee;
   --card: rgb(20 65 70 / 0.55);
+  --card-foreground: #e4f3ee;
   --popover: #144146;
+  --popover-foreground: #e4f3ee;
   --surface: #144146;
   --primary: #34e1b8;
   --primary-foreground: #0c2724;

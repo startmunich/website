@@ -295,10 +295,10 @@ site only ever runs the browser adapter; the native Dawn prebuilids are not need
 
 `components/aura` is the second vgpu surface. Where the flare is a logo _spotlight_, the aura is a
 slow ambient light field over every page's hero, rendered from a single fullscreen fragment pass. It
-is mounted by `components/Hero.tsx`, so one insertion point lights up all ten pages that use the
-shared hero (`/about-us`, `/events`, `/startups`, `/members`, `/partners`, `/member-journey`,
-`/member-network`, `/for-partners`, `/start-goes-bay-area`, `/join-start/2026`). Pass `aura={false}`
-to `Hero` to opt a specific hero out.
+is mounted by `components/site/page-hero.tsx`, so one insertion point lights up all ten pages that
+use the shared hero (`/about-us`, `/events`, `/startups`, `/members`, `/partners`,
+`/member-journey`, `/member-network`, `/for-partners`, `/start-goes-bay-area`, `/join-start/2026`).
+Pass `aura={false}` to `PageHero` to opt a specific hero out.
 
 It is intentionally the opposite of the flare in its performance posture, because it runs on far
 more pages and carries no detail worth resolving:

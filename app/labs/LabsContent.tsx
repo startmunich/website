@@ -1,6 +1,6 @@
 import Image from 'next/image';
-import Script from 'next/script';
 
+import { EmbedHeightReporter } from '@/components/site/embed-height-reporter';
 import { Faq } from '@/components/site/faq';
 import { NoiseTexture } from '@/components/ui/noise-texture';
 import { Container } from '@/components/ui/section';
@@ -361,22 +361,7 @@ function ApplySection() {
 export default function LabsContent() {
   return (
     <>
-      <Script id="iframe-height-sender" strategy="afterInteractive">
-        {`
-          function sendHeight() {
-            if (window.parent !== window) {
-              const height = document.documentElement.scrollHeight;
-              window.parent.postMessage({ type: 'iframe-height', height: height }, '*');
-            }
-          }
-          if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', sendHeight);
-          } else {
-            sendHeight();
-          }
-          window.addEventListener('resize', sendHeight);
-        `}
-      </Script>
+      <EmbedHeightReporter messageType="iframe-height" />
 
       <div className="theme-labs min-h-screen overflow-x-hidden">
         <LabsNavigation />

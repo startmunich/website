@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
+import { EmbedHeightReporter } from '@/components/site/embed-height-reporter';
 import { PageHero } from '@/components/site/page-hero';
 import { HeroStat, HeroStats } from '@/components/site/stat';
 import { Card, CardMedia } from '@/components/ui/card';
@@ -13,7 +14,6 @@ import { Container, Section, SectionHeader } from '@/components/ui/section';
 import { Separator } from '@/components/ui/separator';
 import { Eyebrow } from '@/components/ui/typography';
 
-import { EmbedHeightReporter } from '../home/EmbedHeightReporter';
 import { getBatchSlug, sortedBatches } from './batches';
 import { BoardsSection } from './BoardsSection';
 

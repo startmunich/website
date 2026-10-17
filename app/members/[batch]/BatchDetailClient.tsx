@@ -4,6 +4,7 @@ import { ChevronLeftIcon } from 'lucide-react';
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
+import { EmbedHeightReporter } from '@/components/site/embed-height-reporter';
 import { EmptyState } from '@/components/site/empty-state';
 import { ProfileCard } from '@/components/site/profile-card';
 import { ButtonLink } from '@/components/ui/button';
@@ -11,7 +12,6 @@ import { Section, SectionHeader } from '@/components/ui/section';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Heading } from '@/components/ui/typography';
 
-import { EmbedHeightReporter } from '../../home/EmbedHeightReporter';
 import { batchImageMap } from '../batches';
 
 interface Member {

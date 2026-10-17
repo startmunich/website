@@ -6,7 +6,7 @@
  * added or removed, update it here — everything else stays in sync.
  *
  * Used by:
- *  - Home page "START NETWORK" section (`app/home/HomeClient.tsx`)
+ *  - Home page "START NETWORK" section (`app/home/NetworkSection.tsx`)
  *  - Home page chapter marquee (`components/home/ChapterMarquee.tsx`)
  *  - Member journey page (`app/member-journey/MemberJourneyContent.tsx`)
  */

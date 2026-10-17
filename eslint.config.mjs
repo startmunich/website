@@ -53,6 +53,23 @@ const config = [
 
       'simple-import-sort/imports': 'error',
       'simple-import-sort/exports': 'error',
+
+      // `cn` is our own helper in `@/lib/utils`. There is also an unrelated
+      // npm package called `cn`, which resolves to a different implementation
+      // that silently ships duplicate class-merging logic. Keep the import
+      // alias-only so a stray `from 'cn'` fails at review time, not at runtime.
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'cn',
+              message:
+                "Import the site's `cn` helper from '@/lib/utils', not from the 'cn' package.",
+            },
+          ],
+        },
+      ],
     },
   },
   {
