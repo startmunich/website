@@ -16,6 +16,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "package-manager:check": "node scripts/check-pnpm-hygiene.cjs",
+    "generate:og:rtss": "node scripts/generate-rtss-og.mjs",
     "preinstall": "node scripts/enforce-pnpm.cjs",
     "prepare": "node .husky/install.mjs"
   },

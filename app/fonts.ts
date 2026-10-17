@@ -1,4 +1,4 @@
-import { Figtree, JetBrains_Mono } from 'next/font/google';
+import { JetBrains_Mono } from 'next/font/google';
 import localFont from 'next/font/local';
 
 /**
@@ -29,9 +29,13 @@ export const jetbrainsMono = JetBrains_Mono({
  * Geometric sans for the Road to START Summit microsite (`.theme-rtss`), which
  * sets its own display face. It is only applied inside that theme, so loading it
  * here keeps every other route on Avenir Next.
+ *
+ * Self-hosted like Avenir (SIL Open Font License, see `Figtree-OFL.txt`) so
+ * builds do not depend on fetching from Google, and so
+ * `scripts/generate-rtss-og.mjs` can render the share image with the same face.
  */
-export const figtree = Figtree({
-  subsets: ['latin'],
+export const figtree = localFont({
+  src: [{ path: '../public/fonts/Figtree-Variable.ttf', weight: '300 900', style: 'normal' }],
   variable: '--font-figtree',
   display: 'swap',
 });

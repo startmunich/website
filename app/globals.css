@@ -119,9 +119,9 @@
   --card-foreground: #ffffff;
   --popover: #494b67;
   --surface: #494b67;
-  --primary: #ffffff;
+  --primary: var(--brand-pink);
   --primary-foreground: var(--brand-navy);
-  --secondary: var(--brand-pink);
+  --secondary: var(--brand-navy);
   --secondary-foreground: #ffffff;
   --muted: #838695;
   --muted-foreground: #ccd0cf;
