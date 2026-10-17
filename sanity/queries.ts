@@ -74,7 +74,9 @@ export const STARTUPS_QUERY = defineQuery(/* groq */ `
     companyLinkedin,
     milestones,
     supportingPrograms,
-    founder {
+    // Legacy docs carry a single founder object until the CMS
+    // founder-to-founders migration has run; read it as a one-item list.
+    "founders": coalesce(founders, select(defined(founder.name) => [founder], []))[] {
       name,
       role,
       batch,
@@ -120,7 +122,9 @@ export const STARTUP_BY_LEGACY_ID_QUERY = defineQuery(/* groq */ `
     companyLinkedin,
     milestones,
     supportingPrograms,
-    founder {
+    // Legacy docs carry a single founder object until the CMS
+    // founder-to-founders migration has run; read it as a one-item list.
+    "founders": coalesce(founders, select(defined(founder.name) => [founder], []))[] {
       name,
       role,
       batch,

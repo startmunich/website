@@ -61,6 +61,7 @@
     "eslint-config-next": "^15.5.27",
     "eslint-plugin-simple-import-sort": "^13.0.0",
     "eslint-plugin-unused-imports": "^4.4.1",
+    "groq-js": "^1.30.3",
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
     "postcss": "^8.5.29",

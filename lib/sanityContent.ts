@@ -64,13 +64,13 @@ interface StartupProjection {
   companyLinkedin?: string | null;
   milestones?: string | null;
   supportingPrograms?: string | null;
-  founder?: {
+  founders?: Array<{
     name?: string | null;
     role?: string | null;
     batch?: string | null;
     imageUrl?: { asset?: { url?: string } } | null;
     linkedin?: string | null;
-  } | null;
+  }> | null;
 }
 
 /**
@@ -85,17 +85,19 @@ function displayWebsite(website: string | null | undefined): string {
 function transformStartup(row: StartupProjection): Company {
   const name = row.name || 'Unnamed Startup';
 
-  const founders: Founder[] = [];
-  if (row.founder?.name) {
-    founders.push({
-      name: row.founder.name,
-      role: row.founder.role || 'Founder',
-      batch: (row.founder.batch || '').trim(),
-      imageUrl:
-        imageUrl(row.founder.imageUrl, 160) ?? fallbackAvatar(row.founder.name, 80, '4f46e5'),
-      linkedinUrl: row.founder.linkedin || undefined,
-    });
-  }
+  const founders: Founder[] = (row.founders ?? []).flatMap((founder) =>
+    founder.name
+      ? [
+          {
+            name: founder.name,
+            role: founder.role || 'Founder',
+            batch: (founder.batch || '').trim(),
+            imageUrl: imageUrl(founder.imageUrl, 160) ?? fallbackAvatar(founder.name, 80, '4f46e5'),
+            linkedinUrl: founder.linkedin || undefined,
+          },
+        ]
+      : [],
+  );
 
   return {
     id: row.id || row._id,
