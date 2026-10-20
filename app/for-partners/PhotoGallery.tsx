@@ -9,14 +9,14 @@ const eventPhotos = [
   {
     id: 'ep1',
     url: '/forPartners/partnerEvents/RTSH-opt.jpg',
-    caption: 'Road to START Hack 26',
-    href: '/eventpage/rtsh',
+    caption: 'START Hack League Munich 26',
+    href: 'https://app.hackleague.org/events/start?chapter=munich',
   },
   {
     id: 'ep2',
     url: '/forPartners/partnerEvents/RTSH2-opt.jpg',
-    caption: 'Road to START Hack 26',
-    href: '/eventpage/rtsh',
+    caption: 'START Hack League Munich 26',
+    href: 'https://app.hackleague.org/events/start?chapter=munich',
   },
   {
     id: 'ep3',

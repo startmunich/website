@@ -148,9 +148,9 @@ const faqs = [
       'Your startup was founded in 2023 or later, is in Seed or Pre-Seed stage, and is an independent legal entity. There are no limitations regarding the amount of funding you have already received. Extra points if your startup has a deep tech focus.',
   },
   {
-    question: 'How is it different from Road to START Hack?',
+    question: 'How is it different from START Hack League Munich?',
     answer:
-      'Road to START Hack is a weekend-long hackathon where students build software and hardware projects. Road to START Summit is a pitching competition for startups.',
+      'START Hack League Munich is a weekend-long hackathon where students build software and hardware projects. Road to START Summit is a pitching competition for startups.',
   },
 ];
 

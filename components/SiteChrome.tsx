@@ -8,7 +8,7 @@ import Navigation from '@/components/Navigation';
 
 export default function SiteChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const isStandaloneEventPage = pathname === '/eventpage/rtss' || pathname === '/eventpage/rtsh';
+  const isStandaloneEventPage = pathname === '/eventpage/rtss';
 
   if (isStandaloneEventPage) {
     return <main className="flex-grow">{children}</main>;

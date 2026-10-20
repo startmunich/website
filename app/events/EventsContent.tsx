@@ -38,7 +38,7 @@ const recurringEvents: RecurringEvent[] = [
   },
   {
     id: 'rtsh',
-    name: 'Road to START Hack (RTSH)',
+    name: 'START Hack League Munich',
     description:
       'An intensive hackathon bringing together developers, designers, and entrepreneurs to build innovative solutions in 24-48 hours.',
     month: 'November',
@@ -675,7 +675,7 @@ export default function EventsPage() {
                       className="flex items-center gap-2 transition-opacity hover:opacity-80"
                     >
                       <div className="h-3 w-3 flex-shrink-0 rounded-full bg-[#9c27b0]"></div>
-                      <span className="text-sm text-white">Road to START Hack 🚀</span>
+                      <span className="text-sm text-white">START Hack League Munich 🚀</span>
                     </button>
                   </div>
 
@@ -748,7 +748,11 @@ export default function EventsPage() {
                           event.id === 'legal-hack'
                             ? () => window.open('https://www.hacking-legal.org/', '_blank')
                             : event.id === 'rtsh'
-                              ? () => router.push('/eventpage/rtsh')
+                              ? () =>
+                                  window.open(
+                                    'https://app.hackleague.org/events/start?chapter=munich',
+                                    '_blank',
+                                  )
                               : event.id === 'rtss'
                                 ? () => router.push('/eventpage/rtss')
                                 : event.id === 'start-labs'

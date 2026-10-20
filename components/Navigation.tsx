@@ -407,7 +407,7 @@ export default function Navigation() {
                       </span>
                     </Link>
                     <Link
-                      href="/eventpage/rtsh"
+                      href="https://app.hackleague.org/events/start?chapter=munich"
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={() => events.close()}
@@ -427,7 +427,7 @@ export default function Navigation() {
                             d="M9 5l7 7-7 7"
                           />
                         </svg>
-                        Start Hack Munich
+                        START Hack League Munich
                       </span>
                     </Link>
                     <Link
@@ -762,13 +762,13 @@ export default function Navigation() {
                       Road to START Summit
                     </Link>
                     <Link
-                      href="/eventpage/rtsh"
+                      href="https://app.hackleague.org/events/start?chapter=munich"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="block py-2 pl-4 text-sm font-medium text-white/50 transition-colors hover:text-brand-pink"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      Road to START Hack
+                      START Hack League Munich
                     </Link>
                     <Link
                       href="/labs"
