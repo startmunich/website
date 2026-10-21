@@ -1,9 +1,15 @@
 'use client';
 
+import { ArrowUpRightIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useState } from 'react';
 
+import { Button } from '@/components/ui/button';
+import { SectionHeader } from '@/components/ui/section';
 import { cn } from '@/lib/utils';
+
+const PAGE_SIZE = 6;
 
 const eventPhotos = [
   {
@@ -62,103 +68,89 @@ const eventPhotos = [
   },
 ];
 
+const pad = (n: number) => String(n).padStart(2, '0');
+
+/** Partner photos from recent events, six at a time. */
 export default function PhotoGallery() {
-  const [photoIndex, setPhotoIndex] = useState(0);
+  // A page index, not a scroll offset: the last page starts at
+  // (photos.length - 1) * PAGE_SIZE, which isn't a multiple of PAGE_SIZE, so
+  // deriving the page number from an offset reported the last page as page 1.
+  const pageCount = Math.ceil(eventPhotos.length / PAGE_SIZE);
+  const [page, setPage] = useState(0);
+  const start = page * PAGE_SIZE;
 
   return (
     <section>
-      <div className="mb-12 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="mb-3 text-sm font-bold uppercase tracking-[0.2em] text-brand-pink">
-            Gallery
-          </p>
-          <h2 className="mb-3 text-3xl font-black text-white md:text-4xl">
-            PARTNERS AT <span className="outline-text">OUR EVENTS</span>
-          </h2>
-          <p className="max-w-3xl text-lg text-gray-400">
-            Highlights from recent partner collaborations and events
-          </p>
-        </div>
-
-        <div className="flex flex-shrink-0 items-center gap-3">
-          <span className="text-sm tabular-nums text-gray-500">
-            {String(Math.floor(photoIndex / 6) + 1).padStart(2, '0')} /{' '}
-            {String(Math.ceil(eventPhotos.length / 6)).padStart(2, '0')}
-          </span>
-          <button
-            onClick={() => setPhotoIndex(Math.max(0, photoIndex - 6))}
-            disabled={photoIndex === 0}
-            className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-white/20 text-white transition-all duration-300 hover:border-brand-pink hover:bg-brand-pink disabled:cursor-not-allowed disabled:opacity-30"
-          >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2.5}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-          </button>
-          <button
-            onClick={() => setPhotoIndex(Math.min(eventPhotos.length - 6, photoIndex + 6))}
-            disabled={photoIndex + 6 >= eventPhotos.length}
-            className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-pink text-white transition-all duration-300 hover:bg-brand-pink/80 disabled:cursor-not-allowed disabled:opacity-30"
-          >
-            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2.5}
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
-          </button>
-        </div>
-      </div>
+      <SectionHeader
+        eyebrow="Gallery"
+        title={
+          <>
+            Partners at <span className="text-outline">our events</span>
+          </>
+        }
+        description="Highlights from recent partner collaborations and events"
+        actions={
+          <>
+            <span className="text-sm text-muted-foreground tabular-nums">
+              {pad(page + 1)} / {pad(pageCount)}
+            </span>
+            <Button
+              variant="outline"
+              size="icon-lg"
+              shape="pill"
+              aria-label="Previous photos"
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0}
+            >
+              <ChevronLeftIcon className="size-5" />
+            </Button>
+            <Button
+              size="icon-lg"
+              shape="pill"
+              aria-label="Next photos"
+              onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+              disabled={page >= pageCount - 1}
+            >
+              <ChevronRightIcon className="size-5" />
+            </Button>
+          </>
+        }
+      />
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {eventPhotos.map((photo, index) => {
-          const isVisible = index >= photoIndex && index < photoIndex + 6;
-          const Wrapper = photo.href ? 'a' : 'div';
-          const wrapperProps = photo.href ? { href: photo.href } : {};
-          return (
-            <Wrapper
-              key={photo.id}
-              {...wrapperProps}
-              className={cn(
-                'group relative block aspect-video overflow-hidden rounded-3xl border border-white/10 shadow-lg transition-all duration-300 hover:border-brand-pink/40 hover:shadow-brand-pink/10',
-                !isVisible && 'hidden',
-              )}
-            >
+          const visible = index >= start && index < start + PAGE_SIZE;
+          const content = (
+            <>
               <Image
                 src={photo.url}
                 alt={photo.caption}
                 fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 className="object-cover transition-transform duration-500 group-hover:scale-110"
               />
-              <div className="absolute inset-0 rounded-3xl bg-gradient-to-t from-brand-dark-blue via-brand-dark-blue/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100">
-                <div className="absolute bottom-0 left-0 right-0 p-6">
-                  <p className="text-lg font-bold text-white">{photo.caption}</p>
-                </div>
+              <div className="absolute inset-0 bg-linear-to-t from-background via-background/50 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                <p className="absolute inset-x-0 bottom-0 p-6 text-lg font-bold">{photo.caption}</p>
               </div>
               {photo.href && (
-                <div className="absolute right-4 top-4 flex h-10 w-10 scale-50 items-center justify-center rounded-full bg-white/10 opacity-0 backdrop-blur-md transition-all duration-300 group-hover:scale-100 group-hover:opacity-100">
-                  <svg
-                    className="h-4 w-4 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M7 17L17 7M17 7H7M17 7v10"
-                    />
-                  </svg>
-                </div>
+                <span className="absolute top-4 right-4 flex size-10 scale-50 items-center justify-center rounded-full bg-foreground/10 opacity-0 backdrop-blur-md transition-all duration-300 group-hover:scale-100 group-hover:opacity-100">
+                  <ArrowUpRightIcon className="size-4" />
+                </span>
               )}
-            </Wrapper>
+            </>
+          );
+          const classes = cn(
+            'group relative block aspect-video overflow-hidden rounded-3xl border border-border shadow-lg transition-all duration-300 hover:border-primary/40 hover:shadow-primary/10',
+            !visible && 'hidden',
+          );
+          return photo.href ? (
+            <Link key={photo.id} href={photo.href} className={classes}>
+              {content}
+            </Link>
+          ) : (
+            <div key={photo.id} className={classes}>
+              {content}
+            </div>
           );
         })}
       </div>

@@ -42,7 +42,7 @@ export const NoiseTexture = ({
   return (
     <svg
       className={cn(
-        'pointer-events-none absolute inset-0 z-0 size-full select-none opacity-50 dark:opacity-[0.75]',
+        'pointer-events-none absolute inset-0 z-0 size-full opacity-50 select-none dark:opacity-[0.75]',
         className,
       )}
       xmlns="http://www.w3.org/2000/svg"

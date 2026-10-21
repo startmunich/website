@@ -1,20 +1,21 @@
 /**
- * NocoDB serves attachments via signed, time-limited download URLs, e.g.
- *   https://ndb.startmunich.de/dltemp/<token>/<timestamp>/noco/.../logo.webp
- * or from object storage:
+ * Member portraits come from the internal START Munich API
+ * (`my.startmunich.de`), which serves images from object storage at
+ * `nbg1.your-objectstorage.com`:
  *   https://nbg1.your-objectstorage.com/members-platform-public-assets/...
- * The <token> and <timestamp> change on every fetch, so the URL is never
- * stable. Vercel's Image Optimization keys its cache on the source URL, which
- * means these images get a fresh (paid) transformation on every render and a
- * 0% cache hit rate. NocoDB already serves WebP, so there is nothing to gain
- * from re-optimizing them — render them with `unoptimized` to bypass Vercel
- * entirely.
+ *
+ * They are rendered with `unoptimized` so Vercel's Image Optimization is
+ * bypassed. These URLs are stable, but the assets are already correctly sized
+ * for their display slots and sit on a third-party host, so re-optimizing them
+ * buys nothing and costs a paid transformation per render.
+ *
+ * This used to also cover NocoDB's `ndb.startmunich.de` attachments, which were
+ * served from time-limited `dltemp/<token>/<expiry-ms>/…` signed URLs and 404'd
+ * once cached. That path is gone: startups, partners, network logos and news
+ * now come from Sanity's CDN, which is stable and can be optimized normally.
  *
  * See: https://vercel.com/docs/image-optimization/managing-image-optimization-costs
  */
-export function isNocoDbImage(url: string): boolean {
-  return (
-    url.startsWith('https://ndb.startmunich.de/') ||
-    url.startsWith('https://nbg1.your-objectstorage.com/')
-  );
+export function isObjectStorageImage(url: string): boolean {
+  return url.startsWith('https://nbg1.your-objectstorage.com/');
 }

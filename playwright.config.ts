@@ -25,7 +25,11 @@ export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: true,
   workers: isCI ? 2 : undefined,
-  retries: isCI ? 2 : 0,
+  // One retry, not two. This is a 2-assertion smoke suite against an
+  // already-deployed preview, so a failure on the first attempt is almost
+  // always real rather than flake — and each extra retry is a full extra
+  // pass (plus a fresh browser context) on an already-slow job.
+  retries: isCI ? 1 : 0,
   reporter: isCI
     ? [['github'], ['html', { open: 'never' }]]
     : [['list'], ['html', { open: 'never' }]],

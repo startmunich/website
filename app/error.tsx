@@ -1,5 +1,9 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
+import { Section } from '@/components/ui/section';
+import { Heading, Text } from '@/components/ui/typography';
+
 export default function Error({
   reset,
 }: {
@@ -7,16 +11,17 @@ export default function Error({
   reset: () => void;
 }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-brand-dark-blue px-4">
-      <div className="text-center">
-        <h2 className="mb-4 text-2xl font-bold text-white">Something went wrong</h2>
-        <button
-          onClick={reset}
-          className="rounded-xl bg-brand-pink px-6 py-3 font-bold text-white transition-all hover:shadow-[0_0_30px_rgba(208,0,111,0.4)]"
-        >
-          Try again
-        </button>
-      </div>
-    </div>
+    <Section
+      spacing="lg"
+      containerClassName="flex min-h-[60vh] flex-col items-center justify-center gap-6 text-center"
+    >
+      <Heading size="h1">Something went wrong</Heading>
+      <Text variant="lead">
+        Please try again. If the problem persists, come back in a few minutes.
+      </Text>
+      <Button size="lg" onClick={reset}>
+        Try again
+      </Button>
+    </Section>
   );
 }

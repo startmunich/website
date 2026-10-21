@@ -27,16 +27,27 @@ concurrency:
 
 permissions:
   contents: read
-  pull-requests: read
 
 jobs:
   quality:
     runs-on: ubuntu-latest
+    # GitHub's default job timeout is 360 minutes. These checks normally
+    # finish in well under two, so a run that reaches ten minutes is wedged —
+    # capping it stops a hung tsc/eslint from burning a runner for six hours
+    # while the PR sits in a pointless wait.
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
+      # commitlint walks the commit range between the PR base and head, so it
+      # needs real history. Nothing else in this job does — on push-to-main we
+      # only install to warm the cache, and cloning the full history there is
+      # pure latency. Default shallow depth for those runs.
       - name: Setup - checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.5.0
         with:
-          fetch-depth: 0
+          fetch-depth: ${{ github.event_name == 'pull_request' && 0 || 1 }}
       # Skip-on-push rationale: PRs must be up-to-date with main before
       # merging, so re-running these checks against main itself doesn't
       # catch anything PR CI didn't already block. We keep only the steps
@@ -46,15 +57,15 @@ jobs:
       # Order by speed: fastest checks first to fail-fast.
       - name: Check - commit messages
         if: github.event_name == 'pull_request'
-        uses: wagoid/commitlint-github-action@v6
+        uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed # v6.2.1
         with:
           configFile: commitlint.config.mjs
       - name: Setup - pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
         with:
           run_install: false
       - name: Setup - Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.5.0
         with:
           node-version-file: .nvmrc
           cache: pnpm

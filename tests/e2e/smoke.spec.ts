@@ -17,6 +17,7 @@ const routes = [
   { path: '/about-us', name: 'about us' },
   { path: '/join-start/2026', name: 'join-start 2026' },
   { path: '/for-partners', name: 'for-partners' },
+  { path: '/eventpage/rtss', name: 'eventpage/rtss' },
 ];
 
 for (const { path, name } of routes) {

@@ -5,9 +5,11 @@
   extends: ['config:recommended'],
   timezone: 'Europe/Berlin',
 
-  // Daily check before 6am. Vulnerability alerts (enabled by config:recommended)
-  // ignore this schedule and PR immediately — important for security patches.
-  schedule: ['before 6am'],
+  // Sunday, deliberately offset from Dependabot's Monday 04:00 run so the two
+  // bots don't both open a pile of PRs in the same window. Each PR triggers a
+  // Vercel preview build and an e2e run, so co-scheduling them is what turns a
+  // quiet weekend into a wall of red checks.
+  schedule: ['before 6am on sunday'],
 
   // Wait 3 days after a release before opening the PR. Filters out versions
   // that get yanked or hot-patched within the first 24–48h. Overridden for
@@ -35,13 +37,32 @@
   },
 
   // Bound PR rate so the first-run catch-up doesn't overwhelm the review queue.
-  prConcurrentLimit: 5,
+  prConcurrentLimit: 3,
   prHourlyLimit: 2,
+
+  // Auto-merge via GitHub's native auto-merge rather than by pushing to the
+  // branch ourselves. This makes Renovate respect required status checks
+  // natively, and it keeps the history squash-only (branch protection
+  // disallows merge commits).
+  platformAutomerge: true,
+
+  // Only rebase when the PR has actually gone conflicted, not every time the
+  // base branch moves. Every rebase push re-triggers a Vercel preview build
+  // and a full e2e run, so a rebase-on-every-cycle policy multiplies CI cost
+  // for no review benefit. `conflicted` is the real enum value here — there is
+  // no "auto-conflict"; the full set is auto | never | conflicted |
+  // behind-base-branch | automerging. Verified against renovate-schema.json.
+  rebaseWhen: 'conflicted',
 
   // Explicit whitelist — only these managers may open PRs. If Renovate later
   // gains support for a new ecosystem it will not silently start opening PRs
   // here unless we add it to this list.
-  enabledManagers: ['npm', 'nvm', 'github-actions'],
+  //
+  // `github-actions` is intentionally ABSENT: Dependabot owns it (see
+  // .github/dependabot.yml). Both bots updating the same SHA-pinned workflow
+  // files means duplicate PRs, conflicting edits to the same YAML, and two
+  // auto-merge bots racing to land the same change.
+  enabledManagers: ['npm', 'nvm'],
 
   packageRules: [
     // npm minor + patch: grouped, auto-merged when CI is green.
@@ -51,19 +72,45 @@
       groupName: 'npm minor & patch',
       automerge: true,
     },
-    // npm major: separate PRs, gated behind Dependency Dashboard approval —
-    // tick the checkbox on the dashboard issue when you're ready to take it on.
+    // npm major: separate PRs, gated behind manual approval.
+    //
+    // `prCreation: 'approval'` is the load-bearing setting, not
+    // `dependencyDashboardApproval`. The dashboard flag only records intent on
+    // a dashboard issue; if anyone ever ticks "approve all" (or the issue is
+    // bypassed), every major lands in the queue at once. That is exactly what
+    // produced a 12-PR pile of unmerged majors — next 16, react 19, eslint 10,
+    // tailwind 4, typescript 7 — each one burning a Vercel preview and an e2e
+    // run. `prCreation: 'approval'` gates the *creation* of the PR, so majors
+    // only appear once someone asks for them by name.
     {
       matchManagers: ['npm'],
       matchUpdateTypes: ['major'],
       dependencyDashboardApproval: true,
+      prCreation: 'approval',
+      automerge: false,
     },
-    // GitHub Actions: auto-merge.
+    // pnpm overrides in pnpm-workspace.yaml are hand-set CVE floors, not
+    // ranges we want chased. Renovate reads them as regular deps and was
+    // proposing to raise them by several majors each (brace-expansion 1→5,
+    // fast-uri 3→4, js-yaml 4→5, postcss-selector-parser 6→7), which would
+    // break the tree those overrides exist to keep safe.
+    //
+    // `postcss` is deliberately absent: it's also a direct devDependency and
+    // should keep getting normal updates.
     {
-      matchManagers: ['github-actions'],
-      groupName: 'github actions',
-      automerge: true,
+      matchPackageNames: [
+        'brace-expansion',
+        'fast-uri',
+        'fflate',
+        'js-yaml',
+        'postcss-selector-parser',
+        'sharp',
+      ],
+      matchUpdateTypes: ['major', 'minor'],
+      enabled: false,
     },
+    // GitHub Actions: no rule here on purpose. Dependabot owns the
+    // `github-actions` ecosystem on this repo — see .github/dependabot.yml.
     // Node version: keep .nvmrc + CI runner version aligned. Auto-merge —
     // if quality + e2e pass on the new version, it's good enough.
     {

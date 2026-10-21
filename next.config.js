@@ -1,12 +1,30 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // The vgpu flare shaders (`components/flare/*.wgsl`) need a loader on both
+  // bundlers. Turbopack handles `next dev --turbopack` / `next build --turbopack`;
+  // the `webpack` hook below covers the default webpack path that `pnpm dev` and
+  // `pnpm build` use today. Keep the two in sync when bumping @vgpu/wgsl.
+  turbopack: {
+    rules: {
+      '*.wgsl': {
+        loaders: ['@vgpu/wgsl/loader-webpack'],
+        as: '*.js',
+      },
+    },
+  },
+  /** Adds the WGSL loader with shader minification outside development and returns the config. */
+  webpack(config, { dev }) {
+    config.module.rules.push({
+      test: /\.wgsl$/,
+      loader: require.resolve('@vgpu/wgsl/loader-webpack'),
+      // Minified shaders ship smaller; the unminified form keeps error messages
+      // and `--require-validation` diagnostics readable in development.
+      options: { minify: !dev },
+    });
+    return config;
+  },
   async redirects() {
     return [
-      {
-        source: '/iu/home',
-        destination: 'https://www.isarunfiltered.de',
-        permanent: true,
-      },
       {
         source: '/home',
         destination: '/',
@@ -44,10 +62,12 @@ const nextConfig = {
     formats: ['image/webp'],
     minimumCacheTTL: 31536000,
     remotePatterns: [
+      // Sanity image CDN — startups, partners, network logos and news all come
+      // from the CMS. `cdn.sanity.io` is the optimised delivery host.
       {
         protocol: 'https',
-        hostname: 'ndb.startmunich.de',
-        pathname: '/**',
+        hostname: 'cdn.sanity.io',
+        pathname: '/images/**',
       },
       {
         protocol: 'https',
@@ -67,6 +87,13 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'media.licdn.com',
+        pathname: '/**',
+      },
+      // Event covers are served from Luma's CDN. Without this entry, upcoming-event
+      // images fail to load while past-event cards (which pass `unoptimized`) render fine.
+      {
+        protocol: 'https',
+        hostname: 'images.lumacdn.com',
         pathname: '/**',
       },
     ],

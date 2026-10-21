@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 
+import { buildCalendarMarkers, yearlyStats } from '@/lib/eventCalendar';
+import { getCalendarEvents, getPastEvents, getUpcomingEvents } from '@/lib/events';
 import { OG_IMAGES } from '@/lib/metadata';
 
 import EventsContent from './EventsContent';
@@ -20,6 +22,53 @@ export const metadata: Metadata = {
   },
 };
 
-export default function EventsPage() {
-  return <EventsContent />;
+/**
+ * Everything the page needs is fetched here, on the server, and passed down as props.
+ *
+ * Each source degrades to empty rather than throwing: a missing API key or an unreachable upstream
+ * must not take the page down (AGENTS.md: degrade to empty, don't crash a preview build). An empty
+ * section renders its own "coming soon" state rather than a blank box.
+ */
+async function loadEventData() {
+  const [calendar, upcoming, past] = await Promise.allSettled([
+    getCalendarEvents(),
+    getUpcomingEvents(),
+    getPastEvents(),
+  ]);
+
+  for (const [label, result] of [
+    ['calendar', calendar],
+    ['upcoming', upcoming],
+    ['past', past],
+  ] as const) {
+    if (result.status === 'rejected') {
+      console.error(`Error loading ${label} events:`, result.reason);
+    }
+  }
+
+  const calendarEvents = calendar.status === 'fulfilled' ? calendar.value : null;
+  const upcomingEvents = upcoming.status === 'fulfilled' ? upcoming.value : [];
+  const pastEvents = past.status === 'fulfilled' ? past.value : [];
+
+  const events = calendarEvents?.events ?? [];
+
+  return {
+    markers: buildCalendarMarkers(events),
+    upcomingEvents,
+    pastEvents,
+    stats: yearlyStats(events),
+  };
+}
+
+export default async function EventsPage() {
+  const { markers, upcomingEvents, pastEvents, stats } = await loadEventData();
+
+  return (
+    <EventsContent
+      markers={markers}
+      upcomingEvents={upcomingEvents}
+      pastEvents={pastEvents}
+      stats={stats}
+    />
+  );
 }

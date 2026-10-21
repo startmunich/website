@@ -1,13 +1,15 @@
 'use client';
 
-import Image from 'next/image';
-import Script from 'next/script';
 import { useEffect, useState } from 'react';
 
-import Hero from '@/components/Hero';
-import { isNocoDbImage } from '@/lib/images';
-
-export const dynamic = 'force-dynamic';
+import { BrandPanel } from '@/components/site/cta-banner';
+import { EmbedHeightReporter } from '@/components/site/embed-height-reporter';
+import { EmptyState } from '@/components/site/empty-state';
+import { LogoImage, LogoTile } from '@/components/site/logo-image';
+import { PageHero } from '@/components/site/page-hero';
+import { Section } from '@/components/ui/section';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Heading, Text } from '@/components/ui/typography';
 
 interface Company {
   id: string;
@@ -32,31 +34,7 @@ async function fetchCompanies(): Promise<Company[]> {
   }
 }
 
-function LogoCard({ company }: { company: Company }) {
-  const [imgFailed, setImgFailed] = useState(false);
-
-  return (
-    <div className="flex min-h-[100px] items-center justify-center rounded-xl border border-white/10 bg-white p-5 transition-all duration-300 hover:border-[#d0006f]/50 hover:shadow-lg hover:shadow-[#d0006f]/10">
-      {company.logoUrl && !imgFailed ? (
-        <div className="relative h-14 w-full">
-          <Image
-            src={company.logoUrl}
-            alt={company.name}
-            fill
-            sizes="(max-width: 768px) 50vw, 25vw"
-            className="object-contain"
-            onError={() => setImgFailed(true)}
-            unoptimized={isNocoDbImage(company.logoUrl)}
-          />
-        </div>
-      ) : (
-        <h3 className="text-center text-lg font-bold text-gray-700">{company.name}</h3>
-      )}
-    </div>
-  );
-}
-
-export default function MemberNetworkPage() {
+export default function MemberNetworkContent() {
   const [loading, setLoading] = useState(true);
   const [companies, setCompanies] = useState<Company[]>([]);
 
@@ -67,84 +45,75 @@ export default function MemberNetworkPage() {
     });
   }, []);
 
-  // Group by Type
+  // Largest categories first
   const categories = Array.from(new Set(companies.map((c) => c.type))).sort(
     (a, b) =>
       companies.filter((c) => c.type === b).length - companies.filter((c) => c.type === a).length,
   );
 
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-[#00002c] px-4 py-12 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl text-center">
-          <p className="text-2xl font-bold text-white">Loading member network...</p>
-        </div>
-      </main>
-    );
-  }
-
   return (
     <>
-      <Script id="iframe-height-sender" strategy="afterInteractive">
-        {`
-          function sendHeight() {
-            const h = Math.max(
-              document.documentElement.scrollHeight,
-              document.body.scrollHeight
-            );
-            parent.postMessage({ type: "EMBED_HEIGHT", height: h }, "*");
-          }
+      <EmbedHeightReporter />
 
-          window.addEventListener("load", sendHeight);
-          const ro = new ResizeObserver(sendHeight);
-          ro.observe(document.documentElement);
-          document.addEventListener("DOMContentLoaded", sendHeight);
-        `}
-      </Script>
+      <PageHero
+        image="/memberNetwork/hero-opt.png"
+        title="Member"
+        outlineTitle="Network"
+        description="Discover where our talented members are making their mark across the industry"
+      />
 
-      <main className="min-h-screen bg-[#00002c]">
-        <Hero
-          backgroundImage="/memberNetwork/hero-opt.png"
-          title={
-            <>
-              MEMBER
-              <br />
-              <span className="outline-text">NETWORK</span>
-            </>
-          }
-          description="Discover where our talented members are making their mark across the industry"
-        />
+      <Section spacing="sm" className="pt-8 lg:pt-20">
+        <BrandPanel className="mb-16 md:p-10">
+          <Heading as="h2" size="h4" className="mb-3 text-xl md:text-2xl">
+            Where Our Members Work
+          </Heading>
+          <Text>
+            Our community spans some of the world&apos;s leading companies, research institutions,
+            and startups. From global tech giants to early-stage ventures, START Munich members are
+            building careers that make an impact.
+          </Text>
+        </BrandPanel>
 
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-20">
-          <div className="relative mb-16 w-full overflow-hidden rounded-2xl border-2 border-[#d0006f]/50 bg-gradient-to-br from-[#1a1a3e] via-[#00002c] to-[#0d0d1f] p-8 shadow-2xl shadow-[#d0006f]/20 md:p-10">
-            <div className="absolute right-0 top-0 h-64 w-64 rounded-full bg-[#d0006f]/10 blur-3xl"></div>
-            <div className="absolute bottom-0 left-0 h-48 w-48 rounded-full bg-[#d0006f]/5 blur-3xl"></div>
-            <div className="relative">
-              <h2 className="mb-3 text-xl font-bold text-white md:text-2xl">
-                Where Our Members Work
-              </h2>
-              <p className="text-gray-400">
-                Our community spans some of the world&apos;s leading companies, research
-                institutions, and startups. From global tech giants to early-stage ventures, START
-                Munich members are building careers that make an impact.
-              </p>
-            </div>
+        {loading ? (
+          <div
+            className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4"
+            aria-busy
+            aria-label="Loading member network"
+          >
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Skeleton key={i} className="h-[100px] rounded-xl" />
+            ))}
           </div>
-
-          {categories.map((category) => (
+        ) : categories.length === 0 ? (
+          <EmptyState description="The member network is being updated — check back soon." />
+        ) : (
+          categories.map((category) => (
             <div key={category} className="mb-16">
-              <h2 className="mb-6 text-xl font-black text-white md:text-2xl">{category}</h2>
+              <Heading as="h2" size="h4" className="mb-6 text-xl font-black uppercase md:text-2xl">
+                {category}
+              </Heading>
               <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4">
                 {companies
                   .filter((c) => c.type === category)
                   .map((company) => (
-                    <LogoCard key={company.id} company={company} />
+                    <LogoTile
+                      key={company.id}
+                      className="h-auto min-h-[100px] w-full border border-border p-5 hover:scale-100 hover:shadow-lg hover:shadow-primary/10"
+                    >
+                      <LogoImage
+                        src={company.logoUrl}
+                        name={company.name}
+                        sizes="(max-width: 768px) 50vw, 25vw"
+                        className="h-14 w-full"
+                        fallbackClassName="text-lg text-brand-navy/70"
+                      />
+                    </LogoTile>
                   ))}
               </div>
             </div>
-          ))}
-        </div>
-      </main>
+          ))
+        )}
+      </Section>
     </>
   );
 }
