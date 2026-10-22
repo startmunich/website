@@ -8,6 +8,7 @@ import {
   fetchUpcomingLumaEvents,
   type LumaEvent,
 } from './luma';
+import { mergeManualEvents } from './manualEvents';
 import { fetchFromPlatform } from './startApi';
 
 /**
@@ -140,7 +141,11 @@ function isTestEvent(event: StartEvent): boolean {
   return event.title.trim().toLowerCase() === 'test-event';
 }
 
-/** Platform first, Luma second; both normalised, de-tested, and sorted the same way. */
+/** Platform first, Luma second; both normalised, de-tested, merged with the hand-kept list, sorted. */
+function finalize(events: StartEvent[], order: 'asc' | 'desc'): StartEvent[] {
+  return sortByStart(mergeManualEvents(events.filter((event) => !isTestEvent(event))), order);
+}
+
 async function withLumaFallback(
   fromPlatform: () => Promise<StartEvent[] | null>,
   fromLuma: () => Promise<LumaEvent[]>,
@@ -148,21 +153,13 @@ async function withLumaFallback(
 ): Promise<{ events: StartEvent[]; source: EventSource }> {
   const platformEvents = await fromPlatform();
   if (platformEvents) {
-    return {
-      events: sortByStart(
-        platformEvents.filter((event) => !isTestEvent(event)),
-        order,
-      ),
-      source: 'platform',
-    };
+    return { events: finalize(platformEvents, order), source: 'platform' };
   }
 
   const lumaEvents = await fromLuma();
   return {
-    events: sortByStart(
-      lumaEvents
-        .map(fromLumaEvent)
-        .filter((event): event is StartEvent => event !== null && !isTestEvent(event)),
+    events: finalize(
+      lumaEvents.map(fromLumaEvent).filter((event): event is StartEvent => event !== null),
       order,
     ),
     source: 'luma',
