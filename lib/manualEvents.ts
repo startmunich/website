@@ -42,14 +42,44 @@ function titleKey(title: string): string {
 }
 
 /**
- * Appends the manual events that the upstream feed does not already contain.
+ * Which slice of the calendar a list renders. Mirrors the platform's `scope` query parameter, so an
+ * event added here lands in the same place an equivalent platform event would.
+ */
+export type ManualEventScope = 'upcoming' | 'past' | 'all';
+
+export interface MergeManualEventsOptions {
+  scope?: ManualEventScope;
+  now?: Date;
+}
+
+/** An event is over once its end — or its start, when it has none — is in the past. */
+function hasFinished(event: StartEvent, now: Date): boolean {
+  return Date.parse(event.endAt ?? event.startAt) < now.getTime();
+}
+
+function matchesScope(event: StartEvent, scope: ManualEventScope, now: Date): boolean {
+  if (scope === 'upcoming') return !hasFinished(event, now);
+  if (scope === 'past') return hasFinished(event, now);
+  return true;
+}
+
+/**
+ * Appends the manual events that belong in `scope` and that the upstream feed does not already
+ * contain.
+ *
+ * The list is not merged blindly: `/events` asks for upcoming and past events separately, and an
+ * entry from `MANUAL_EVENTS` must respect that split or a future event appears under "Past Events"
+ * the moment it is added.
  *
  * The platform eventually gets the same event (an admin adds it by hand), and at that point the
  * page would show it twice. Matching first on `registrationUrl` and then on the normalised title
  * keeps exactly one card, without requiring the entry here to be deleted on the same day the
  * platform is updated.
  */
-export function mergeManualEvents(upstream: readonly StartEvent[]): StartEvent[] {
+export function mergeManualEvents(
+  upstream: readonly StartEvent[],
+  { scope = 'all', now = new Date() }: MergeManualEventsOptions = {},
+): StartEvent[] {
   const seenUrls = new Set<string>();
   const seenTitles = new Set<string>();
 
@@ -60,6 +90,7 @@ export function mergeManualEvents(upstream: readonly StartEvent[]): StartEvent[]
 
   const missing = MANUAL_EVENTS.filter(
     (event) =>
+      matchesScope(event, scope, now) &&
       !(event.registrationUrl && seenUrls.has(event.registrationUrl)) &&
       !seenTitles.has(titleKey(event.title)),
   );

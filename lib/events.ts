@@ -8,7 +8,7 @@ import {
   fetchUpcomingLumaEvents,
   type LumaEvent,
 } from './luma';
-import { mergeManualEvents } from './manualEvents';
+import { type ManualEventScope, mergeManualEvents } from './manualEvents';
 import { fetchFromPlatform } from './startApi';
 
 /**
@@ -142,18 +142,29 @@ function isTestEvent(event: StartEvent): boolean {
 }
 
 /** Platform first, Luma second; both normalised, de-tested, merged with the hand-kept list, sorted. */
-function finalize(events: StartEvent[], order: 'asc' | 'desc'): StartEvent[] {
-  return sortByStart(mergeManualEvents(events.filter((event) => !isTestEvent(event))), order);
+function finalize(
+  events: StartEvent[],
+  order: 'asc' | 'desc',
+  scope: ManualEventScope,
+): StartEvent[] {
+  return sortByStart(
+    mergeManualEvents(
+      events.filter((event) => !isTestEvent(event)),
+      { scope },
+    ),
+    order,
+  );
 }
 
 async function withLumaFallback(
   fromPlatform: () => Promise<StartEvent[] | null>,
   fromLuma: () => Promise<LumaEvent[]>,
   order: 'asc' | 'desc',
+  scope: ManualEventScope,
 ): Promise<{ events: StartEvent[]; source: EventSource }> {
   const platformEvents = await fromPlatform();
   if (platformEvents) {
-    return { events: finalize(platformEvents, order), source: 'platform' };
+    return { events: finalize(platformEvents, order, scope), source: 'platform' };
   }
 
   const lumaEvents = await fromLuma();
@@ -161,6 +172,7 @@ async function withLumaFallback(
     events: finalize(
       lumaEvents.map(fromLumaEvent).filter((event): event is StartEvent => event !== null),
       order,
+      scope,
     ),
     source: 'luma',
   };
@@ -180,6 +192,7 @@ export async function getUpcomingEvents(): Promise<StartEvent[]> {
     () => platformEvents(`scope=upcoming&limit=${EVENTS_PER_FETCH}`),
     fetchUpcomingLumaEvents,
     'asc',
+    'upcoming',
   );
   return events;
 }
@@ -190,6 +203,7 @@ export async function getPastEvents(): Promise<StartEvent[]> {
     () => platformEvents(`scope=past&limit=${EVENTS_PER_FETCH}`),
     fetchPastLumaEvents,
     'desc',
+    'past',
   );
   return events;
 }
@@ -215,5 +229,6 @@ export async function getCalendarEvents(): Promise<{
     () => platformEvents(`from=${from.toISOString()}&to=${to.toISOString()}&limit=200`),
     fetchAllLumaEvents,
     'asc',
+    'all',
   );
 }

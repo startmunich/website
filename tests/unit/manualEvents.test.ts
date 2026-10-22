@@ -80,3 +80,45 @@ describe('mergeManualEvents', () => {
     expect(upstream).toHaveLength(1);
   });
 });
+
+describe('mergeManualEvents scope', () => {
+  // Fixed instants, so these assertions do not rot: before, during and after the Hack League.
+  const beforeEvent = new Date('2026-10-22T00:00:00Z');
+  const duringEvent = new Date('2026-11-22T10:00:00Z');
+  const afterEvent = new Date('2027-01-01T00:00:00Z');
+
+  const ids = (events: StartEvent[]) => events.map((event) => event.id);
+
+  test('a future event is only in upcoming, never in past', () => {
+    expect(ids(mergeManualEvents([], { scope: 'upcoming', now: beforeEvent }))).toContain(
+      HACK_LEAGUE?.id,
+    );
+    expect(ids(mergeManualEvents([], { scope: 'past', now: beforeEvent }))).not.toContain(
+      HACK_LEAGUE?.id,
+    );
+  });
+
+  test('an event still running counts as upcoming', () => {
+    expect(ids(mergeManualEvents([], { scope: 'upcoming', now: duringEvent }))).toContain(
+      HACK_LEAGUE?.id,
+    );
+    expect(ids(mergeManualEvents([], { scope: 'past', now: duringEvent }))).not.toContain(
+      HACK_LEAGUE?.id,
+    );
+  });
+
+  test('once it has ended it moves to past', () => {
+    expect(ids(mergeManualEvents([], { scope: 'past', now: afterEvent }))).toContain(
+      HACK_LEAGUE?.id,
+    );
+    expect(ids(mergeManualEvents([], { scope: 'upcoming', now: afterEvent }))).not.toContain(
+      HACK_LEAGUE?.id,
+    );
+  });
+
+  test('scope "all" keeps the entry regardless of date', () => {
+    for (const now of [beforeEvent, duringEvent, afterEvent]) {
+      expect(ids(mergeManualEvents([], { scope: 'all', now }))).toContain(HACK_LEAGUE?.id);
+    }
+  });
+});
