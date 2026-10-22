@@ -79,6 +79,15 @@ const config = [
       '@typescript-eslint/no-require-imports': 'off',
     },
   },
+  {
+    // next.config.js is CommonJS (module.exports + webpack's require.resolve),
+    // and `@vgpu/wgsl/next` is ESM-only, so the Turbopack rule helper has to be
+    // pulled in with require().
+    files: ['next.config.js'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
 ];
 
 export default config;

@@ -9,13 +9,7 @@
  */
 import { type Effect, effect, frame, type Gpu, type Target } from 'vgpu';
 
-import {
-  bestEffort,
-  createBlueNoiseTexture,
-  type Point,
-  runCleanups,
-  withFullscreenVertex,
-} from '@/lib/gpu/runtime';
+import { bestEffort, createBlueNoiseTexture, type Point, runCleanups } from '@/lib/gpu/runtime';
 
 import fieldWgsl from './field.wgsl';
 
@@ -119,7 +113,7 @@ export class AuraPipeline {
   ) {
     this.blueNoise = createBlueNoiseTexture(gpu, 'start-aura-blue-noise-128');
     try {
-      this.field = effect(gpu, withFullscreenVertex(fieldWgsl), { label: 'start-aura-field' });
+      this.field = effect(gpu, fieldWgsl, { label: 'start-aura-field' });
     } catch (error) {
       bestEffort(() => this.blueNoise.destroy());
       throw error;

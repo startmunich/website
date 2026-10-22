@@ -257,10 +257,15 @@ the vignette fades to the page `background` so the panel has no visible edge aga
 
 Three things to know before changing it:
 
-- **`.wgsl` needs a build-time loader.** `next.config.js` registers `@vgpu/wgsl/loader-webpack`
-  twice — once under `turbopack.rules`, once in the `webpack()` hook — because `pnpm dev` and
-  `pnpm build` use webpack today but Turbopack is the default going forward. If you add a shader and
-  it fails to resolve, that config is the first thing to check.
+- **`.wgsl` needs a build-time loader.** `next.config.js` registers `@vgpu/wgsl` twice — once under
+  `turbopack.rules` via vgpu's `wgslTurbopackRule()` helper, once in the `webpack()` hook — because
+  `pnpm dev` and `pnpm build` use webpack today but Turbopack is the default going forward. If you
+  add a shader and it fails to resolve, that config is the first thing to check.
+- **Shaders must stay static imports.** vgpu 0.6 only accepts prepared `ShaderSource` objects
+  (`version: 2`), which the loader generates at build time. Never build WGSL as a runtime string and
+  pass it to `effect()`: the fix is `prepareShader()` from `@vgpu/wgsl/prepare`, but that ships the
+  WGSL parser to the browser, so move the shared code into a `.wgsl` module instead — which is where
+  the fullscreen vertex stage lives (`lib/gpu/fullscreen.wgsl`, imported as `vs_main`).
 - **Next never validates WGSL.** A malformed shader builds fine and fails in the browser. Gate
   shader edits with `npx vgpu check components/flare/<file>.wgsl --require-validation`.
 - **It always degrades.** `navigator.gpu` missing, `requestAdapter()` returning null, or a device
@@ -381,10 +386,15 @@ Behaviour worth preserving:
 
 ### Shared GPU code
 
-`lib/gpu/runtime.ts` holds what the two features genuinely share: the fullscreen vertex stage, the
-blue-noise texture upload (128x128 R8, row-repacked to the 256-byte `writeTexture` stride), and the
-`runCleanups` / `bestEffort` teardown discipline. The 128x128 blue-noise asset moved there from
-`components/flare/`.
+`lib/gpu/runtime.ts` holds what the two features genuinely share: the blue-noise texture upload
+(128x128 R8, row-repacked to the 256-byte `writeTexture` stride) and the `runCleanups` /
+`bestEffort` teardown discipline. The 128x128 blue-noise asset moved there from `components/flare/`.
+
+The fullscreen vertex stage is shared as a WGSL module instead — `lib/gpu/fullscreen.wgsl` exports
+`vs_main`, and every fragment shader imports it. It used to be a string prepended at runtime, but
+vgpu 0.6 only accepts prepared `ShaderSource` objects, so concatenating would force a runtime
+`prepareShader()` call and ship the WGSL parser to the browser. A static `.wgsl` import is prepared
+by the loader at build time and costs nothing at runtime.
 
 Keep that module free of _value_ imports from `vgpu` — it has one type-only import, which TypeScript
 erases. A runtime import there would defeat the lazy-chunk split for both features. It also must not

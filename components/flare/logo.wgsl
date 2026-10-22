@@ -1,3 +1,5 @@
+import { vs_main } from "../../lib/gpu/fullscreen.wgsl";
+
 struct Params { logoCenter: vec2f, logoScale: vec2f, uvInset: vec2f, edge: f32, _pad: f32 }
 @group(0) @binding(0) var logoSampler: sampler;
 @group(0) @binding(1) var logoTexture: texture_2d<f32>;

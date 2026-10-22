@@ -1,3 +1,5 @@
+import { vs_main } from "../../lib/gpu/fullscreen.wgsl";
+
 const MAX_TAPS: u32 = 8u;
 
 struct Params {

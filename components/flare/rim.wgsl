@@ -1,3 +1,5 @@
+import { vs_main } from "../../lib/gpu/fullscreen.wgsl";
+
 struct Params { light: vec2f, sceneTexel: vec2f, aspect: vec2f, spotReach: f32, spotStroke: f32 }
 @group(0) @binding(0) var linearSampler: sampler;
 @group(0) @binding(1) var sceneTexture: texture_2d<f32>;

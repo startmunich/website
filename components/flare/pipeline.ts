@@ -18,13 +18,7 @@
  */
 import { type Effect, effect, frame, type Gpu, sampler, type Target, target } from 'vgpu';
 
-import {
-  bestEffort,
-  createBlueNoiseTexture,
-  type Point,
-  runCleanups,
-  withFullscreenVertex,
-} from '@/lib/gpu/runtime';
+import { bestEffort, createBlueNoiseTexture, type Point, runCleanups } from '@/lib/gpu/runtime';
 
 import blurWgsl from './blur.wgsl';
 import compositeWgsl from './composite.wgsl';
@@ -109,15 +103,15 @@ export class FlarePipeline {
     this.blueNoise = createBlueNoiseTexture(gpu, 'start-flare-blue-noise-128');
     try {
       this.effects = {
-        logo: effect(gpu, withFullscreenVertex(logoWgsl), { label: 'start-flare-logo' }),
-        rim: effect(gpu, withFullscreenVertex(rimWgsl), { label: 'start-flare-rim' }),
-        rimBlurH: effect(gpu, withFullscreenVertex(blurWgsl), {
+        logo: effect(gpu, logoWgsl, { label: 'start-flare-logo' }),
+        rim: effect(gpu, rimWgsl, { label: 'start-flare-rim' }),
+        rimBlurH: effect(gpu, blurWgsl, {
           label: 'start-flare-rim-horizontal',
         }),
-        rimBlurV: effect(gpu, withFullscreenVertex(blurWgsl), {
+        rimBlurV: effect(gpu, blurWgsl, {
           label: 'start-flare-rim-vertical',
         }),
-        composite: effect(gpu, withFullscreenVertex(compositeWgsl), {
+        composite: effect(gpu, compositeWgsl, {
           label: 'start-flare-composite',
         }),
       };

@@ -1,3 +1,5 @@
+import { vs_main } from "../../lib/gpu/fullscreen.wgsl";
+
 struct Params {
   light: vec2f,
   aspect: vec2f,

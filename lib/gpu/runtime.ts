@@ -4,9 +4,10 @@
  * The flare (`components/flare`) and the aura (`components/aura`) are separate
  * features with separate lazy chunks, so neither may import from the other — that
  * would drag one feature's shaders into the other's bundle. Everything they
- * genuinely have in common lives here instead: the fullscreen vertex stage, the
- * blue-noise texture, and the cleanup discipline used when handing back GPU
- * resources.
+ * genuinely have in common lives here instead: the blue-noise texture and the
+ * cleanup discipline used when handing back GPU resources. The fullscreen vertex
+ * stage is shared as WGSL (`fullscreen.wgsl`), not as a string, so each shader
+ * stays a static import the vgpu loader can prepare at build time.
  *
  * This module must stay free of `import ... from 'vgpu'` *values* so that
  * importing it never forces the runtime into a bundle eagerly. The one `vgpu`
@@ -17,54 +18,6 @@ import type { Gpu } from 'vgpu';
 import { BLUE_NOISE_SIZE, blueNoiseBytes } from './blue-noise-128';
 
 export type Point = readonly [number, number];
-
-/**
- * A single fullscreen triangle covering clip space, with UVs at the top-left
- * origin the fragment shaders in this repo assume.
- *
- * There is deliberately no index buffer and no vertex buffer: three vertices
- * generated from `vertex_index` cover the viewport with no diagonal seam, which
- * costs one fewer vertex than a quad and avoids the quad's duplicated-pixel
- * overdraw along that seam.
- */
-const FULLSCREEN_VERTEX = /* wgsl */ `
-struct FullscreenVertexOut {
-  @builtin(position) position: vec4f,
-  @location(0) uv: vec2f,
-};
-
-@vertex
-fn fullscreen_vs(@builtin(vertex_index) vertexIndex: u32) -> FullscreenVertexOut {
-  let positions = array<vec2f, 3>(
-    vec2f(-1.0, -1.0),
-    vec2f(3.0, -1.0),
-    vec2f(-1.0, 3.0),
-  );
-  let uvs = array<vec2f, 3>(
-    vec2f(0.0, 1.0),
-    vec2f(2.0, 1.0),
-    vec2f(0.0, -1.0),
-  );
-  var output: FullscreenVertexOut;
-  output.position = vec4f(positions[vertexIndex], 0.0, 1.0);
-  output.uv = uvs[vertexIndex];
-  return output;
-}
-`;
-
-/**
- * Prepends the shared vertex stage to a fragment shader.
- *
- * The WGSL loader is not consistent about what it hands back: with
- * `minify: false` in development it returns a module namespace, and minified in
- * production it returns a bare string. Both are accepted so a shader written
- * once compiles in either mode — see the two loader registrations in
- * `next.config.js`.
- */
-export function withFullscreenVertex(shader: string | { readonly wgsl: string }): string {
-  const source = typeof shader === 'string' ? shader : shader.wgsl;
-  return `${FULLSCREEN_VERTEX}\n${source}`;
-}
 
 /**
  * Uploads the shared 128x128 blue-noise texture, used for film grain, ray jitter,

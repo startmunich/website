@@ -1,15 +1,19 @@
 /** @type {import('next').NextConfig} */
+const { wgslTurbopackRule } = require('@vgpu/wgsl/next');
+
 const nextConfig = {
   // The vgpu flare shaders (`components/flare/*.wgsl`) need a loader on both
   // bundlers. Turbopack handles `next dev --turbopack` / `next build --turbopack`;
   // the `webpack` hook below covers the default webpack path that `pnpm dev` and
   // `pnpm build` use today. Keep the two in sync when bumping @vgpu/wgsl.
+  //
+  // `wgslTurbopackRule()` is vgpu 0.6's helper: it resolves the loader from its
+  // own installation and folds a hash of the installed compiler into the loader
+  // options, so a restored `.next/cache` cannot serve shaders emitted by an older
+  // `@vgpu/wgsl`. A bare rule would need that cache cleared by hand on every bump.
   turbopack: {
     rules: {
-      '*.wgsl': {
-        loaders: ['@vgpu/wgsl/loader-webpack'],
-        as: '*.js',
-      },
+      '*.wgsl': wgslTurbopackRule(),
     },
   },
   /** Adds the WGSL loader with shader minification outside development and returns the config. */

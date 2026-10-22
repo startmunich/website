@@ -23,6 +23,9 @@
 //
 // Everything is 8-bit `rgba8unorm` and pre-scaled on the CPU, so the pass is a
 // single fullscreen fragment with no intermediate targets.
+
+import { vs_main } from "../../lib/gpu/fullscreen.wgsl";
+
 struct Params {
   pink: vec4f,
   blue: vec4f,
