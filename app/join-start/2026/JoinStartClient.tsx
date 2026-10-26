@@ -161,8 +161,8 @@ export default function JoinStartClient({ isLive, isClosed }: JoinStartClientPro
       >
         <WaitlistForm />
         <p className="mt-4 max-w-2xl text-sm font-bold tracking-wide text-foreground/90 uppercase">
-          Our application for the summer semester 2026 phase ended on Sunday, April 26th. Stay tuned
-          for the next phase that will open in October 2026.
+          Our application for the winter semester 2026 phase ended on Sunday, October 25th. Stay tuned
+          for the next phase that will open in April 2027.
         </p>
       </PageHero>
     );
@@ -178,7 +178,7 @@ export default function JoinStartClient({ isLive, isClosed }: JoinStartClientPro
             Join <span className="text-outline">START Munich</span>
           </>
         }
-        description="Applications for 2026 will open soon. Stay tuned."
+        description="Applications for the Summer Semester 2027 open in April 2027. Stay tuned."
       />
     );
   }

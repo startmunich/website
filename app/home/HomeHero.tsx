@@ -20,9 +20,9 @@ const heroImages = [
   '/home/heroBackground/background4-opt.png',
 ];
 
-// Munich-time cutoffs for the 2026 summer application window
-const APPLICATIONS_OPENED_AT = new Date('2026-04-10T00:00:00+02:00').getTime();
-const APPLICATIONS_CLOSED_AT = new Date('2026-04-27T00:00:00+02:00').getTime();
+// Munich-time cutoffs for the 2026 winter application window (now closed)
+const APPLICATIONS_OPENED_AT = new Date('2026-10-01T00:00:00+02:00').getTime();
+const APPLICATIONS_CLOSED_AT = new Date('2026-10-26T00:00:00+01:00').getTime();
 
 /** Pink ticker above the hero, linking to the application page. */
 export function ApplicationBanner() {
@@ -34,7 +34,8 @@ export function ApplicationBanner() {
       <div className="flex w-max animate-marquee whitespace-nowrap [--marquee-duration:60s]">
         {Array.from({ length: 12 }).map((_, i) => (
           <span key={i} className="mx-8 text-xs tracking-wide text-primary-foreground sm:text-sm">
-            Applications for the Winter Semester are now officially open. Apply now
+            Applications for the Winter Semester are now closed. Summer Semester applications open
+            in April 2027.
           </span>
         ))}
       </div>
