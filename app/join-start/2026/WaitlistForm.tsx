@@ -86,7 +86,12 @@ export function WaitlistForm() {
             placeholder="Email address"
             className="h-12 flex-1 bg-foreground text-background placeholder:text-background/50"
           />
-          <Button type="submit" size="lg" disabled={disabled} className="h-12 uppercase">
+          <Button
+            type="submit"
+            size="lg"
+            disabled={disabled}
+            className="h-12 w-full uppercase sm:w-auto"
+          >
             {waitlistStatus === 'submitting'
               ? 'Submitting...'
               : waitlistStatus === 'success'
