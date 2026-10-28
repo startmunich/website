@@ -12,6 +12,7 @@ export const metadata: Metadata = {
   description:
     "Apply to become a START Munich member in 2026. Join Munich's leading student entrepreneurship community at TUM, LMU, and HM.",
   alternates: { canonical: 'https://www.startmunich.de/join-start/2026' },
+  robots: { index: false },
   openGraph: {
     url: 'https://www.startmunich.de/join-start/2026',
     title: 'Join START Munich 2026',
