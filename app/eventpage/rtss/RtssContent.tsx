@@ -6,6 +6,7 @@ import RtssFaq from './RtssFaq';
 import RtssFooter from './RtssFooter';
 import RtssGallery from './RtssGallery';
 import RtssHero from './RtssHero';
+import RtssPartners from './RtssPartners';
 import RtssSchedule from './RtssSchedule';
 
 /**
@@ -39,6 +40,7 @@ export default function RtssContent() {
         <RtssAudiences />
         <RtssSchedule />
         <RtssGallery />
+        <RtssPartners />
         <RtssFaq />
         <RtssFooter />
       </RtssMotionProvider>
