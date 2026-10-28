@@ -161,8 +161,8 @@ export default function JoinStartClient({ isLive, isClosed }: JoinStartClientPro
       >
         <WaitlistForm />
         <p className="mt-4 max-w-2xl text-sm font-bold tracking-wide text-foreground/90 uppercase">
-          Our application for the winter semester 2026 phase ended on Sunday, October 25th. Stay tuned
-          for the next phase that will open in April 2027.
+          Our application for the winter semester 2026 phase ended on Sunday, October 25th. Stay
+          tuned for the next phase that will open in April 2027.
         </p>
       </PageHero>
     );
