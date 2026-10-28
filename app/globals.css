@@ -108,12 +108,13 @@
 }
 
 /*
- * Road to START Summit (RTSS): the campaign microsite. A midnight-navy stage
+ * Road to START Summit (RTSS): the campaign microsite. Black editorial sections
+ * between the midnight-navy hero and footer,
  * with the brand pink as the single accent, and its own display face (Figtree)
  * so the microsite reads as a poster rather than a page of the main site.
  */
 .theme-rtss {
-  --background: var(--brand-navy);
+  --background: #000000;
   --foreground: #ffffff;
   --card: #494b67;
   --card-foreground: #ffffff;

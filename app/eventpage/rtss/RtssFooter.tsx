@@ -17,7 +17,7 @@ const legalLinks = [
 
 export default function RtssFooter() {
   return (
-    <footer className="px-5 pt-[72px] pb-[110px] sm:px-8 lg:px-10">
+    <footer className="bg-brand-navy px-5 pt-[72px] pb-[110px] sm:px-8 lg:px-10">
       <div className="flex items-center justify-between gap-10 border-b border-border pb-[80px] max-sm:flex-col max-sm:items-start max-sm:gap-8">
         <Link href="/" aria-label="START Munich home" className="leading-none">
           <Image
