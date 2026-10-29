@@ -24,7 +24,7 @@ export default function RtssContent() {
   return (
     // `.theme-rtss` re-maps the semantic tokens and sets the Figtree display
     // face; `overflow-x-clip` contains the full-bleed photo strip.
-    <div className="theme-rtss overflow-x-clip">
+    <div className="theme-rtss overflow-x-clip bg-background">
       <RtssMotionProvider>
         <a
           href="#about"
@@ -35,13 +35,15 @@ export default function RtssContent() {
 
         <RtssHero />
 
-        <RtssFan />
-        <RtssAbout />
-        <RtssAudiences />
-        <RtssSchedule />
-        <RtssGallery />
-        <RtssPartners />
-        <RtssFaq />
+        <div className="bg-[linear-gradient(to_bottom,var(--brand-navy),var(--background)),linear-gradient(to_bottom,var(--background),var(--brand-navy))] bg-[length:100%_180px] bg-[position:center_top,center_bottom] bg-no-repeat max-sm:bg-[length:100%_100px]">
+          <RtssFan />
+          <RtssAbout />
+          <RtssAudiences />
+          <RtssSchedule />
+          <RtssGallery />
+          <RtssPartners />
+          <RtssFaq />
+        </div>
         <RtssFooter />
       </RtssMotionProvider>
     </div>
