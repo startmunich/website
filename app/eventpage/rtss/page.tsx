@@ -12,7 +12,7 @@ const OG_IMAGE = {
 export const metadata: Metadata = {
   title: 'Road to START Summit',
   description:
-    "START Munich's DeepTech pitching competition. Join 300+ founders, investors and students at Freiheitshalle, Munich on 9 December 2026 — apply as a startup or join the waitlist.",
+    "START Munich's DeepTech pitching competition. Join 300+ founders, investors and students at Freiheitshalle, Munich on 9 December 2026 — apply as a startup or get your ticket.",
   alternates: { canonical: 'https://www.startmunich.de/eventpage/rtss' },
   openGraph: {
     url: 'https://www.startmunich.de/eventpage/rtss',

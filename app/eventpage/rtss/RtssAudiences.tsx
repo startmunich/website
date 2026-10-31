@@ -81,7 +81,7 @@ export default function RtssAudiences() {
           file="rtss-attendees.jpg"
           alt="Attendees applauding at START Munich RTSS 2025"
           body={attendeeCopy}
-          cta={{ href: rtssConfig.waitlistUrl, label: 'Join the waitlist' }}
+          cta={{ href: rtssConfig.ticketUrl, label: 'Tickets' }}
         />
         <AudienceColumn
           id="for-startups"
