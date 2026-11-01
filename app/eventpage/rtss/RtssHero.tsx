@@ -1,9 +1,12 @@
 'use client';
 
+import { MenuIcon, XIcon } from 'lucide-react';
 import { motion, useScroll, useTransform } from 'motion/react';
 import Image, { getImageProps } from 'next/image';
 import Link from 'next/link';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
+
+import { Button } from '@/components/ui/button';
 
 import { navItems, rtssConfig } from './rtss-data';
 import { usePrefersReducedMotion } from './rtss-motion';
@@ -43,6 +46,7 @@ const { props: mobileHero } = getImageProps({
  */
 export default function RtssHero() {
   const ref = useRef<HTMLElement>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const reduce = usePrefersReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
   const y = useTransform(scrollYProgress, [0, 1], [0, 100]);
@@ -55,31 +59,42 @@ export default function RtssHero() {
     >
       <nav
         aria-label="Main navigation"
-        // On phones the five links need ~376px but only ~296px is available at
-        // 320px, so let them wrap to a second row and let the bar grow with
-        // them. The old `flex-nowrap` + `overflow-hidden` pair silently clipped
-        // "FAQ" off the end instead of showing it.
-        className="relative z-10 flex h-[54px] items-center justify-between gap-10 bg-brand-pink px-7 py-1.5 max-sm:h-auto max-sm:min-h-11 max-sm:flex-wrap max-sm:justify-center max-sm:gap-x-[18px] max-sm:gap-y-1 max-sm:px-3 max-sm:py-2"
+        onKeyDown={(event) => {
+          if (event.key === 'Escape') setMenuOpen(false);
+        }}
+        className="relative z-20 flex h-[54px] items-center justify-between gap-10 bg-brand-pink px-7 py-1.5 max-sm:h-16 max-sm:gap-4 max-sm:px-5"
       >
-        <Link
-          href="/"
-          aria-label="START Munich home"
-          className="shrink-0 leading-none max-sm:hidden"
-        >
+        <Link href="/" aria-label="START Munich home" className="shrink-0 leading-none">
           <Image
             src={rtssImage('start-munich-white.png')}
             alt="START Munich"
             width={104}
             height={48}
+            sizes="104px"
             className="h-auto w-[104px] max-sm:w-[84px]"
           />
         </Link>
-        <div className="flex flex-1 items-center justify-around gap-6 max-sm:w-full max-sm:min-w-0 max-sm:flex-wrap max-sm:justify-center max-sm:gap-x-[18px] max-sm:gap-y-1">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={menuOpen}
+          aria-controls="rtss-navigation-links"
+          onClick={() => setMenuOpen((open) => !open)}
+          className="text-white sm:hidden"
+        >
+          {menuOpen ? <XIcon className="size-6" /> : <MenuIcon className="size-6" />}
+        </Button>
+        <div
+          id="rtss-navigation-links"
+          className={`flex flex-1 items-center justify-around gap-6 max-sm:absolute max-sm:inset-x-0 max-sm:top-full max-sm:flex-col max-sm:items-stretch max-sm:gap-0 max-sm:bg-brand-pink max-sm:px-5 max-sm:pb-4 ${menuOpen ? '' : 'max-sm:hidden'}`}
+        >
           {navItems.map(([label, href]) => (
             <a
               key={href}
               href={href}
-              className="text-[17px] font-bold whitespace-nowrap underline-offset-4 hover:underline max-sm:py-0 max-sm:text-sm"
+              onClick={() => setMenuOpen(false)}
+              className="text-[17px] font-bold whitespace-nowrap underline-offset-4 hover:underline max-sm:py-3"
             >
               {label}
             </a>
@@ -87,20 +102,7 @@ export default function RtssHero() {
         </div>
       </nav>
 
-      <div className="relative z-10 flex items-center justify-end p-6 max-sm:justify-between max-sm:gap-2.5 max-sm:p-4">
-        <Link
-          href="/"
-          aria-label="START Munich home"
-          className="hidden shrink-0 leading-none max-sm:block"
-        >
-          <Image
-            src={rtssImage('start-munich-white.png')}
-            alt="START Munich"
-            width={70}
-            height={32}
-            className="h-auto w-[70px]"
-          />
-        </Link>
+      <div className="relative z-10 flex items-center justify-end p-6 max-sm:p-4">
         <SplitCta />
       </div>
 
