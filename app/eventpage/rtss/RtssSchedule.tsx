@@ -24,7 +24,7 @@ export default function RtssSchedule() {
           id="registration"
           className="mt-6 scroll-mt-8 text-[17px] leading-[1.5] text-muted-foreground"
         >
-          Join the waitlist to be first to hear when early-bird passes become available.
+          Get your ticket and join us for an evening of DeepTech pitches and connections.
         </p>
       </div>
 

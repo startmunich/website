@@ -13,8 +13,8 @@ export const rtssConfig = {
   city: 'Munich',
   venue: 'Freiheitshalle · Munich',
   longDate: '9 December 2026',
-  /** Early-bird passes are not on sale yet, so attendance goes via a waitlist. */
-  waitlistUrl: 'https://tally.so/r/GxNq7k',
+  /** Event-specific attendee ticket booking. */
+  ticketUrl: 'https://luma.com/road-to-start-summit',
   applicationUrl: 'https://tally.so/r/5BW1Wv',
   directionsUrl: 'https://www.google.com/maps/search/?api=1&query=Freiheitshalle+Munich',
 } as const;
@@ -125,7 +125,7 @@ export const faqs: FaqItem[] = [
   {
     question: 'Where and when does it take place?',
     answer:
-      'Join us on 9 December 2026 at Freiheitshalle in Munich. Doors open at 17:00 and the evening runs late. Join the waitlist for first access to early-bird passes.',
+      'Join us on 9 December 2026 at Freiheitshalle in Munich. Doors open at 17:00 and the evening runs late. Get your ticket on Luma.',
   },
   {
     question: 'What are the requirements for startups?',
@@ -149,9 +149,9 @@ export const faqs: FaqItem[] = [
   },
   {
     question: 'How can I attend or apply?',
-    answer: 'To come along, join the waitlist for first access to early-bird passes.',
+    answer: 'To come along, get your ticket on Luma.',
     links: [
-      { label: 'Join the attendee waitlist', href: rtssConfig.waitlistUrl },
+      { label: 'Tickets', href: rtssConfig.ticketUrl },
       { label: 'Apply as a startup', href: rtssConfig.applicationUrl },
     ],
   },
