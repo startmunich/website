@@ -11,7 +11,7 @@ export const revalidate = 3600;
  */
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const termStartYears = url.searchParams.get('termStartYears') || '2024,2025';
+  const termStartYears = url.searchParams.get('termStartYears') || '2024,2025,2026';
 
   if (!process.env.STARTMUNICH_API_KEY) {
     console.error('STARTMUNICH_API_KEY is not set');

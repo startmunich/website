@@ -50,6 +50,30 @@ interface BoardMemberLike {
 export function useBoards(expandedBoard: string | null) {
   const [boards, setBoards] = useState<Board[]>([
     {
+      id: '26-27',
+      name: 'Board 26-27',
+      year: '2026-2027',
+      // TODO: replace with the real group photo once marketing provides it
+      // (expected at /ourMembers/boads/boad27.jpeg).
+      imageUrl: '/ourMembers/hero-opt.png',
+      executiveBoard: [
+        { name: 'BOARD MEMBER', role: 'President', imageUrl: '/ourMembers/hero-opt.png' },
+        { name: 'BOARD MEMBER', role: 'Vice President', imageUrl: '/ourMembers/hero-opt.png' },
+        { name: 'BOARD MEMBER', role: 'CFO', imageUrl: '/ourMembers/hero-opt.png' },
+      ],
+      departmentBoard: [
+        { name: 'BOARD MEMBER', role: 'MD Events', imageUrl: '/ourMembers/hero-opt.png' },
+        { name: 'BOARD MEMBER', role: 'MD Marketing', imageUrl: '/ourMembers/hero-opt.png' },
+        { name: 'BOARD MEMBER', role: 'MD People', imageUrl: '/ourMembers/hero-opt.png' },
+        {
+          name: 'BOARD MEMBER',
+          role: 'MD Technology & Operations',
+          imageUrl: '/ourMembers/hero-opt.png',
+        },
+        { name: 'BOARD MEMBER', role: 'MD Partnerships', imageUrl: '/ourMembers/hero-opt.png' },
+      ],
+    },
+    {
       id: '25-26',
       name: 'Board 25-26',
       year: '2025-2026',
