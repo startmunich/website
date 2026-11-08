@@ -14,7 +14,7 @@ import { rtssImage } from './rtss-ui';
  * The hidden start state is applied *after* mount rather than in `initial`.
  * `prefers-reduced-motion` can only be read in the browser, so an `initial`
  * derived from it guesses `false` on the server and ships `opacity: 0` in the
- * HTML — which left the about copy and both audience CTAs invisible whenever JS
+ * HTML — which left the about copy invisible whenever JS
  * was unavailable or hydration failed. Rendering visible first and hiding on
  * mount costs nothing visually (everything wrapped in `Reveal` sits below the
  * fold, so nothing visible ever flashes) and means the server HTML always

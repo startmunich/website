@@ -22,12 +22,14 @@ export default function RtssTickets() {
       className="relative isolate overflow-hidden bg-primary px-5 pt-24 text-center text-primary-foreground sm:px-8 sm:pt-32 lg:px-10"
     >
       <div className="relative z-10 mx-auto max-w-4xl">
-        <p className="mb-6 text-sm tracking-widest uppercase">9 December 2026 · Munich</p>
+        <p className="mb-6 text-sm tracking-widest uppercase">
+          {rtssConfig.longDate} · {rtssConfig.city}
+        </p>
         <h2
           id="tickets-heading"
           className="text-[80px] leading-[1.05] font-medium tracking-[-0.055em] max-sm:text-[48px]"
         >
-          Get your a seat
+          Get your seat
           <br />
           or apply as a startup
         </h2>
