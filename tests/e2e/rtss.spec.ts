@@ -23,7 +23,7 @@ test('rtss announces the event and links tickets and startup applications', asyn
 
 // Attendees book tickets and startups apply separately; swapping the two
 // links would still pass the href assertions above, so name them too. Exact
-// names, because the hero nav has its own "For Attendees" anchor.
+// names, because "Tickets & Applications" partially matches "Tickets".
 test('rtss points attendees at ticket booking and start-ups at the application form', async ({
   page,
 }) => {

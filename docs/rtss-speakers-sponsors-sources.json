@@ -1,0 +1,17 @@
+{
+  "assets": {
+    "tytan-supplied.png": "User-supplied TYTAN Technologies logo",
+    "climate-founders.png": "User-supplied Climate Founders logo",
+    "felix-haas-supplied.png": "User-supplied portrait",
+    "balazs-nagy-supplied.png": "User-supplied portrait",
+    "mika-voss-supplied.png": "User-supplied portrait",
+    "constance-perez-supplied.png": "User-supplied portrait"
+  },
+  "media-lab-bayern.svg": "https://www.media-lab.de/de/ (original inline header SVG)",
+  "bios": [
+    "https://www.community.tum.de/felix-haas/",
+    "https://www.tytan-technologies.com/blog-posts/startup-insider-podcast",
+    "https://www.uvcpartners.com/our-team",
+    "https://www.climatefounders.com/about"
+  ]
+}
