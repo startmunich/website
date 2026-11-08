@@ -323,3 +323,14 @@
     position: relative;
   }
 }
+
+/* Small independent rocking keeps the ticket stub close to the paper pass. */
+@keyframes rtss-ticket-rock {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(-26deg);
+  }
+  50% {
+    transform: translate(7px, -9px) rotate(-30deg);
+  }
+}

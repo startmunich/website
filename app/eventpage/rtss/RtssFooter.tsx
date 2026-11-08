@@ -5,8 +5,7 @@ import { rtssConfig } from './rtss-data';
 import { rtssImage } from './rtss-ui';
 
 const sectionLinks = [
-  ['For startups', '#for-startups'],
-  ['For attendees', '#for-attendees'],
+  ['Tickets & Applications', '#tickets'],
   ['FAQ', '#questions'],
 ] as const;
 

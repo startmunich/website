@@ -21,8 +21,8 @@ export const rtssConfig = {
 
 export const navItems = [
   ['About', '#about'],
-  ['For Attendees', '#for-attendees'],
-  ['For Startups', '#for-startups'],
+  ['Speakers & Jury', '#speakers'],
+  ['Tickets & Applications', '#tickets'],
   ['Schedule', '#schedule'],
   ['FAQ', '#questions'],
 ] as const;
@@ -156,3 +156,39 @@ export const faqs: FaqItem[] = [
     ],
   },
 ];
+
+/** Verified public profiles; portrait and biography sources accompany the local assets. */
+export const speakersAndJury = [
+  {
+    name: 'Felix Haas',
+    category: 'Speaker',
+    role: 'Entrepreneur, investor & Bits & Pretzels co-host',
+    image: 'felix-haas-supplied.png',
+    linkedin: 'https://www.linkedin.com/in/felixhaas/',
+    bio: 'Felix co-founded amiando and IDnow and is a co-host of Bits & Pretzels. A founder of START Munich, he brings experience in building companies, investing in startups, and connecting the next generation of entrepreneurs.',
+  },
+  {
+    name: 'Balázs Nagy',
+    category: 'Speaker',
+    role: 'CEO & Co-Founder, TYTAN Technologies',
+    image: 'balazs-nagy-supplied.png',
+    linkedin: 'https://www.linkedin.com/in/balazsnagy1994/',
+    bio: 'Balázs is CEO and co-founder of TYTAN Technologies. He is building AI-powered drone defence systems for European armed forces, turning aerospace engineering into technology that protects people and critical infrastructure.',
+  },
+  {
+    name: 'Mika Voss',
+    category: 'Jury',
+    role: 'Investment Analyst, UVC Partners',
+    image: 'mika-voss-supplied.png',
+    linkedin: 'https://www.linkedin.com/in/mika-voss-501573222/',
+    bio: 'Mika combines a passion for DeepTech with a data-driven approach to venture capital at UVC Partners. With experience in finance and at FINN, he brings both an investor and operator perspective to evaluating emerging companies.',
+  },
+  {
+    name: 'Constance Perez',
+    category: 'Jury',
+    role: 'Investment Analyst, Climate Founders',
+    image: 'constance-perez-supplied.png',
+    linkedin: 'https://www.linkedin.com/in/constanceperez/',
+    bio: 'Based in Munich, Constance manages dealflow and applications at Climate Founders and supports investment due diligence. Her background in environmental consulting informs her work with founders developing solutions for a more sustainable future.',
+  },
+] as const;
