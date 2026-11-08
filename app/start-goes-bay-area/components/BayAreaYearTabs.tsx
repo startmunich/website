@@ -179,7 +179,7 @@ function YearPanel({ year }: { year: BayAreaYearContent }) {
             <p className="mb-6 flex items-center gap-2 text-xs font-bold tracking-[0.18em] text-primary uppercase">
               Scroll <ArrowRightIcon className="size-4" />
             </p>
-            <div className="-mx-5 no-scrollbar overflow-x-auto px-5 pb-2 sm:-mx-8 sm:px-8">
+            <div className="no-scrollbar -mx-5 overflow-x-auto px-5 pb-2 sm:-mx-8 sm:px-8">
               <div className="flex gap-7">
                 {year.teamMembers.map((member) => (
                   <ProfileCard
