@@ -39,7 +39,7 @@
     "motion": "^12.43.0",
     "next": "^15.5.29",
     "next-sanity": "^13.4.0",
-    "posthog-js": "^1.446.0",
+    "posthog-js": "^1.446.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "tailwind-merge": "^3.7.0",

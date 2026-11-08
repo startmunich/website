@@ -203,7 +203,7 @@ importers:
         specifier: ^13.4.0
         version: 13.4.0(581a272c9236ff3c1892cd9a1e5f1a4f)
       posthog-js:
-        specifier: ^1.446.0
+        specifier: ^1.446.1
         version: 1.447.3(@types/react@19.3.0)(react@19.3.1)
       react:
         specifier: ^19.3.1
