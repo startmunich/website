@@ -3,7 +3,7 @@ import Image from 'next/image';
 import * as React from 'react';
 
 import { LinkedInIcon } from '@/components/site/brand-icons';
-import { isObjectStorageImage } from '@/lib/images';
+import { isRemoteImage } from '@/lib/images';
 import { cn } from '@/lib/utils';
 
 const portraitVariants = cva(
@@ -110,7 +110,7 @@ export function ProfileCard({
             className="object-cover"
             style={{ objectPosition: imagePosition }}
             referrerPolicy="no-referrer"
-            unoptimized={isObjectStorageImage(imageUrl)}
+            unoptimized={typeof imageUrl === 'string' && isRemoteImage(imageUrl)}
             draggable={false}
           />
         ) : (

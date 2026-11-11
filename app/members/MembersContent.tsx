@@ -147,7 +147,7 @@ export default function MembersContent() {
               <Card
                 interactive
                 className="group/card py-0"
-                render={<Link href={`/members/${getBatchSlug(batch.name)}`} />}
+                render={<Link href={`/members/${getBatchSlug(batch.name)}`} prefetch={false} />}
               >
                 <CardMedia className="h-72 sm:h-80">
                   <Image

@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import * as React from 'react';
 
+import { isRemoteImage } from '@/lib/images';
 import { cn } from '@/lib/utils';
 
 type LogoImageProps = Omit<React.ComponentProps<'img'>, 'src' | 'alt'> & {
@@ -52,7 +53,7 @@ export function LogoImage({
           alt={alt ?? name}
           fill
           sizes={sizes}
-          unoptimized={typeof src === 'string' && src.startsWith('http')}
+          unoptimized={typeof src === 'string' && isRemoteImage(src)}
           className="object-contain"
           onError={() => setFailed(true)}
         />

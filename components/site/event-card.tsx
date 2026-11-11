@@ -2,6 +2,7 @@ import Image from 'next/image';
 
 import { ButtonLink } from '@/components/ui/button';
 import { Card, CardMedia } from '@/components/ui/card';
+import { isRemoteImage } from '@/lib/images';
 import { cn } from '@/lib/utils';
 
 interface EventCardProps {
@@ -40,7 +41,7 @@ export function EventCard({
               src={imageUrl}
               alt={title}
               fill
-              unoptimized
+              unoptimized={typeof imageUrl === 'string' && isRemoteImage(imageUrl)}
               sizes="(max-width: 768px) 86vw, 320px"
               className="object-cover transition-transform duration-700 ease-out group-hover/card:scale-105"
             />

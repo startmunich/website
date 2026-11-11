@@ -10,9 +10,6 @@ export default function robots(): MetadataRoute.Robots {
         userAgent,
         disallow: '/',
       })),
-      // robots.txt-only tokens that never appear in a User-Agent.
-      { userAgent: 'Google-Extended', disallow: '/' },
-      { userAgent: 'Applebot-Extended', disallow: '/' },
     ],
     sitemap: 'https://www.startmunich.de/sitemap.xml',
   };

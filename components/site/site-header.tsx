@@ -40,7 +40,7 @@ function LinkTarget({ link, ...props }: { link: NavLink } & React.ComponentProps
   return link.external ? (
     <a href={link.href} target="_blank" rel="noopener noreferrer" {...props} />
   ) : (
-    <Link href={link.href} {...props} />
+    <Link href={link.href} prefetch={false} {...props} />
   );
 }
 

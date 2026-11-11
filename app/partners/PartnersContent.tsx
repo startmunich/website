@@ -31,9 +31,7 @@ async function fetchPartners(): Promise<Partner[]> {
         ? window.location.origin
         : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
-    const response = await fetch(`${baseUrl}/api/partners`, {
-      cache: 'no-store', // Ensure fresh data
-    });
+    const response = await fetch(`${baseUrl}/api/partners`);
 
     if (!response.ok) {
       console.error(`API error: ${response.status} ${response.statusText}`);

@@ -164,9 +164,10 @@ before committing.
 allowlist — **a new image host will render broken until you add it there**. Output is deliberately
 WebP-only with a one-year `minimumCacheTTL`; don't add formats.
 
-CMS images come from Sanity's CDN and are optimized normally. Member portraits come from the members
-platform's object storage and are passed through `isObjectStorageImage()` from `@/lib/images` to set
-`unoptimized` — don't extend that to Sanity URLs.
+Remote images (Sanity CDN, Luma, members platform, ...) are served straight from their origin
+via `isRemoteImage()` from `@/lib/images` (sets `unoptimized`), so Vercel's image optimiser is
+bypassed for them. Local `/public` files keep going through `next/image` optimisation. Member
+portraits from object storage are covered by the same helper.
 
 ## Environment variables
 
