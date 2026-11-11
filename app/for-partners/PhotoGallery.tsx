@@ -118,8 +118,7 @@ export default function PhotoGallery() {
       />
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {eventPhotos.map((photo, index) => {
-          const visible = index >= start && index < start + PAGE_SIZE;
+        {eventPhotos.slice(start, start + PAGE_SIZE).map((photo) => {
           const content = (
             <>
               <Image
@@ -141,7 +140,6 @@ export default function PhotoGallery() {
           );
           const classes = cn(
             'group relative block aspect-video overflow-hidden rounded-3xl border border-border shadow-lg transition-all duration-300 hover:border-primary/40 hover:shadow-primary/10',
-            !visible && 'hidden',
           );
           return photo.href ? (
             <Link key={photo.id} href={photo.href} className={classes}>

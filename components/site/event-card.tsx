@@ -40,6 +40,7 @@ export function EventCard({
               src={imageUrl}
               alt={title}
               fill
+              unoptimized
               sizes="(max-width: 768px) 86vw, 320px"
               className="object-cover transition-transform duration-700 ease-out group-hover/card:scale-105"
             />

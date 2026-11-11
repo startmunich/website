@@ -52,6 +52,7 @@ export function LogoImage({
           alt={alt ?? name}
           fill
           sizes={sizes}
+          unoptimized={typeof src === 'string' && src.startsWith('http')}
           className="object-contain"
           onError={() => setFailed(true)}
         />
