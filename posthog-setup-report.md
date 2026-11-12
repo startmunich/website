@@ -3,8 +3,7 @@
 
 The wizard has completed a deep integration of PostHog analytics into the START Munich Next.js 15.3
 App Router project. PostHog is initialized via `instrumentation-client.ts` (the recommended approach
-for Next.js 15.3+), with a reverse proxy configured in `next.config.js` to route all PostHog
-ingestion through `/ingest` on the same domain for improved ad-blocker resistance and performance.
+for Next.js 15.3+), with analytics sent directly to the PostHog EU cloud (`eu.i.posthog.com`).
 Environment variables are stored in `.env.local`. Eight client-side events have been instrumented
 across six files, covering the full application funnel, navigation CTAs, startup browsing, and
 partner contact actions.

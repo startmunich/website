@@ -25,7 +25,7 @@ async function fetchCompanies(): Promise<Company[]> {
         ? window.location.origin
         : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
-    const response = await fetch(`${baseUrl}/api/member-network`, { cache: 'no-store' });
+    const response = await fetch(`${baseUrl}/api/member-network`);
     if (!response.ok) throw new Error('Failed to fetch');
     return await response.json();
   } catch (error) {

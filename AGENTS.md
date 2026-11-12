@@ -164,9 +164,10 @@ before committing.
 allowlist — **a new image host will render broken until you add it there**. Output is deliberately
 WebP-only with a one-year `minimumCacheTTL`; don't add formats.
 
-CMS images come from Sanity's CDN and are optimized normally. Member portraits come from the members
-platform's object storage and are passed through `isObjectStorageImage()` from `@/lib/images` to set
-`unoptimized` — don't extend that to Sanity URLs.
+Remote images (Sanity CDN, Luma, members platform, ...) are served straight from their origin
+via `isRemoteImage()` from `@/lib/images` (sets `unoptimized`), so Vercel's image optimiser is
+bypassed for them. Local `/public` files keep going through `next/image` optimisation. Member
+portraits from object storage are covered by the same helper.
 
 ## Environment variables
 
@@ -205,7 +206,7 @@ configures no event source and takes the empty/Luma-fallback path.
 
 - `pnpm-workspace.yaml` is not a workspace config in the usual sense — it's where the dependency
   `overrides` live. Editing `package.json` to pin a transitive dep does nothing.
-- There is no `vercel.json`. Redirects, the PostHog `/ingest/*` proxy, image config, and the
+- There is no `vercel.json`. Redirects, image config, and the
   permanent `/home` → `/` redirect all live in `next.config.js`.
 - Tailwind 4 is configured in CSS (`app/globals.css`) via `@tailwindcss/postcss`; there is no
   `tailwind.config.ts`. Prettier's Tailwind plugin reads the same file (`tailwindStylesheet` in

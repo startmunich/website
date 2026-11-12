@@ -106,6 +106,7 @@ export default function StartupCard({
           >
             <Link
               href={`/startup-details/${id}`}
+              prefetch={false}
               onClick={onNavigate}
               className="outline-none after:absolute after:inset-0 after:rounded-2xl focus-visible:after:ring-3 focus-visible:after:ring-ring/50"
             >

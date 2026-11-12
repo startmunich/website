@@ -40,9 +40,7 @@ async function fetchCompanies(): Promise<Company[]> {
         ? window.location.origin
         : process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
-    const response = await fetch(`${baseUrl}/api/startups`, {
-      cache: 'no-store', // Ensure fresh data
-    });
+    const response = await fetch(`${baseUrl}/api/startups`);
 
     if (!response.ok) {
       console.error(`API error: ${response.status} ${response.statusText}`);
