@@ -1,6 +1,7 @@
 /**
  * Bots and crawlers we block at the edge (see `middleware.ts`) and disallow in
- * `robots.txt`. Kept in one place so the two stay in sync.
+ * `robots.txt` (and blocked at the edge by `middleware.ts`). Kept in one place so the
+ * two stay in sync.
  *
  * Only aggressive/SEO crawlers that bring us no value are listed here. AI search
  * bots (OAI-SearchBot, PerplexityBot, YouBot, Amazonbot) and AI training bots

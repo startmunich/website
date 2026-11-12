@@ -16,10 +16,6 @@
  *
  * See: https://vercel.com/docs/image-optimization/managing-image-optimization-costs
  */
-export function isObjectStorageImage(url: string): boolean {
-  return url.startsWith('https://nbg1.your-objectstorage.com/');
-}
-
 /**
  * Whether an image URL points at a remote host (Sanity CDN, Luma, members
  * platform, ...). Remote images are served straight from their origin so Vercel's

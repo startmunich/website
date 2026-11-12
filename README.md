@@ -441,7 +441,7 @@ hosting dependency.
 ## Deployment
 
 Vercel, connected to the GitHub repo. There is no `vercel.json` — routing, the permanent `/home`
-redirect, the PostHog `/ingest/*` proxy, and the image configuration all live in `next.config.js`.
+redirect and the image configuration all live in `next.config.js`.
 
 Next.js image optimization is restricted to an explicit `remotePatterns` allowlist
 (`ndb.startmunich.de`, `ui-avatars.com`, Unsplash, the object storage host, LinkedIn media). New

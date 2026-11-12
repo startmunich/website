@@ -3,7 +3,6 @@ import Image from 'next/image';
 import * as React from 'react';
 
 import { LinkedInIcon } from '@/components/site/brand-icons';
-import { isRemoteImage } from '@/lib/images';
 import { cn } from '@/lib/utils';
 
 const portraitVariants = cva(
@@ -53,7 +52,7 @@ type ProfileCardProps = VariantProps<typeof portraitVariants> & {
 /**
  * A person: portrait, name, role. Used for the boards, advisors and batch pages.
  * Member portraits come from the members platform's object storage and are
- * served unoptimised (see `isObjectStorageImage`).
+ * served unoptimised (see `isRemoteImage`).
  */
 export function ProfileCard({
   name,
@@ -110,7 +109,7 @@ export function ProfileCard({
             className="object-cover"
             style={{ objectPosition: imagePosition }}
             referrerPolicy="no-referrer"
-            unoptimized={typeof imageUrl === 'string' && isRemoteImage(imageUrl)}
+            unoptimized
             draggable={false}
           />
         ) : (

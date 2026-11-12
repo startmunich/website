@@ -206,7 +206,7 @@ configures no event source and takes the empty/Luma-fallback path.
 
 - `pnpm-workspace.yaml` is not a workspace config in the usual sense — it's where the dependency
   `overrides` live. Editing `package.json` to pin a transitive dep does nothing.
-- There is no `vercel.json`. Redirects, the PostHog `/ingest/*` proxy, image config, and the
+- There is no `vercel.json`. Redirects, image config, and the
   permanent `/home` → `/` redirect all live in `next.config.js`.
 - Tailwind 4 is configured in CSS (`app/globals.css`) via `@tailwindcss/postcss`; there is no
   `tailwind.config.ts`. Prettier's Tailwind plugin reads the same file (`tailwindStylesheet` in
