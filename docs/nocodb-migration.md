@@ -50,8 +50,8 @@ Until one of those lands, `NOCODB_API_TOKEN` and `NOCODB_WAITLIST_TABLE_ID` stay
 `NOCODB_MEMBERS_TABLE_ID` was unset and there is no Members table in the NocoDB base, so
 `GET /api/members` already returned `[]` in production before this migration. The route was deleted.
 
-Member data on the site comes from `my.startmunich.de` (`/api/members/batch/[batchId]`), which is
-not NocoDB and is unaffected.
+Member data on the site comes from `my.startmunich.de` (read server-side in `lib/members.ts`), which
+is not NocoDB and is unaffected.
 
 ### Untouched sources
 

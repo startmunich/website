@@ -100,6 +100,12 @@ platform or Luma. Conventions to copy from `lib/sanityContent.ts` and `app/api/*
 - **Schema changes are cross-repo.** Field definitions live in `website-cms`
   (`schemaTypes/documents/`). Adding or renaming a field means changing the schema there, running
   `npm run typegen` in that repo, _and_ updating the projection in `sanity/queries.ts` here.
+- **People come from the members platform, never from this repo or Sanity.** `lib/members.ts` builds
+  `/members` (boards, batches, names, portraits, public LinkedIn links) from
+  `GET /api/v1/public/{members,board}`. Don't add hand-written seat lists, batch lists or member
+  data; fix it on the platform instead. The only things kept here are the group photos
+  (`BATCH_PHOTOS` / `BOARD_PHOTOS` in that file). Don't copy member data into the public Sanity
+  dataset either: the platform enforces each member's link-visibility choice and Sanity can't.
 - `lib/startNetwork.ts` is the single source of truth for the chapter list and the
   chapter/country/member counts rendered on the home and member-journey pages. Edit it there; don't
   duplicate the numbers.
@@ -164,10 +170,10 @@ before committing.
 allowlist — **a new image host will render broken until you add it there**. Output is deliberately
 WebP-only with a one-year `minimumCacheTTL`; don't add formats.
 
-Remote images (Sanity CDN, Luma, members platform, ...) are served straight from their origin
-via `isRemoteImage()` from `@/lib/images` (sets `unoptimized`), so Vercel's image optimiser is
-bypassed for them. Local `/public` files keep going through `next/image` optimisation. Member
-portraits from object storage are covered by the same helper.
+Remote images (Sanity CDN, Luma, members platform, ...) are served straight from their origin via
+`isRemoteImage()` from `@/lib/images` (sets `unoptimized`), so Vercel's image optimiser is bypassed
+for them. Local `/public` files keep going through `next/image` optimisation. Member portraits from
+object storage are covered by the same helper.
 
 ## Environment variables
 
@@ -206,8 +212,8 @@ configures no event source and takes the empty/Luma-fallback path.
 
 - `pnpm-workspace.yaml` is not a workspace config in the usual sense — it's where the dependency
   `overrides` live. Editing `package.json` to pin a transitive dep does nothing.
-- There is no `vercel.json`. Redirects, image config, and the
-  permanent `/home` → `/` redirect all live in `next.config.js`.
+- There is no `vercel.json`. Redirects, image config, and the permanent `/home` → `/` redirect all
+  live in `next.config.js`.
 - Tailwind 4 is configured in CSS (`app/globals.css`) via `@tailwindcss/postcss`; there is no
   `tailwind.config.ts`. Prettier's Tailwind plugin reads the same file (`tailwindStylesheet` in
   `prettier.config.mjs`), so custom tokens sort correctly.
