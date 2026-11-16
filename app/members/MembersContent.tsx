@@ -4,6 +4,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 import { EmbedHeightReporter } from '@/components/site/embed-height-reporter';
+import { EmptyState } from '@/components/site/empty-state';
 import { PageHero } from '@/components/site/page-hero';
 import { HeroStat, HeroStats } from '@/components/site/stat';
 import { Card, CardMedia } from '@/components/ui/card';
@@ -13,8 +14,8 @@ import { Reveal } from '@/components/ui/reveal';
 import { Container, Section, SectionHeader } from '@/components/ui/section';
 import { Separator } from '@/components/ui/separator';
 import { Eyebrow } from '@/components/ui/typography';
+import { getBoards, getMemberBatches } from '@/lib/members';
 
-import { getBatchSlug, sortedBatches } from './batches';
 import { BoardsSection } from './BoardsSection';
 
 const genderSplit = [
@@ -68,11 +69,12 @@ function MetricRow({ label, value }: { label: string; value: number }) {
 }
 
 /**
- * `/api/members` was a NocoDB route backed by a table that no longer exists, so
- * the page renders from the curated board list (see `useBoards`) plus the
- * per-batch pages at `/members/[batch]`.
+ * Boards and batches come straight from the members platform (`lib/members.ts`): a new board, a
+ * newly onboarded batch or a freshly uploaded portrait shows up here without touching this file.
  */
-export default function MembersContent() {
+export default async function MembersContent() {
+  const [boards, batches] = await Promise.all([getBoards(), getMemberBatches()]);
+
   return (
     <>
       <EmbedHeightReporter />
@@ -130,7 +132,11 @@ export default function MembersContent() {
         <Reveal>
           <SectionHeader eyebrow="Leadership" title="The Boards" />
         </Reveal>
-        <BoardsSection />
+        {boards.length > 0 ? (
+          <BoardsSection boards={boards} />
+        ) : (
+          <EmptyState description="The boards are on their way back. Check again shortly." />
+        )}
       </Section>
 
       <Container>
@@ -142,12 +148,12 @@ export default function MembersContent() {
           <SectionHeader eyebrow="Our Community" title="Our Batches" />
         </Reveal>
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          {sortedBatches.map((batch, i) => (
-            <Reveal key={batch.name} delay={150 + i * 80}>
+          {batches.map((batch, i) => (
+            <Reveal key={batch.slug} delay={150 + i * 80}>
               <Card
                 interactive
                 className="group/card py-0"
-                render={<Link href={`/members/${getBatchSlug(batch.name)}`} prefetch={false} />}
+                render={<Link href={`/members/${batch.slug}`} prefetch={false} />}
               >
                 <CardMedia className="h-72 sm:h-80">
                   <Image
