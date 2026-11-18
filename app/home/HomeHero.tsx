@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { ButtonLink } from '@/components/ui/button';
 import { Container } from '@/components/ui/section';
 import { Text } from '@/components/ui/typography';
+import { trackClick } from '@/lib/analytics';
 import { cn } from '@/lib/utils';
 
 const heroImages = [
@@ -132,7 +133,12 @@ export function HomeHero() {
             the next generation of founders to dare, build, and belong.
           </Text>
           {applicationsOpen && (
-            <ButtonLink href="/join-start/2026" size="lg" className={enter('delay-500')}>
+            <ButtonLink
+              href="/join-start/2026"
+              size="lg"
+              className={enter('delay-500')}
+              {...trackClick('apply_cta_clicked', { location: 'home_hero' })}
+            >
               Apply Now
             </ButtonLink>
           )}

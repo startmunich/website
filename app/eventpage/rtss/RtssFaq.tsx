@@ -3,9 +3,22 @@
 import { motion } from 'motion/react';
 import { useState } from 'react';
 
-import { faqs } from './rtss-data';
+import { trackClick } from '@/lib/analytics';
+
+import { faqs, rtssConfig } from './rtss-data';
 import { Reveal, usePrefersReducedMotion } from './rtss-motion';
 import { Pill } from './rtss-ui';
+
+/** FAQ answers link to tickets and applications; count those with the CTAs. */
+function faqLinkEvent(href: string) {
+  if (href === rtssConfig.ticketUrl) {
+    return trackClick('ticket_cta_clicked', { page: 'rtss', location: 'faq' });
+  }
+  if (href === rtssConfig.applicationUrl) {
+    return trackClick('startup_application_clicked', { page: 'rtss', location: 'faq' });
+  }
+  return {};
+}
 
 /**
  * Single-open accordion. Answers collapse with an animated height so the row
@@ -79,6 +92,7 @@ export default function RtssFaq() {
                         <a
                           key={link.href}
                           href={link.href}
+                          {...faqLinkEvent(link.href)}
                           tabIndex={isOpen ? 0 : -1}
                           className="text-foreground underline decoration-brand-pink decoration-2 underline-offset-4"
                         >
