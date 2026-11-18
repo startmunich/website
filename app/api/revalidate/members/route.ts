@@ -9,7 +9,8 @@ import { MEMBERS_PLATFORM_TAG } from '@/lib/members';
  * Members-platform webhook target — makes a new portrait, name, batch or board seat appear on
  * `/members` immediately instead of after the one-hour ISR window.
  *
- * The platform calls it after a member or board change:
+ * The platform is meant to call it after a member or board change (not wired up on the platform
+ * side yet):
  *   POST https://www.startmunich.de/api/revalidate/members
  *   Authorization: Bearer <MEMBERS_PLATFORM_REVALIDATE_SECRET>
  *

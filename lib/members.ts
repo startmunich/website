@@ -153,7 +153,9 @@ export async function getMemberBatches(): Promise<MemberBatch[]> {
     const batch = str(row.batch);
     const profile = toProfile(row);
     if (!batch || !profile) continue;
-    byBatch.set(batch, [...(byBatch.get(batch) ?? []), profile]);
+    const list = byBatch.get(batch);
+    if (list) list.push(profile);
+    else byBatch.set(batch, [profile]);
   }
 
   return keys
@@ -162,14 +164,17 @@ export async function getMemberBatches(): Promise<MemberBatch[]> {
 }
 
 /**
- * One batch by its URL slug (`ws26`). `null` means the slug is not a batch at all, which the page
- * turns into a 404; a real batch whose members could not be fetched comes back with none.
+ * One batch by its URL slug (`ws26`). `null` means there is no such batch — the slug is malformed,
+ * or the platform answered and nobody is in that semester (yet) — which the page turns into a 404.
+ * A batch whose members could not be fetched (platform down) comes back with none instead.
  */
 export async function getMemberBatch(slug: string): Promise<MemberBatch | null> {
   const key = parseBatchSlug(slug);
   if (!key) return null;
 
   const rows = await fetchMembers([key]);
+  if (rows && rows.length === 0) return null;
+
   const members = (rows ?? [])
     .map(toProfile)
     .filter((profile): profile is MemberProfile => profile !== null);
@@ -204,7 +209,9 @@ export async function getBoards(): Promise<Board[]> {
   for (const row of rows ?? []) {
     const start = str(row.termStart);
     if (!start || !/^\d{4}$/.test(start)) continue;
-    terms.set(start, [...(terms.get(start) ?? []), row]);
+    const list = terms.get(start);
+    if (list) list.push(row);
+    else terms.set(start, [row]);
   }
 
   return [...terms.entries()]

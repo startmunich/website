@@ -82,6 +82,11 @@ describe('getMemberBatch', () => {
     expect(fetchFromPlatform).not.toHaveBeenCalled();
   });
 
+  test('treats a well-formed batch with no members as not a batch', async () => {
+    fetchFromPlatform.mockResolvedValue([]);
+    expect(await getMemberBatch('ws26')).toBeNull();
+  });
+
   test('returns an empty batch rather than null when the platform is down', async () => {
     fetchFromPlatform.mockResolvedValue(null);
     expect(await getMemberBatch('WS26')).toMatchObject({ slug: 'ws26', members: [] });
@@ -133,6 +138,20 @@ describe('getBoards', () => {
     ]);
     expect(boards[1]).toMatchObject({ current: false, imageUrl: '/ourMembers/boads/boad26.jpeg' });
     expect(boards[2].departmentBoard).toEqual([]);
+  });
+
+  test('marks a board current only while one of its seats has no term end', async () => {
+    fetchFromPlatform.mockResolvedValue([
+      seat('p26', '2026', 'executive', 'President', { termEnd: '2027' }),
+      seat('p25', '2025', 'executive', 'President'),
+    ]);
+
+    const boards = await getBoards();
+
+    expect(boards.map((b) => [b.id, b.current])).toEqual([
+      ['26-27', false],
+      ['25-26', false],
+    ]);
   });
 
   test('is empty when the platform is down', async () => {
