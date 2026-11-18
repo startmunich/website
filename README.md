@@ -74,17 +74,18 @@ table holds applicant email addresses, which is why it was not migrated to Sanit
 
 ### Other services
 
-| Variable                            | Required | Notes                                                                                    |
-| ----------------------------------- | -------- | ---------------------------------------------------------------------------------------- |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY`    | yes²     | Baked into the client bundle at build time                                               |
-| `TURNSTILE_SECRET_KEY`              | yes²     | Server-side Siteverify                                                                   |
-| `STARTMUNICH_API_KEY`               | no       | Events, board data, member batch details from my.startmunich.de                          |
-| `MEMBERS_PLATFORM_API_URL`          | no       | Override to point at a local members platform; defaults to `https://my.startmunich.de`   |
-| `LUMA_API_KEY`                      | no       | Event **fallback**; only needed when the members platform API is unset or unreachable    |
-| `LUMA_CALENDAR_ID`                  | no       | Restricts the Luma fallback to one calendar; omit to read every calendar the key can see |
-| `LUMA_DEBUG`                        | no       | Set to `1` to log per-request Luma summaries                                             |
-| `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` | no       | Omit to disable analytics entirely                                                       |
-| `NEXT_PUBLIC_BASE_URL`              | no       | Absolute URLs for share links; Vercel sets this for prod                                 |
+| Variable                             | Required | Notes                                                                                    |
+| ------------------------------------ | -------- | ---------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY`     | yes²     | Baked into the client bundle at build time                                               |
+| `TURNSTILE_SECRET_KEY`               | yes²     | Server-side Siteverify                                                                   |
+| `STARTMUNICH_API_KEY`                | no       | Events, boards and member batches from my.startmunich.de                                 |
+| `MEMBERS_PLATFORM_API_URL`           | no       | Override to point at a local members platform; defaults to `https://my.startmunich.de`   |
+| `MEMBERS_PLATFORM_REVALIDATE_SECRET` | no       | Bearer secret for `POST /api/revalidate/members`; without it `/members` updates hourly   |
+| `LUMA_API_KEY`                       | no       | Event **fallback**; only needed when the members platform API is unset or unreachable    |
+| `LUMA_CALENDAR_ID`                   | no       | Restricts the Luma fallback to one calendar; omit to read every calendar the key can see |
+| `LUMA_DEBUG`                         | no       | Set to `1` to log per-request Luma summaries                                             |
+| `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN`  | no       | Omit to disable analytics entirely                                                       |
+| `NEXT_PUBLIC_BASE_URL`               | no       | Absolute URLs for share links; Vercel sets this for prod                                 |
 
 ### Where to set them
 
@@ -131,20 +132,54 @@ Pages (App Router, `app/`):
 
 API routes (`app/api/`), all read-only and ISR-cached for an hour:
 
-| Route                         | Source                     |
-| ----------------------------- | -------------------------- |
-| `GET /api/startups`           | Sanity — all companies     |
-| `GET /api/members/batch/[id]` | Members platform           |
-| `GET /api/member-network`     | Sanity — network companies |
-| `GET /api/partners`           | Sanity — partners          |
-| `GET /api/board`              | Members platform           |
-| `POST /api/waitlist`          | NocoDB waitlist table      |
+| Route                     | Source                     |
+| ------------------------- | -------------------------- |
+| `GET /api/startups`       | Sanity — all companies     |
+| `GET /api/member-network` | Sanity — network companies |
+| `GET /api/partners`       | Sanity — partners          |
+| `POST /api/waitlist`      | NocoDB waitlist table      |
 
 `GET /api/members` was removed with the NocoDB migration: its backing table no longer existed and it
-already returned `[]` in production. `/members` renders from `/api/members/batch/[id]` instead.
+already returned `[]` in production. `GET /api/board` and `GET /api/members/batch/[id]` were removed
+when `/members` moved to server rendering: nothing else consumed them, and `lib/members.ts` now
+reads the platform directly. See [Members](#members--people-come-from-the-members-platform).
+
+Two webhook targets (not read-only, secret-protected) flush the ISR cache on demand:
+`POST /api/revalidate` for Sanity and `POST /api/revalidate/members` for the members platform.
 
 The old `GET /api/luma/upcoming-events` and `GET /api/luma/past-events` passthroughs were removed —
 nothing consumed them, and `/events` reads its data on the server.
+
+## Members — people come from the members platform
+
+`/members` and `/members/[batch]` render straight from my.startmunich.de (`lib/members.ts`), on the
+server. The platform is the source of truth for every person on those pages: name, portrait, batch,
+board seat and role, and which social links they made public. Nothing about a person lives in this
+repo or in Sanity, so there is no sync job and nothing to keep in step.
+
+| What happens on the platform                 | What `/members` does                                       |
+| -------------------------------------------- | ---------------------------------------------------------- |
+| A member uploads or changes their portrait   | The new portrait shows under their name                    |
+| A new batch is onboarded (e.g. Winter 2026)  | A batch card and `/members/ws26` appear with its members   |
+| A new board term is entered                  | A new board card appears, marked _Current_, seats in order |
+| A member makes their LinkedIn public/private | The LinkedIn link appears/disappears on their card         |
+| A member's membership is cancelled           | They drop off their batch page                             |
+
+Portrait URLs are content-hashed on the platform, so a new upload is a new URL and never stale in a
+browser or CDN cache. Reads are ISR-cached for an hour and tagged; the platform can make a change
+show up immediately by calling:
+
+```bash
+curl -X POST https://www.startmunich.de/api/revalidate/members \
+  -H "Authorization: Bearer $MEMBERS_PLATFORM_REVALIDATE_SECRET"
+```
+
+**The one manual step:** group photos. They are marketing assets, not platform data, and live in
+`public/ourMembers/` mapped by `BATCH_PHOTOS` / `BOARD_PHOTOS` in `lib/members.ts`. A batch or board
+without one shows the hero image until it is added.
+
+If the platform is unreachable, `/members` still lists the batches that have a group photo, and the
+boards section shows an empty state, rather than failing the page.
 
 ## Events — events reach the page automatically
 
@@ -479,7 +514,7 @@ To change the brand, edit the palette at the top of `app/globals.css`; every com
 - **NocoDB** — waitlist submissions only. Kept deliberately: it holds applicant emails and the
   Sanity dataset is world-readable. See [`docs/nocodb-migration.md`](docs/nocodb-migration.md).
 - **my.startmunich.de** — the members platform API, authenticated with `STARTMUNICH_API_KEY`: events
-  (`/api/v1/public/events`), board data, and member batch details.
+  (`/api/v1/public/events`), boards and member batches (`lib/members.ts`).
 - **Luma** — the event **fallback**, used only when the members platform API is unconfigured or
   unreachable, so `/events` keeps working without it. The platform syncs Luma every few hours, so
   creating an event on Luma makes it appear here without any deploy. See

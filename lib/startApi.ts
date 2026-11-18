@@ -38,8 +38,14 @@ export class PlatformError extends Error {
  * Returns `null` — never throws — when the key is missing or the call fails, so a caller can
  * degrade to empty rather than take the page down. AGENTS.md asks for exactly this: a missing
  * token or an unreachable upstream must still render.
+ *
+ * `tags` lets a caller flush its reads on demand (`revalidateTag`) instead of waiting out the ISR
+ * window — see `app/api/revalidate/members/route.ts`.
  */
-export async function fetchFromPlatform<T>(path: string): Promise<T[] | null> {
+export async function fetchFromPlatform<T>(
+  path: string,
+  { tags }: { tags?: string[] } = {},
+): Promise<T[] | null> {
   const apiKey = process.env.STARTMUNICH_API_KEY;
   if (!apiKey) return null;
 
@@ -47,7 +53,7 @@ export async function fetchFromPlatform<T>(path: string): Promise<T[] | null> {
     const response = await fetch(`${platformBaseUrl()}${path}`, {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
       signal: AbortSignal.timeout(PLATFORM_TIMEOUT_MS),
-      next: { revalidate: PLATFORM_REVALIDATE_SECONDS },
+      next: { revalidate: PLATFORM_REVALIDATE_SECONDS, tags },
     });
 
     if (!response.ok) {
