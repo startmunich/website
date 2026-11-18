@@ -486,6 +486,42 @@ deliberate cost trade-off (each additional format is billed as a separate transf
 Analytics requests are rewritten to the EU PostHog endpoints from the browser, so no
 `api.east-*.posthog.com` calls leave the EU.
 
+## Analytics
+
+PostHog is initialised in [`instrumentation-client.ts`](instrumentation-client.ts), which also
+registers one document-level click listener. Elements are tagged declaratively with `trackClick()`
+from [`lib/analytics.ts`](lib/analytics.ts), so Server Components can be instrumented without
+becoming client components:
+
+```tsx
+<a href={ticketUrl} {...trackClick('ticket_cta_clicked', { page: 'rtss', location: 'hero' })}>
+```
+
+Every click event carries `label` (aria-label or visible text) and `href`, plus the properties
+passed to `trackClick()`. PostHog adds `$pathname` itself. Untagged links to another host are
+captured as `outbound_link_clicked` automatically, so new external links are covered without code.
+
+| Event                         | Where                                                          | Extra properties          |
+| ----------------------------- | -------------------------------------------------------------- | ------------------------- |
+| `ticket_cta_clicked`          | RTSS "Tickets" button and the FAQ ticket link                  | `page`, `location`        |
+| `startup_application_clicked` | RTSS "Start-Ups" button and the FAQ application link           | `page`, `location`        |
+| `section_nav_clicked`         | RTSS header and footer in-page navigation                      | `page`, `location`        |
+| `speaker_link_clicked`        | RTSS speaker LinkedIn link (in the bio dialog)                 | `page`, `speaker`         |
+| `partner_link_clicked`        | RTSS partner cards                                             | `page`, `partner`         |
+| `directions_clicked`          | RTSS venue link in the footer                                  | `page`                    |
+| `apply_cta_clicked`           | Home hero "Apply Now", Labs "Apply Now" (header, hero, finale) | `location`, `page` (Labs) |
+| `cta_clicked`                 | Buttons in the closing `CtaBanner` on any page                 | `location: cta_banner`    |
+| `event_card_clicked`          | An event card on `/events` (opens the Luma page)               | `event_title`             |
+| `event_registration_clicked`  | The register button on an event card (`/join-start/2026`)      | `event_title`             |
+| `outbound_link_clicked`       | Any other link to another host                                 | `host`                    |
+
+RTSS `location` values are `header`, `schedule`, `finale` and `faq`. "How many visitors look at
+tickets" is a trend of `ticket_cta_clicked` (break down by `location`) against `$pageview` on
+`/eventpage/rtss`. The events listed in `posthog-setup-report.md` (`nav_apply_clicked`,
+`application_started`, `startup_card_clicked`, …) are still captured by their `onClick` handlers;
+when one of those links leaves the site (e.g. `startup_website_clicked`) it also emits
+`outbound_link_clicked`.
+
 ## Design System
 
 Colours, radii, typography, spacing and motion are tokens in [`app/globals.css`](app/globals.css)

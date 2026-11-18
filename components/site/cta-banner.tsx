@@ -2,6 +2,7 @@ import * as React from 'react';
 
 import { ButtonLink } from '@/components/ui/button';
 import { Heading, Text } from '@/components/ui/typography';
+import { trackClick } from '@/lib/analytics';
 import { cn } from '@/lib/utils';
 
 export interface CtaAction {
@@ -85,6 +86,7 @@ export function CtaBanner({
               key={action.href}
               href={action.href}
               external={action.external}
+              {...trackClick('cta_clicked', { location: 'cta_banner' })}
               variant={action.variant ?? (i === 0 ? 'default' : 'soft')}
               size="lg"
               shape="pill"

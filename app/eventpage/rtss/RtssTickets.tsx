@@ -34,7 +34,7 @@ export default function RtssTickets() {
           or apply as a startup
         </h2>
         <div className="mt-9 flex justify-center">
-          <SplitCta />
+          <SplitCta location="finale" />
         </div>
       </div>
       {/* Runtime MotionValues bind the artwork to this section’s scroll progress. */}

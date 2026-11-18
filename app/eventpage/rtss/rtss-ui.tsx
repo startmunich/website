@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import type { ReactNode } from 'react';
 
+import { trackClick } from '@/lib/analytics';
 import { cn } from '@/lib/utils';
 
 import { rtssConfig } from './rtss-data';
@@ -38,8 +39,9 @@ export function Pill({ children }: { children: ReactNode }) {
 
 /**
  * The paired event actions for attendee tickets and startup applications.
+ * `location` tells the placements apart in analytics.
  */
-export function SplitCta() {
+export function SplitCta({ location }: { location: string }) {
   return (
     <div
       role="group"
@@ -48,6 +50,7 @@ export function SplitCta() {
     >
       <a
         href={rtssConfig.ticketUrl}
+        {...trackClick('ticket_cta_clicked', { page: 'rtss', location })}
         className="flex items-center justify-center gap-2.5 py-[7px] pr-[18px] pl-1.5 text-base whitespace-nowrap transition-colors hover:bg-white max-sm:gap-2 max-sm:py-1.5 max-sm:pr-4 max-sm:pl-1.5 max-sm:text-base"
       >
         <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand-navy text-foreground">
@@ -57,6 +60,7 @@ export function SplitCta() {
       </a>
       <a
         href={rtssConfig.applicationUrl}
+        {...trackClick('startup_application_clicked', { page: 'rtss', location })}
         className="flex items-center justify-center gap-2.5 border-l border-muted px-[18px] py-[7px] text-base whitespace-nowrap transition-colors hover:bg-white max-sm:px-4 max-sm:py-1.5 max-sm:text-base"
       >
         Start-Ups

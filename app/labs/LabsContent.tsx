@@ -4,6 +4,7 @@ import { EmbedHeightReporter } from '@/components/site/embed-height-reporter';
 import { Faq } from '@/components/site/faq';
 import { NoiseTexture } from '@/components/ui/noise-texture';
 import { Container } from '@/components/ui/section';
+import { trackClick } from '@/lib/analytics';
 
 import { Glow, LabsCard, LabsCta, LabsHeading, LabsLabel, LabsSection } from './components';
 import { APPLY_URL, criteria, formatSpecs, labsFaqs } from './data';
@@ -33,7 +34,12 @@ function LabsNavigation() {
               {link.label}
             </a>
           ))}
-          <LabsCta href={APPLY_URL} external={false} className="px-4 py-2 md:px-6">
+          <LabsCta
+            href={APPLY_URL}
+            external={false}
+            className="px-4 py-2 md:px-6"
+            {...trackClick('apply_cta_clicked', { page: 'labs', location: 'header' })}
+          >
             <span className="md:hidden">Apply</span>
             <span className="hidden md:inline">Apply Now</span>
           </LabsCta>
@@ -74,7 +80,12 @@ function HeroSection() {
             <br />
             We just make you build a company. Like actually.
           </p>
-          <LabsCta href={APPLY_URL}>Apply Now</LabsCta>
+          <LabsCta
+            href={APPLY_URL}
+            {...trackClick('apply_cta_clicked', { page: 'labs', location: 'hero' })}
+          >
+            Apply Now
+          </LabsCta>
           <p className="font-mono text-xs text-muted-foreground">
             {'// Deadline: 30 April 2026 · Limited spots · Munich, in-person'}
           </p>
@@ -348,7 +359,12 @@ function ApplySection() {
         <br />
         <span className="text-primary">Start building.</span>
       </LabsHeading>
-      <LabsCta href={APPLY_URL}>Apply Now</LabsCta>
+      <LabsCta
+        href={APPLY_URL}
+        {...trackClick('apply_cta_clicked', { page: 'labs', location: 'finale' })}
+      >
+        Apply Now
+      </LabsCta>
     </LabsSection>
   );
 }

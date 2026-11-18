@@ -19,7 +19,7 @@ export default function RtssSchedule() {
         <p className="mb-[42px] text-[20px] leading-[1.4] tracking-[-0.035em] text-muted-foreground max-sm:mb-[30px] max-sm:text-[18px]">
           Live pitches. Bold ideas. Real connections. Join us from 17:00.
         </p>
-        <SplitCta />
+        <SplitCta location="schedule" />
         <p
           id="registration"
           className="mt-6 scroll-mt-8 text-[17px] leading-[1.5] text-muted-foreground"

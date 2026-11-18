@@ -1,6 +1,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
+import { trackClick } from '@/lib/analytics';
+
 import { rtssConfig } from './rtss-data';
 import { rtssImage } from './rtss-ui';
 
@@ -32,7 +34,12 @@ export default function RtssFooter() {
           className="flex flex-wrap gap-[50px] text-[20px] tracking-[-0.04em] max-sm:gap-6 max-sm:text-[17px]"
         >
           {sectionLinks.map(([label, href]) => (
-            <a key={href} href={href} className="transition-colors hover:text-brand-pink">
+            <a
+              key={href}
+              href={href}
+              {...trackClick('section_nav_clicked', { page: 'rtss', location: 'footer' })}
+              className="transition-colors hover:text-brand-pink"
+            >
               {label}
             </a>
           ))}
@@ -55,6 +62,7 @@ export default function RtssFooter() {
         <span>{rtssConfig.title}</span>
         <a
           href={rtssConfig.directionsUrl}
+          {...trackClick('directions_clicked', { page: 'rtss' })}
           target="_blank"
           rel="noopener noreferrer"
           className="transition-colors hover:text-brand-pink"

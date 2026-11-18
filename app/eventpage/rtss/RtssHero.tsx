@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useRef, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { trackClick } from '@/lib/analytics';
 
 import { navItems, rtssConfig } from './rtss-data';
 import { usePrefersReducedMotion } from './rtss-motion';
@@ -94,6 +95,7 @@ export default function RtssHero() {
               key={href}
               href={href}
               onClick={() => setMenuOpen(false)}
+              {...trackClick('section_nav_clicked', { page: 'rtss', location: 'header' })}
               className="text-[17px] font-bold whitespace-nowrap underline-offset-4 hover:underline max-sm:py-3"
             >
               {label}
@@ -103,7 +105,7 @@ export default function RtssHero() {
       </nav>
 
       <div className="relative z-10 flex items-center justify-end p-6 max-sm:p-4">
-        <SplitCta />
+        <SplitCta location="header" />
       </div>
 
       {/* One <picture>, not two <Image>s. With both mounted, every viewport

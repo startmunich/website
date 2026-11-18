@@ -2,6 +2,7 @@ import Image from 'next/image';
 
 import { ButtonLink } from '@/components/ui/button';
 import { Card, CardMedia } from '@/components/ui/card';
+import { trackClick } from '@/lib/analytics';
 import { isRemoteImage } from '@/lib/images';
 import { cn } from '@/lib/utils';
 
@@ -62,6 +63,7 @@ export function EventCard({
               <ButtonLink
                 href={ctaHref}
                 external
+                {...trackClick('event_registration_clicked', { event_title: title })}
                 className="w-full text-xs tracking-wide uppercase"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -89,7 +91,14 @@ export function EventCard({
   if (href) {
     return (
       <Card
-        render={<a href={href} target="_blank" rel="noopener noreferrer" />}
+        render={
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            {...trackClick('event_card_clicked', { event_title: title })}
+          />
+        }
         className={classes}
       >
         {body}

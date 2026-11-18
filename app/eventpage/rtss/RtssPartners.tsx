@@ -1,5 +1,7 @@
 import Image from 'next/image';
 
+import { trackClick } from '@/lib/analytics';
+
 import { Pill } from './rtss-ui';
 
 export default function RtssPartners() {
@@ -28,6 +30,7 @@ export default function RtssPartners() {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Visit UVC Partners (opens in a new tab)"
+          {...trackClick('partner_link_clicked', { page: 'rtss', partner: 'UVC Partners' })}
           className="group relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border-2 border-transparent bg-foreground/10 transition-colors hover:border-primary hover:bg-background focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary max-sm:aspect-square max-sm:w-full"
         >
           <Image
@@ -53,6 +56,7 @@ export default function RtssPartners() {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Visit remberg (opens in a new tab)"
+          {...trackClick('partner_link_clicked', { page: 'rtss', partner: 'remberg' })}
           className="group relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border-2 border-transparent bg-foreground/10 transition-colors hover:border-primary hover:bg-background focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary max-sm:aspect-square max-sm:w-full"
         >
           <Image
@@ -78,6 +82,7 @@ export default function RtssPartners() {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Visit Media Lab Bayern (opens in a new tab)"
+          {...trackClick('partner_link_clicked', { page: 'rtss', partner: 'Media Lab Bayern' })}
           className="group relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border-2 border-transparent bg-foreground/10 transition-colors hover:border-primary hover:bg-background focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary max-sm:aspect-square"
         >
           <Image
@@ -103,6 +108,7 @@ export default function RtssPartners() {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Visit TYTAN Technologies (opens in a new tab)"
+          {...trackClick('partner_link_clicked', { page: 'rtss', partner: 'TYTAN Technologies' })}
           className="group relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border-2 border-transparent bg-foreground/10 transition-colors hover:border-primary hover:bg-background focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary max-sm:aspect-square"
         >
           <Image
@@ -128,6 +134,7 @@ export default function RtssPartners() {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Visit Climate Founders (opens in a new tab)"
+          {...trackClick('partner_link_clicked', { page: 'rtss', partner: 'Climate Founders' })}
           className="group relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border-2 border-transparent bg-foreground/10 transition-colors hover:border-primary hover:bg-background focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary max-sm:aspect-square"
         >
           <Image

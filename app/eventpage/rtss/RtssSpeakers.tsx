@@ -11,6 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { trackClick } from '@/lib/analytics';
 
 import { speakersAndJury } from './rtss-data';
 import { Pill, rtssImage } from './rtss-ui';
@@ -75,6 +76,7 @@ export default function RtssSpeakers() {
                   </DialogDescription>
                   <ButtonLink
                     href={person.linkedin}
+                    {...trackClick('speaker_link_clicked', { page: 'rtss', speaker: person.name })}
                     target="_blank"
                     rel="noopener noreferrer"
                     variant="link"
