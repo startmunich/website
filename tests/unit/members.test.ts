@@ -39,7 +39,7 @@ describe('getMemberBatches', () => {
     expect(batches.map((b) => b.slug)).toEqual(['ws26', 'ss26', 'ws25']);
     expect(batches[0]).toMatchObject({
       name: 'Winter 2026',
-      groupImageUrl: '/ourMembers/hero-opt.png',
+      groupImageUrl: '/ourMembers/batches_group_pictures/WS26-opt.jpg',
     });
     expect(batches[1].groupImageUrl).toBe('/ourMembers/batches_group_pictures/SS26-opt.jpg');
     // Portraits first, then by name.
@@ -64,7 +64,7 @@ describe('getMemberBatches', () => {
 
     expect(batches.length).toBeGreaterThan(0);
     expect(batches.every((b) => b.members.length === 0)).toBe(true);
-    expect(batches.map((b) => b.slug)).not.toContain('ws26');
+    expect(batches.map((b) => b.slug)).toContain('ws26');
   });
 
   test('drops rows without an id or name', async () => {
@@ -129,7 +129,7 @@ describe('getBoards', () => {
       name: 'Board 26-27',
       years: '2026-2027',
       current: true,
-      imageUrl: '/ourMembers/hero-opt.png',
+      imageUrl: '/ourMembers/boads/board27.jpg',
     });
     expect(boards[0].executiveBoard.map((s) => s.role)).toEqual(['President', 'Vice President']);
     // A seat without a role title falls back to its department.

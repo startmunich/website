@@ -43,12 +43,14 @@ const BATCH_PHOTOS: Record<string, string> = {
   ss25: 'SS25-opt.jpg',
   ws25: 'WS25-opt.jpg',
   ss26: 'SS26-opt.jpg',
+  ws26: 'WS26-opt.jpg',
 };
 
 /** Board group photos, keyed by the term's start year. */
 const BOARD_PHOTOS: Record<string, string> = {
   '2024': '/ourMembers/boads/board25.jpg',
   '2025': '/ourMembers/boads/boad26.jpeg',
+  '2026': '/ourMembers/boads/board27.jpg',
 };
 
 type Semester = 'WS' | 'SS';
