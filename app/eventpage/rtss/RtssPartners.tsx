@@ -184,6 +184,35 @@ export default function RtssPartners() {
             ↗
           </span>
         </a>
+        <a
+          href="https://se3.ai"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Visit SE3 Labs (opens in a new tab)"
+          {...trackClick('partner_link_clicked', {
+            page: 'rtss',
+            partner: 'SE3 Labs',
+          })}
+          className="group relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border-2 border-transparent bg-foreground/10 transition-colors hover:border-primary hover:bg-background focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary max-sm:aspect-square"
+        >
+          <Image
+            src="/eventpage/rtss/se3-labs.svg"
+            alt="SE3 Labs"
+            width={90}
+            height={33}
+            sizes="(max-width: 639px) 60vw, (max-width: 1023px) 30vw, 20vw"
+            className="h-auto w-2/3 brightness-0 invert"
+          />
+          <span className="absolute bottom-4 left-4 rounded-lg bg-background px-3 py-1.5 text-sm tracking-[-0.04em]">
+            SE3 Labs
+          </span>
+          <span
+            aria-hidden="true"
+            className="absolute right-5 bottom-4 text-3xl opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+          >
+            ↗
+          </span>
+        </a>
       </div>
     </section>
   );
