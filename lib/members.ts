@@ -4,7 +4,7 @@ import type { Board, BoardSeat, MemberBatch, MemberProfile } from './memberTypes
 import { fetchFromPlatform } from './startApi';
 
 /**
- * Members and boards for `/members`, read straight from the members platform (my.startmunich.de).
+ * Members and boards for `/members` and `/about-us`, read straight from the members platform (my.startmunich.de).
  *
  * The platform is the source of truth for people: names, portraits, batches, board seats and
  * which social links a member chose to make public. Nothing about a person is copied into this
@@ -190,14 +190,7 @@ function toSeat(raw: PlatformBoardMember): BoardSeat | null {
   return { ...profile, role: str(raw.role) ?? str(raw.department?.name) ?? '' };
 }
 
-/**
- * Every board term on the platform, newest first, with its seats split by level.
- *
- * The platform already returns seats in org-chart order (executive first, then
- * President → VP → CFO → the rest, departments by their configured order), and each `filter`
- * below preserves it. Boards from before the two-tier structure are entirely `executive`, so their
- * department board is simply empty.
- */
+/** Every board term on the platform, newest first, with its seats split by level. */
 export async function getBoards(): Promise<Board[]> {
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: currentYear - FIRST_YEAR + 1 }, (_, i) => FIRST_YEAR + i);
@@ -218,23 +211,57 @@ export async function getBoards(): Promise<Board[]> {
 
   return [...terms.entries()]
     .sort(([a], [b]) => Number(b) - Number(a))
-    .map(([start, seats]) => {
-      const from = Number(start);
-      const short = `${String(from).slice(-2)}-${String(from + 1).slice(-2)}`;
-      const seatsAt = (level: string) =>
-        seats
-          .filter((seat) => seat.level === level)
-          .map(toSeat)
-          .filter((seat): seat is BoardSeat => seat !== null);
+    .map(([start, seats]) => toBoard(start, seats));
+}
 
-      return {
-        id: short,
-        name: `Board ${short}`,
-        years: `${from}-${from + 1}`,
-        current: seats.some((seat) => seat.termEnd === null),
-        imageUrl: BOARD_PHOTOS[start] ?? FALLBACK_IMAGE,
-        executiveBoard: seatsAt('executive'),
-        departmentBoard: seatsAt('department'),
-      };
-    });
+/**
+ * The board in office right now (`/about-us`), or `null` if the platform is unreachable or has no
+ * current board — the page then leaves the board sections out rather than showing stale names.
+ *
+ * Uses the platform's `current=true` filter (no term end yet), so a board handover needs no change
+ * here: the new board shows up as soon as it is entered on the platform.
+ */
+export async function getCurrentBoard(): Promise<Board | null> {
+  const rows = await fetchFromPlatform<PlatformBoardMember>('/api/v1/public/board?current=true', {
+    tags: [MEMBERS_PLATFORM_TAG],
+  });
+
+  // Mid-handover two terms can briefly overlap; the newest one is the board in office.
+  const start = (rows ?? [])
+    .map((row) => str(row.termStart))
+    .filter((year): year is string => year !== undefined && /^\d{4}$/.test(year))
+    .sort()
+    .at(-1);
+  if (!rows || !start) return null;
+
+  return toBoard(
+    start,
+    rows.filter((row) => str(row.termStart) === start),
+  );
+}
+
+/**
+ * One term's seats, split by level. The platform already returns seats in org-chart order
+ * (executive first, then President → VP → CFO → the rest, departments by their configured order),
+ * and each `filter` below preserves it. Boards from before the two-tier structure are entirely
+ * `executive`, so their department board is simply empty.
+ */
+function toBoard(start: string, seats: PlatformBoardMember[]): Board {
+  const from = Number(start);
+  const short = `${String(from).slice(-2)}-${String(from + 1).slice(-2)}`;
+  const seatsAt = (level: string) =>
+    seats
+      .filter((seat) => seat.level === level)
+      .map(toSeat)
+      .filter((seat): seat is BoardSeat => seat !== null);
+
+  return {
+    id: short,
+    name: `Board ${short}`,
+    years: `${from}-${from + 1}`,
+    current: seats.some((seat) => seat.termEnd === null),
+    imageUrl: BOARD_PHOTOS[start] ?? FALLBACK_IMAGE,
+    executiveBoard: seatsAt('executive'),
+    departmentBoard: seatsAt('department'),
+  };
 }

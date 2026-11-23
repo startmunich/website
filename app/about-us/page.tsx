@@ -4,6 +4,9 @@ import { OG_IMAGES } from '@/lib/metadata';
 
 import AboutUsContent from './AboutUsContent';
 
+// The board is read from the members platform at request time (see `lib/members.ts`).
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'About Us',
   description:

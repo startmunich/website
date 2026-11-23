@@ -11,64 +11,11 @@ import { Reveal } from '@/components/ui/reveal';
 import { Container, Section, SectionHeader } from '@/components/ui/section';
 import { Separator } from '@/components/ui/separator';
 import { Eyebrow, Heading, Text } from '@/components/ui/typography';
+import { getCurrentBoard } from '@/lib/members';
 import { siteLinks } from '@/lib/site';
 import { cn } from '@/lib/utils';
 
 import { AdvisoryBoard } from './AdvisoryBoard';
-
-const executiveBoard = [
-  {
-    name: 'Niklas Drössler',
-    role: 'President',
-    photo: '/aboutUs/Board/Niklas-opt.jpg',
-    linkedinUrl: 'https://www.linkedin.com/in/niklasdroessler/',
-  },
-  {
-    name: 'Eva Feische',
-    role: 'Vice President',
-    photo: '/aboutUs/Board/Eva-opt.jpg',
-    linkedinUrl: 'https://www.linkedin.com/in/eva-feische-040038251/',
-  },
-  {
-    name: 'Moritz Gubitzer',
-    role: 'CFO',
-    photo: '/aboutUs/Board/Moritz-opt.jpg',
-    linkedinUrl: 'https://www.linkedin.com/in/moritz-gubitzer/',
-  },
-];
-
-const departmentBoard = [
-  {
-    name: 'Carolin Gerber',
-    role: 'MD Events',
-    photo: '/aboutUs/Board/Carolin-opt.jpg',
-    linkedinUrl: 'https://www.linkedin.com/in/carolin-gerber-798608252/',
-  },
-  {
-    name: 'Valentin Ahrend',
-    role: 'MD Marketing',
-    photo: '/aboutUs/Board/Valentin-opt.jpg',
-    linkedinUrl: 'https://www.linkedin.com/in/valentin-ahrend-583983311/',
-  },
-  {
-    name: 'Rafael Edmaier',
-    role: 'MD People',
-    photo: '/aboutUs/Board/Rafael-opt.jpg',
-    linkedinUrl: 'https://www.linkedin.com/in/rafael-edmaier/',
-  },
-  {
-    name: 'Mete Reis Kizildag',
-    role: 'MD Technology & Operations',
-    photo: '/aboutUs/Board/Mete-opt.jpg',
-    linkedinUrl: 'https://www.linkedin.com/in/mrkizildag/',
-  },
-  {
-    name: 'Younus Mühlenweg',
-    role: 'MD Partnerships',
-    photo: '/aboutUs/Board/Younus-opt.jpg',
-    linkedinUrl: 'https://www.linkedin.com/in/younus-wm/',
-  },
-];
 
 const missionPartners = [
   {
@@ -124,7 +71,13 @@ function LogoBadge({ src, alt, light = false }: { src?: string; alt: string; lig
   );
 }
 
-export default function AboutUsContent() {
+export default async function AboutUsContent() {
+  // Portraits, names, roles and LinkedIn links come from the members platform, same as `/members`.
+  // If it can't be reached the board sections are left out rather than showing a stale list.
+  const board = await getCurrentBoard();
+  const executiveBoard = board?.executiveBoard ?? [];
+  const departmentBoard = board?.departmentBoard ?? [];
+
   return (
     <>
       <PageHero
@@ -281,67 +234,71 @@ export default function AboutUsContent() {
       </Container>
 
       {/* Executive board */}
-      <Section spacing="lg" className="pb-4 md:pb-4">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute top-0 right-0 size-[500px] rounded-full bg-primary/5 blur-[160px]"
-        />
-        <Reveal className="relative grid grid-cols-1 items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-16">
-          <SectionHeader
-            eyebrow="Meet the Team"
-            className="mb-0 md:mb-0"
-            title={
-              <>
-                The
-                <br />
-                Executive
-                <br />
-                Board
-              </>
-            }
+      {executiveBoard.length > 0 && (
+        <Section spacing="lg" className="pb-4 md:pb-4">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute top-0 right-0 size-[500px] rounded-full bg-primary/5 blur-[160px]"
           />
-          <div className="grid grid-cols-2 justify-items-center gap-8 sm:grid-cols-3">
-            {executiveBoard.map((member, i) => (
-              <Reveal key={member.name} delay={200 + i * 100}>
-                <ProfileCard
-                  name={member.name}
-                  role={member.role}
-                  imageUrl={member.photo}
-                  linkedinUrl={member.linkedinUrl}
-                  size="lg"
-                />
-              </Reveal>
-            ))}
-          </div>
-        </Reveal>
-      </Section>
+          <Reveal className="relative grid grid-cols-1 items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:gap-16">
+            <SectionHeader
+              eyebrow="Meet the Team"
+              className="mb-0 md:mb-0"
+              title={
+                <>
+                  The
+                  <br />
+                  Executive
+                  <br />
+                  Board
+                </>
+              }
+            />
+            <div className="grid grid-cols-2 justify-items-center gap-8 sm:grid-cols-3">
+              {executiveBoard.map((member, i) => (
+                <Reveal key={`${member.id}-${member.role}`} delay={200 + i * 100}>
+                  <ProfileCard
+                    name={member.name}
+                    role={member.role}
+                    imageUrl={member.imageUrl}
+                    linkedinUrl={member.linkedinUrl}
+                    size="lg"
+                  />
+                </Reveal>
+              ))}
+            </div>
+          </Reveal>
+        </Section>
+      )}
 
       {/* Department board */}
-      <Section spacing="none" className="pt-4 pb-20 md:pb-28">
-        <Reveal>
-          <Card size="lg">
-            <div className="px-(--card-spacing)">
-              <div className="mb-8 flex items-center gap-3">
-                <span className="h-px w-6 bg-primary" />
-                <Eyebrow render={<span />}>The Department Board</Eyebrow>
+      {departmentBoard.length > 0 && (
+        <Section spacing="none" className="pt-4 pb-20 md:pb-28">
+          <Reveal>
+            <Card size="lg">
+              <div className="px-(--card-spacing)">
+                <div className="mb-8 flex items-center gap-3">
+                  <span className="h-px w-6 bg-primary" />
+                  <Eyebrow render={<span />}>The Department Board</Eyebrow>
+                </div>
+                <div className="grid grid-cols-2 justify-items-center gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-5">
+                  {departmentBoard.map((member, i) => (
+                    <Reveal key={`${member.id}-${member.role}`} delay={200 + i * 100}>
+                      <ProfileCard
+                        name={member.name}
+                        role={member.role}
+                        imageUrl={member.imageUrl}
+                        linkedinUrl={member.linkedinUrl}
+                        sizes="(max-width: 640px) 144px, 176px"
+                      />
+                    </Reveal>
+                  ))}
+                </div>
               </div>
-              <div className="grid grid-cols-2 justify-items-center gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-5">
-                {departmentBoard.map((member, i) => (
-                  <Reveal key={member.name} delay={200 + i * 100}>
-                    <ProfileCard
-                      name={member.name}
-                      role={member.role}
-                      imageUrl={member.photo}
-                      linkedinUrl={member.linkedinUrl}
-                      sizes="(max-width: 640px) 144px, 176px"
-                    />
-                  </Reveal>
-                ))}
-              </div>
-            </div>
-          </Card>
-        </Reveal>
-      </Section>
+            </Card>
+          </Reveal>
+        </Section>
+      )}
 
       <AdvisoryBoard />
 
