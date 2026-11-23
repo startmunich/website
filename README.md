@@ -152,16 +152,18 @@ nothing consumed them, and `/events` reads its data on the server.
 
 ## Members — people come from the members platform
 
-`/members` and `/members/[batch]` render straight from my.startmunich.de (`lib/members.ts`), on the
-server. The platform is the source of truth for every person on those pages: name, portrait, batch,
-board seat and role, and which social links they made public. Nothing about a person lives in this
-repo or in Sanity, so there is no sync job and nothing to keep in step.
+`/members`, `/members/[batch]` and the executive and department board on `/about-us` render straight
+from my.startmunich.de (`lib/members.ts`), on the server. The platform is the source of truth for
+every person on those pages: name, portrait, batch, board seat and role, and which social links they
+made public. Nothing about a person lives in this repo or in Sanity, so there is no sync job and
+nothing to keep in step.
 
 | What happens on the platform                 | What `/members` does                                       |
 | -------------------------------------------- | ---------------------------------------------------------- |
 | A member uploads or changes their portrait   | The new portrait shows under their name                    |
 | A new batch is onboarded (e.g. Winter 2026)  | A batch card and `/members/ws26` appear with its members   |
 | A new board term is entered                  | A new board card appears, marked _Current_, seats in order |
+| The board hands over (old term gets an end)  | `/about-us` shows the new board                            |
 | A member makes their LinkedIn public/private | The LinkedIn link appears/disappears on their card         |
 | A member's membership is cancelled           | They drop off their batch page                             |
 

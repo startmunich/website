@@ -89,8 +89,9 @@ platform or Luma. Conventions to copy from `lib/sanityContent.ts` and `app/api/*
   `->field` in filters — that resolves references per candidate document. Use `_ref` instead.
 - ISR is one hour everywhere: `export const revalidate = 3600` on the route/segment, and
   `next: { revalidate: 3600 }` on the `fetch` itself.
-- Data-driven pages (`/startups`, `/members`, `/partners`, `/events`, `/labs`, `/member-network`,
-  `/member-journey`) opt out of static rendering with `export const dynamic = 'force-dynamic'`.
+- Data-driven pages (`/startups`, `/members`, `/about-us`, `/partners`, `/events`, `/labs`,
+  `/member-network`, `/member-journey`) opt out of static rendering with
+  `export const dynamic = 'force-dynamic'`.
 - **Degrade to empty rather than throwing** so a misconfigured preview build still renders. This is
   deliberate — do not "fix" it by crashing.
 - API handlers wrap upstream calls in `try/catch` and map failures to JSON with a sensible status
@@ -101,11 +102,12 @@ platform or Luma. Conventions to copy from `lib/sanityContent.ts` and `app/api/*
   (`schemaTypes/documents/`). Adding or renaming a field means changing the schema there, running
   `npm run typegen` in that repo, _and_ updating the projection in `sanity/queries.ts` here.
 - **People come from the members platform, never from this repo or Sanity.** `lib/members.ts` builds
-  `/members` (boards, batches, names, portraits, public LinkedIn links) from
-  `GET /api/v1/public/{members,board}`. Don't add hand-written seat lists, batch lists or member
-  data; fix it on the platform instead. The only things kept here are the group photos
-  (`BATCH_PHOTOS` / `BOARD_PHOTOS` in that file). Don't copy member data into the public Sanity
-  dataset either: the platform enforces each member's link-visibility choice and Sanity can't.
+  `/members` (boards, batches, names, portraits, public LinkedIn links) and the current board on
+  `/about-us` from `GET /api/v1/public/{members,board}`. Don't add hand-written seat lists, batch
+  lists or member data; fix it on the platform instead. The only things kept here are the group
+  photos (`BATCH_PHOTOS` / `BOARD_PHOTOS` in that file). Don't copy member data into the public
+  Sanity dataset either: the platform enforces each member's link-visibility choice and Sanity
+  can't.
 - `lib/startNetwork.ts` is the single source of truth for the chapter list and the
   chapter/country/member counts rendered on the home and member-journey pages. Edit it there; don't
   duplicate the numbers.
