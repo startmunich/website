@@ -35,7 +35,7 @@ export default function RtssSpeakers() {
           The founders shaping what’s next. The investors backing bold ideas.
         </p>
       </div>
-      <div className="mx-auto grid max-w-7xl items-start gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3 lg:gap-x-16 lg:gap-y-24">
+      <div className="mx-auto grid max-w-7xl grid-cols-2 items-start gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-3 lg:gap-x-16 lg:gap-y-24">
         {speakersAndJury.map((person) => (
           <article key={person.name} className="group lg:[&:nth-child(3n+2)]:translate-y-24">
             <Dialog>
@@ -47,7 +47,7 @@ export default function RtssSpeakers() {
                   src={rtssImage(person.image)}
                   alt={person.name}
                   fill
-                  sizes="(max-width: 639px) 90vw, (max-width: 1023px) 45vw, 30vw"
+                  sizes="(max-width: 1023px) 45vw, 30vw"
                   className="object-cover grayscale transition duration-500 group-hover:scale-105 motion-reduce:transition-none"
                 />
                 <span className="absolute top-4 left-4 rounded-full bg-background px-3 py-1.5 text-sm text-foreground">
@@ -95,8 +95,12 @@ export default function RtssSpeakers() {
                 </DialogPrimitive.Popup>
               </DialogPortal>
             </Dialog>
-            <h3 className="mt-5 text-3xl font-medium tracking-[-0.04em]">{person.name}</h3>
-            <p className="mt-2 text-base leading-snug text-muted-foreground">{person.role}</p>
+            <h3 className="mt-3 text-xl font-medium tracking-[-0.04em] sm:mt-5 sm:text-3xl">
+              {person.name}
+            </h3>
+            <p className="mt-2 text-sm leading-snug text-muted-foreground sm:text-base">
+              {person.role}
+            </p>
           </article>
         ))}
       </div>
