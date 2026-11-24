@@ -227,7 +227,7 @@ export default function RtssPartners() {
             width={1536}
             height={2049}
             sizes="(max-width: 639px) 40vw, (max-width: 1023px) 30vw, 20vw"
-            className="h-1/2 w-auto"
+            className="h-1/2 w-auto brightness-0 invert"
           />
           <span className="absolute bottom-4 left-4 rounded-lg bg-background px-3 py-1.5 text-sm tracking-[-0.04em] max-sm:inset-x-1 max-sm:bottom-1 max-sm:px-1 max-sm:py-1 max-sm:text-center max-sm:text-xs">
             Mio Mio
