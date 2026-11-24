@@ -213,6 +213,61 @@ export default function RtssPartners() {
             ↗
           </span>
         </a>
+        <a
+          href="https://www.miomio.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Visit Mio Mio (opens in a new tab)"
+          {...trackClick('partner_link_clicked', { page: 'rtss', partner: 'Mio Mio' })}
+          className="group relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border-2 border-transparent bg-foreground/10 transition-colors hover:border-primary hover:bg-background focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary max-sm:pb-8"
+        >
+          <Image
+            src="/eventpage/rtss/mio-mio.svg"
+            alt="Mio Mio"
+            width={1536}
+            height={2049}
+            sizes="(max-width: 639px) 40vw, (max-width: 1023px) 30vw, 20vw"
+            className="h-1/2 w-auto brightness-0 invert"
+          />
+          <span className="absolute bottom-4 left-4 rounded-lg bg-background px-3 py-1.5 text-sm tracking-[-0.04em] max-sm:inset-x-1 max-sm:bottom-1 max-sm:px-1 max-sm:py-1 max-sm:text-center max-sm:text-xs">
+            Mio Mio
+          </span>
+          <span
+            aria-hidden="true"
+            className="absolute right-5 bottom-4 text-3xl opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 max-sm:hidden"
+          >
+            ↗
+          </span>
+        </a>
+        <a
+          href="https://www.gwf-frankenwein.de"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Visit Winzergemeinschaft Franken (opens in a new tab)"
+          {...trackClick('partner_link_clicked', {
+            page: 'rtss',
+            partner: 'Winzergemeinschaft Franken',
+          })}
+          className="group relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border-2 border-transparent bg-foreground/10 transition-colors hover:border-primary hover:bg-background focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary max-sm:pb-8"
+        >
+          <Image
+            src="/eventpage/rtss/winzergemeinschaft-franken.png"
+            alt="Winzergemeinschaft Franken"
+            width={600}
+            height={600}
+            sizes="(max-width: 639px) 40vw, (max-width: 1023px) 30vw, 20vw"
+            className="h-auto w-1/2 grayscale"
+          />
+          <span className="absolute bottom-4 left-4 rounded-lg bg-background px-3 py-1.5 text-sm tracking-[-0.04em] max-sm:inset-x-1 max-sm:bottom-1 max-sm:px-1 max-sm:py-1 max-sm:text-center max-sm:text-xs">
+            Winzergemeinschaft Franken
+          </span>
+          <span
+            aria-hidden="true"
+            className="absolute right-5 bottom-4 text-3xl opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 max-sm:hidden"
+          >
+            ↗
+          </span>
+        </a>
       </div>
     </section>
   );
