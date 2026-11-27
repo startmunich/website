@@ -39,6 +39,11 @@ const nextConfig = {
         destination: 'https://app.hackleague.org/events/start?chapter=munich',
         permanent: false,
       },
+      {
+        source: '/start-goes-bay-area',
+        destination: '/eventpage/bayarea',
+        permanent: false,
+      },
     ];
   },
   skipTrailingSlashRedirect: true,
