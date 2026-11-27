@@ -1,17 +1,15 @@
 'use client';
 
-import { MenuIcon, XIcon } from 'lucide-react';
 import { motion, useScroll, useTransform } from 'motion/react';
 import Image, { getImageProps } from 'next/image';
 import Link from 'next/link';
-import { useRef, useState } from 'react';
+import { Fragment, useRef } from 'react';
 
-import { Button } from '@/components/ui/button';
-import { trackClick } from '@/lib/analytics';
-
-import { navItems, rtssConfig } from './rtss-data';
+import { rtssConfig } from './rtss-data';
 import { usePrefersReducedMotion } from './rtss-motion';
-import { rtssImage, SplitCta } from './rtss-ui';
+import { rtssImage, TicketCta } from './rtss-ui';
+
+const tickerVenue = rtssConfig.venue.replace(' · ', ' ');
 
 const HERO_ALT = 'White RTSS lettering layered through a robotic hand on midnight blue';
 
@@ -38,16 +36,8 @@ const { props: mobileHero } = getImageProps({
   sizes: '100vw',
 });
 
-/**
- * Opening composition: the midnight stage, the pink brand bar, and the supplied
- * RTSS artwork filling the frame. The artwork carries its own navy background
- * and is set to cover, so it bleeds to every edge and the stage reads as one
- * continuous surface — the only pink is the bar above it. The lettering is baked
- * into the artwork, so the only real headline here is the visually hidden one.
- */
 export default function RtssHero() {
   const ref = useRef<HTMLElement>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
   const reduce = usePrefersReducedMotion();
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] });
   const y = useTransform(scrollYProgress, [0, 1], [0, 100]);
@@ -58,13 +48,35 @@ export default function RtssHero() {
       id="top"
       className="relative isolate h-svh max-h-[1100px] min-h-[720px] overflow-hidden bg-brand-navy text-white max-[900px]:min-h-[700px]"
     >
-      <nav
-        aria-label="Main navigation"
-        onKeyDown={(event) => {
-          if (event.key === 'Escape') setMenuOpen(false);
-        }}
-        className="relative z-20 flex h-[54px] items-center justify-between gap-10 bg-brand-pink px-7 py-1.5 max-sm:h-16 max-sm:gap-4 max-sm:px-5"
-      >
+      <div className="relative z-10 overflow-hidden bg-background text-white">
+        <span className="sr-only">
+          {rtssConfig.title} · {rtssConfig.longDate} · {tickerVenue}
+        </span>
+        <div
+          aria-hidden="true"
+          className="flex w-max animate-marquee text-sm font-medium [--marquee-duration:40s] hover:[animation-play-state:paused]"
+        >
+          {[0, 1].map((copy) => (
+            <div key={copy} className="flex min-w-[100vw] shrink-0 items-center justify-around">
+              {[
+                rtssConfig.title,
+                'Deep Tech Edition',
+                rtssConfig.longDate,
+                tickerVenue,
+                'Pitches, keynotes & panels',
+              ].map((text) => (
+                <Fragment key={text}>
+                  <span className="inline-flex h-8 items-center px-4 whitespace-nowrap">
+                    {text}
+                  </span>
+                  <span className="px-4 text-brand-pink">✦</span>
+                </Fragment>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="relative z-10 flex items-center justify-between px-7 py-4 max-sm:px-5">
         <Link href="/" aria-label="START Munich home" className="shrink-0 leading-none">
           <Image
             src={rtssImage('start-munich-white.png')}
@@ -75,37 +87,7 @@ export default function RtssHero() {
             className="h-auto w-[104px] max-sm:w-[84px]"
           />
         </Link>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-          aria-expanded={menuOpen}
-          aria-controls="rtss-navigation-links"
-          onClick={() => setMenuOpen((open) => !open)}
-          className="text-white sm:hidden"
-        >
-          {menuOpen ? <XIcon className="size-6" /> : <MenuIcon className="size-6" />}
-        </Button>
-        <div
-          id="rtss-navigation-links"
-          className={`flex flex-1 items-center justify-around gap-6 max-sm:absolute max-sm:inset-x-0 max-sm:top-full max-sm:flex-col max-sm:items-stretch max-sm:gap-0 max-sm:bg-brand-pink max-sm:px-5 max-sm:pb-4 ${menuOpen ? '' : 'max-sm:hidden'}`}
-        >
-          {navItems.map(([label, href]) => (
-            <a
-              key={href}
-              href={href}
-              onClick={() => setMenuOpen(false)}
-              {...trackClick('section_nav_clicked', { page: 'rtss', location: 'header' })}
-              className="text-[17px] font-bold whitespace-nowrap underline-offset-4 hover:underline max-sm:py-3"
-            >
-              {label}
-            </a>
-          ))}
-        </div>
-      </nav>
-
-      <div className="relative z-10 flex items-center justify-end p-6 max-sm:p-4">
-        <SplitCta location="header" />
+        <TicketCta location="header" />
       </div>
 
       {/* One <picture>, not two <Image>s. With both mounted, every viewport

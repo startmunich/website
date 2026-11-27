@@ -99,7 +99,7 @@ export function ParallaxPhoto({
       className={cn('relative h-full overflow-hidden rounded-2xl bg-card', frameClassName)}
     >
       <motion.div
-        className="absolute inset-0"
+        className="absolute inset-0 motion-reduce:inset-y-0 max-sm:-inset-y-9"
         style={{ y: reduce ? 0 : y, scale: reduce ? 1 : scale }}
       >
         <Image

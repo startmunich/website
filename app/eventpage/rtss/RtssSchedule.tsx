@@ -1,5 +1,5 @@
 import { schedule } from './rtss-data';
-import { Pill, SplitCta } from './rtss-ui';
+import { Pill, TicketCta } from './rtss-ui';
 
 /**
  * The running order. The programme lists start times only — end times change
@@ -9,17 +9,17 @@ export default function RtssSchedule() {
   return (
     <section
       id="schedule"
-      className="grid scroll-mt-8 grid-cols-[38%_1fr] items-start gap-[6.5%] px-5 pt-[140px] pb-[200px] max-[1100px]:grid-cols-[36%_1fr] max-[1100px]:gap-[6%] max-sm:grid-cols-1 max-sm:gap-[45px] max-sm:pt-0 max-sm:pb-[100px] sm:px-8 lg:px-10"
+      className="grid scroll-mt-8 grid-cols-[38%_1fr] items-start gap-[6.5%] px-5 pt-[140px] pb-[200px] max-[1100px]:grid-cols-[36%_1fr] max-[1100px]:gap-[6%] max-sm:grid-cols-1 max-sm:gap-[45px] max-sm:pt-0 max-sm:pb-16 sm:px-8 lg:px-10"
     >
       <div className="sticky top-20 max-sm:static">
         <Pill>Schedule</Pill>
-        <h2 className="my-6 text-[80px] leading-[1.08] font-medium tracking-[-0.055em] max-sm:my-5">
+        <h2 className="my-6 text-[80px] leading-[1.08] font-medium tracking-[-0.055em] max-sm:my-5 max-sm:text-[clamp(2.5rem,11vw,3.5rem)]">
           The evening
         </h2>
         <p className="mb-[42px] text-[20px] leading-[1.4] tracking-[-0.035em] text-muted-foreground max-sm:mb-[30px] max-sm:text-[18px]">
           Live pitches. Bold ideas. Real connections. Join us from 17:00.
         </p>
-        <SplitCta location="schedule" />
+        <TicketCta location="schedule" />
         <p
           id="registration"
           className="mt-6 scroll-mt-8 text-[17px] leading-[1.5] text-muted-foreground"

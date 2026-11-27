@@ -25,7 +25,7 @@ export default function RtssAbout() {
           <div className="mb-[30px] w-fit max-sm:mb-6">
             <Pill>About</Pill>
           </div>
-          <h2 className="text-[88px] leading-[1.03] font-medium tracking-[-0.055em] max-[1100px]:text-[76px] max-sm:text-[clamp(43px,11vw,66px)] max-sm:tracking-[-0.06em]">
+          <h2 className="text-[88px] leading-[1.03] font-medium tracking-[-0.055em] max-[1100px]:text-[76px] max-sm:text-[clamp(2.5rem,11vw,3.5rem)] max-sm:tracking-[-0.06em]">
             Pitch.
             <br />
             <span className="text-brand-pink">Learn.</span>
@@ -34,11 +34,11 @@ export default function RtssAbout() {
           </h2>
         </div>
 
-        <Reveal className="mt-[55px] mb-[100px] max-[1100px]:mb-[140px] min-[901px]:mt-0 min-[901px]:mb-0 min-[901px]:w-auto min-[901px]:pt-[416px]">
+        <Reveal className="mt-[55px] mb-[100px] max-[1100px]:mb-[140px] max-sm:mt-6 max-sm:mb-8 min-[901px]:mt-0 min-[901px]:mb-0 min-[901px]:w-auto min-[901px]:pt-[416px]">
           {aboutCopy.map((paragraph) => (
             <p
               key={paragraph}
-              className="text-[32px] leading-[1.38] tracking-[-0.045em] text-muted-foreground max-[1100px]:text-[26px] max-sm:text-[23px]"
+              className="text-[32px] leading-[1.38] tracking-[-0.045em] text-muted-foreground max-[1100px]:text-[26px] max-sm:text-xl"
             >
               {paragraph}
             </p>
@@ -46,13 +46,13 @@ export default function RtssAbout() {
         </Reveal>
       </div>
 
-      <div ref={ref} className="h-[850px] max-sm:h-[420px]">
-        <motion.div style={{ width: reduce ? '100%' : width }}>
+      <div ref={ref} className="h-[850px] max-sm:h-auto">
+        <motion.div className="max-sm:w-full!" style={{ width: reduce ? '100%' : width }}>
           <ParallaxPhoto
             file="rtss-about-hall.jpg"
             alt="The audience gathered inside Freiheitshalle at START Munich RTSS 2025"
             sizes="(max-width: 640px) 100vw, 1800px"
-            frameClassName="h-[780px] max-sm:h-[380px]"
+            frameClassName="h-[780px] max-sm:aspect-[4/3] max-sm:h-auto"
           />
         </motion.div>
       </div>

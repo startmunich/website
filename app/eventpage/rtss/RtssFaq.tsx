@@ -9,13 +9,10 @@ import { faqs, rtssConfig } from './rtss-data';
 import { Reveal, usePrefersReducedMotion } from './rtss-motion';
 import { Pill } from './rtss-ui';
 
-/** FAQ answers link to tickets and applications; count those with the CTAs. */
+/** FAQ answers link to tickets; count those with the CTAs. */
 function faqLinkEvent(href: string) {
   if (href === rtssConfig.ticketUrl) {
     return trackClick('ticket_cta_clicked', { page: 'rtss', location: 'faq' });
-  }
-  if (href === rtssConfig.applicationUrl) {
-    return trackClick('startup_application_clicked', { page: 'rtss', location: 'faq' });
   }
   return {};
 }
@@ -32,11 +29,11 @@ export default function RtssFaq() {
   return (
     <section
       id="questions"
-      className="grid scroll-mt-8 grid-cols-[42%_1fr] gap-[7%] px-5 pt-[50px] pb-[200px] max-sm:grid-cols-1 max-sm:gap-10 max-sm:pt-12 max-sm:pb-[100px] sm:px-8 lg:px-10"
+      className="grid scroll-mt-8 grid-cols-[42%_1fr] gap-[7%] px-5 pt-[50px] pb-[200px] max-sm:grid-cols-1 max-sm:gap-10 max-sm:pt-0 max-sm:pb-16 sm:px-8 lg:px-10"
     >
       <Reveal>
         <Pill>FAQ</Pill>
-        <h2 className="my-6 text-[80px] leading-[1.08] font-medium tracking-[-0.055em] max-sm:my-5">
+        <h2 className="my-6 text-[80px] leading-[1.08] font-medium tracking-[-0.055em] max-sm:my-5 max-sm:text-[clamp(2.5rem,11vw,3.5rem)]">
           Questions &amp;
           <br />
           Answers
