@@ -1,274 +1,128 @@
 import Image from 'next/image';
 
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { trackClick } from '@/lib/analytics';
 
-import { Pill } from './rtss-ui';
+import { Pill, rtssImage } from './rtss-ui';
+
+const partners = {
+  'Harvard Business School': {
+    url: 'https://www.hbs.edu/',
+    image: 'harvard-business-school.webp',
+  },
+  'TYTAN Technologies': {
+    url: 'https://www.tytan-technologies.com/',
+    image: 'tytan-supplied.webp',
+  },
+  'SE3 Labs': { url: 'https://se3.ai', image: 'se3-labs.webp' },
+  'UVC Partners': {
+    url: 'https://www.uvcpartners.com/',
+    image: 'uvc-partners.webp',
+  },
+  'Climate Founders': {
+    url: 'https://www.climatefounders.com/',
+    image: 'climate-founders.webp',
+  },
+  remberg: {
+    url: 'https://remberg.com/',
+    image: 'remberg-logo-dark.webp',
+  },
+  'Media Lab Bayern': {
+    url: 'https://www.media-lab.de/de/',
+    image: 'media-lab-bayern.webp',
+  },
+  'Mio Mio': { url: 'https://www.miomio.com', image: 'mio-mio.webp' },
+  'Winzergemeinschaft Franken': {
+    url: 'https://www.gwf-frankenwein.de',
+    image: 'winzergemeinschaft-franken.webp',
+  },
+  'Drink Early': { url: 'https://drinkearly.com', image: 'drink-early.webp' },
+  Lytra: { url: 'https://lytra.ai/de', image: 'lytra.webp' },
+  'Bits & Pretzels': {
+    url: 'https://www.bitsandpretzels.com/startups',
+    image: 'bits-pretzels-wordmark.webp',
+  },
+  HORYZN: { url: 'https://horyzn.org', image: 'horyzn.webp' },
+  Robotum: { url: 'https://www.robotum.info', image: 'robotum.webp' },
+};
+
+const groups = [
+  { name: 'Panel', partners: ['TYTAN Technologies', 'Bits & Pretzels'] },
+  {
+    name: 'Booth',
+    partners: ['HORYZN', 'Harvard Business School', 'SE3 Labs', 'TYTAN Technologies', 'Robotum'],
+  },
+  { name: 'Ecosystem', partners: ['Media Lab Bayern', 'remberg', 'Lytra'] },
+  { name: 'Jury', partners: ['UVC Partners', 'Climate Founders'] },
+  { name: 'Drink', partners: ['Drink Early', 'Winzergemeinschaft Franken', 'Mio Mio'] },
+] as const;
 
 export default function RtssPartners() {
   return (
     <section
       id="partners"
       aria-labelledby="partners-heading"
-      className="px-5 pt-32 pb-36 max-sm:pt-20 max-sm:pb-24 sm:px-8 lg:px-10"
+      className="scroll-mt-12 px-5 py-24 text-foreground max-sm:py-16 sm:px-8 lg:px-10 lg:py-32"
     >
-      <div className="mb-16 max-sm:mb-10">
+      <div className="mb-6">
         <Pill>Partners</Pill>
-        <h2
-          id="partners-heading"
-          className="my-6 text-[80px] leading-[1.08] font-medium tracking-[-0.055em] max-sm:text-[56px]"
-        >
-          Partners
-        </h2>
-        <p className="max-w-xl text-xl leading-[1.4] tracking-[-0.035em] text-muted-foreground max-sm:text-lg">
-          Bringing founders, investors, and the next generation of DeepTech together.
-        </p>
       </div>
-
-      <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3">
-        <a
-          href="https://www.hbs.edu/"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Visit Harvard Business School (opens in a new tab)"
-          {...trackClick('partner_link_clicked', {
-            page: 'rtss',
-            partner: 'Harvard Business School',
-          })}
-          className="group relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border-2 border-transparent bg-foreground/10 transition-colors hover:border-primary hover:bg-background focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary max-sm:pb-8"
+      <h2
+        id="partners-heading"
+        className="mb-8 text-[clamp(3.5rem,6vw,5rem)] leading-none font-medium tracking-[-0.055em] max-sm:text-[clamp(2.5rem,11vw,3.5rem)]"
+      >
+        Partners
+      </h2>
+      <Tabs defaultValue="Panel" className="flex-col gap-7">
+        <TabsList
+          aria-label="Partner groups"
+          variant="line"
+          className="h-auto w-full flex-wrap justify-start gap-x-5 gap-y-1 border-b border-border p-0 pb-2 group-data-horizontal/tabs:h-auto max-sm:justify-between max-sm:gap-x-1 sm:gap-x-8"
         >
-          <Image
-            src="/eventpage/rtss/harvard-business-school.svg"
-            alt="Harvard Business School"
-            width={185}
-            height={80}
-            sizes="(max-width: 639px) 40vw, (max-width: 1023px) 30vw, 20vw"
-            className="h-auto w-2/3 grayscale invert"
-          />
-          <span className="absolute bottom-4 left-4 rounded-lg bg-background px-3 py-1.5 text-sm tracking-[-0.04em] max-sm:inset-x-1 max-sm:bottom-1 max-sm:px-1 max-sm:py-1 max-sm:text-center max-sm:text-xs">
-            Harvard Business School
-          </span>
-          <span
-            aria-hidden="true"
-            className="absolute right-5 bottom-4 text-3xl opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 max-sm:hidden"
-          >
-            ↗
-          </span>
-        </a>
-        <a
-          href="https://www.tytan-technologies.com/"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Visit TYTAN Technologies (opens in a new tab)"
-          {...trackClick('partner_link_clicked', { page: 'rtss', partner: 'TYTAN Technologies' })}
-          className="group relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border-2 border-transparent bg-foreground/10 transition-colors hover:border-primary hover:bg-background focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary max-sm:pb-8"
-        >
-          <Image
-            src="/eventpage/rtss/tytan-supplied.png"
-            alt="TYTAN Technologies"
-            width={500}
-            height={500}
-            sizes="(max-width: 639px) 40vw, (max-width: 1023px) 30vw, 20vw"
-            className="h-auto w-4/5 mix-blend-screen invert"
-          />
-          <span className="absolute bottom-4 left-4 rounded-lg bg-background px-3 py-1.5 text-sm tracking-[-0.04em] max-sm:inset-x-1 max-sm:bottom-1 max-sm:px-1 max-sm:py-1 max-sm:text-center max-sm:text-xs">
-            TYTAN Technologies
-          </span>
-          <span
-            aria-hidden="true"
-            className="absolute right-5 bottom-4 text-3xl opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 max-sm:hidden"
-          >
-            ↗
-          </span>
-        </a>
-        <a
-          href="https://se3.ai"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Visit SE3 Labs (opens in a new tab)"
-          {...trackClick('partner_link_clicked', {
-            page: 'rtss',
-            partner: 'SE3 Labs',
-          })}
-          className="group relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border-2 border-transparent bg-foreground/10 transition-colors hover:border-primary hover:bg-background focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary max-sm:pb-8"
-        >
-          <Image
-            src="/eventpage/rtss/se3-labs.svg"
-            alt="SE3 Labs"
-            width={90}
-            height={33}
-            sizes="(max-width: 639px) 40vw, (max-width: 1023px) 30vw, 20vw"
-            className="h-auto w-2/3 brightness-0 invert"
-          />
-          <span className="absolute bottom-4 left-4 rounded-lg bg-background px-3 py-1.5 text-sm tracking-[-0.04em] max-sm:inset-x-1 max-sm:bottom-1 max-sm:px-1 max-sm:py-1 max-sm:text-center max-sm:text-xs">
-            SE3 Labs
-          </span>
-          <span
-            aria-hidden="true"
-            className="absolute right-5 bottom-4 text-3xl opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 max-sm:hidden"
-          >
-            ↗
-          </span>
-        </a>
-        <a
-          href="https://www.uvcpartners.com/"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Visit UVC Partners (opens in a new tab)"
-          {...trackClick('partner_link_clicked', { page: 'rtss', partner: 'UVC Partners' })}
-          className="group relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border-2 border-transparent bg-foreground/10 transition-colors hover:border-primary hover:bg-background focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary max-sm:w-full max-sm:pb-8"
-        >
-          <Image
-            src="/eventpage/rtss/uvc-partners.png"
-            alt="UVC Partners"
-            width={485}
-            height={412}
-            sizes="(max-width: 639px) 40vw, (max-width: 1023px) 30vw, 20vw"
-            className="h-auto w-1/2 mix-blend-screen grayscale invert"
-          />
-          <span className="absolute bottom-4 left-4 rounded-lg bg-background px-3 py-1.5 text-sm tracking-[-0.04em] max-sm:inset-x-1 max-sm:bottom-1 max-sm:px-1 max-sm:py-1 max-sm:text-center max-sm:text-xs">
-            UVC Partners
-          </span>
-          <span
-            aria-hidden="true"
-            className="absolute right-5 bottom-4 text-3xl opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 max-sm:hidden"
-          >
-            ↗
-          </span>
-        </a>
-        <a
-          href="https://www.climatefounders.com/"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Visit Climate Founders (opens in a new tab)"
-          {...trackClick('partner_link_clicked', { page: 'rtss', partner: 'Climate Founders' })}
-          className="group relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border-2 border-transparent bg-foreground/10 transition-colors hover:border-primary hover:bg-background focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary max-sm:pb-8"
-        >
-          <Image
-            src="/eventpage/rtss/climate-founders.png"
-            alt="Climate Founders"
-            width={518}
-            height={82}
-            sizes="(max-width: 639px) 40vw, (max-width: 1023px) 30vw, 20vw"
-            className="h-auto w-4/5 mix-blend-screen invert"
-          />
-          <span className="absolute bottom-4 left-4 rounded-lg bg-background px-3 py-1.5 text-sm tracking-[-0.04em] max-sm:inset-x-1 max-sm:bottom-1 max-sm:px-1 max-sm:py-1 max-sm:text-center max-sm:text-xs">
-            Climate Founders
-          </span>
-          <span
-            aria-hidden="true"
-            className="absolute right-5 bottom-4 text-3xl opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 max-sm:hidden"
-          >
-            ↗
-          </span>
-        </a>
-        <a
-          href="https://remberg.com/"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Visit remberg (opens in a new tab)"
-          {...trackClick('partner_link_clicked', { page: 'rtss', partner: 'remberg' })}
-          className="group relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border-2 border-transparent bg-foreground/10 transition-colors hover:border-primary hover:bg-background focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary max-sm:w-full max-sm:pb-8"
-        >
-          <Image
-            src="/eventpage/rtss/remberg-logo-dark.svg"
-            alt="remberg"
-            width={1240}
-            height={263}
-            sizes="(max-width: 639px) 40vw, (max-width: 1023px) 30vw, 20vw"
-            className="h-auto w-2/3 brightness-0 invert"
-          />
-          <span className="absolute bottom-4 left-4 rounded-lg bg-background px-3 py-1.5 text-sm tracking-[-0.04em] max-sm:inset-x-1 max-sm:bottom-1 max-sm:px-1 max-sm:py-1 max-sm:text-center max-sm:text-xs">
-            remberg
-          </span>
-          <span
-            aria-hidden="true"
-            className="absolute right-5 bottom-4 text-3xl opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 max-sm:hidden"
-          >
-            ↗
-          </span>
-        </a>
-        <a
-          href="https://www.media-lab.de/de/"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Visit Media Lab Bayern (opens in a new tab)"
-          {...trackClick('partner_link_clicked', { page: 'rtss', partner: 'Media Lab Bayern' })}
-          className="group relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border-2 border-transparent bg-foreground/10 transition-colors hover:border-primary hover:bg-background focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary max-sm:pb-8"
-        >
-          <Image
-            src="/eventpage/rtss/media-lab-bayern.svg"
-            alt="Media Lab Bayern"
-            width={600}
-            height={210}
-            sizes="(max-width: 639px) 40vw, (max-width: 1023px) 30vw, 20vw"
-            className="h-auto w-2/3"
-          />
-          <span className="absolute bottom-4 left-4 rounded-lg bg-background px-3 py-1.5 text-sm tracking-[-0.04em] max-sm:inset-x-1 max-sm:bottom-1 max-sm:px-1 max-sm:py-1 max-sm:text-center max-sm:text-xs">
-            Media Lab Bayern
-          </span>
-          <span
-            aria-hidden="true"
-            className="absolute right-5 bottom-4 text-3xl opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 max-sm:hidden"
-          >
-            ↗
-          </span>
-        </a>
-        <a
-          href="https://www.miomio.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Visit Mio Mio (opens in a new tab)"
-          {...trackClick('partner_link_clicked', { page: 'rtss', partner: 'Mio Mio' })}
-          className="group relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border-2 border-transparent bg-foreground/10 transition-colors hover:border-primary hover:bg-background focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary max-sm:pb-8"
-        >
-          <Image
-            src="/eventpage/rtss/mio-mio.svg"
-            alt="Mio Mio"
-            width={1536}
-            height={2049}
-            sizes="(max-width: 639px) 40vw, (max-width: 1023px) 30vw, 20vw"
-            className="h-1/2 w-auto brightness-0 invert"
-          />
-          <span className="absolute bottom-4 left-4 rounded-lg bg-background px-3 py-1.5 text-sm tracking-[-0.04em] max-sm:inset-x-1 max-sm:bottom-1 max-sm:px-1 max-sm:py-1 max-sm:text-center max-sm:text-xs">
-            Mio Mio
-          </span>
-          <span
-            aria-hidden="true"
-            className="absolute right-5 bottom-4 text-3xl opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 max-sm:hidden"
-          >
-            ↗
-          </span>
-        </a>
-        <a
-          href="https://www.gwf-frankenwein.de"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Visit Winzergemeinschaft Franken (opens in a new tab)"
-          {...trackClick('partner_link_clicked', {
-            page: 'rtss',
-            partner: 'Winzergemeinschaft Franken',
-          })}
-          className="group relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl border-2 border-transparent bg-foreground/10 transition-colors hover:border-primary hover:bg-background focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary max-sm:pb-8"
-        >
-          <Image
-            src="/eventpage/rtss/winzergemeinschaft-franken.png"
-            alt="Winzergemeinschaft Franken"
-            width={600}
-            height={600}
-            sizes="(max-width: 639px) 40vw, (max-width: 1023px) 30vw, 20vw"
-            className="h-auto w-1/2 grayscale"
-          />
-          <span className="absolute bottom-4 left-4 rounded-lg bg-background px-3 py-1.5 text-sm tracking-[-0.04em] max-sm:inset-x-1 max-sm:bottom-1 max-sm:px-1 max-sm:py-1 max-sm:text-center max-sm:text-xs">
-            Winzergemeinschaft Franken
-          </span>
-          <span
-            aria-hidden="true"
-            className="absolute right-5 bottom-4 text-3xl opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 max-sm:hidden"
-          >
-            ↗
-          </span>
-        </a>
-      </div>
+          {groups.map((group) => (
+            <TabsTrigger
+              key={group.name}
+              value={group.name}
+              className="h-11 flex-none px-0 text-base after:bg-primary aria-selected:text-primary aria-selected:after:absolute aria-selected:after:inset-x-0 aria-selected:after:bottom-0 aria-selected:after:h-0.5 aria-selected:after:opacity-100 max-sm:min-w-11 max-sm:text-sm sm:text-lg"
+            >
+              {group.name}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        {groups.map((group) => (
+          <TabsContent key={group.name} value={group.name}>
+            <h3 className="mb-4 text-2xl font-medium tracking-tight">{group.name} Partners</h3>
+            <div className="grid grid-cols-2 gap-3 motion-safe:animate-fade-in-up sm:gap-5 lg:grid-cols-3">
+              {group.partners.map((name) => {
+                const partner = partners[name];
+                return (
+                  <a
+                    key={name}
+                    href={partner.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`Visit ${name} (opens in a new tab)`}
+                    {...trackClick('partner_link_clicked', { page: 'rtss', partner: name })}
+                    className="relative grid aspect-square min-w-0 place-items-center rounded-2xl border border-transparent bg-foreground/10 p-3 transition-colors hover:border-primary focus-visible:outline-2 focus-visible:outline-primary sm:p-5"
+                  >
+                    <Image
+                      src={rtssImage(`partner-marks/${partner.image}`)}
+                      alt=""
+                      width={600}
+                      height={240}
+                      sizes="(max-width: 1023px) 36vw, 24vw"
+                      className="absolute top-1/2 left-1/2 h-auto w-[88%] -translate-x-1/2 -translate-y-1/2"
+                    />
+                    <span className="absolute inset-x-3 bottom-3 text-sm leading-tight font-medium tracking-tight sm:inset-x-5 sm:bottom-5 sm:text-base">
+                      {name}
+                    </span>
+                  </a>
+                );
+              })}
+            </div>
+          </TabsContent>
+        ))}
+      </Tabs>
     </section>
   );
 }

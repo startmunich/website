@@ -31,8 +31,7 @@ export const jetbrainsMono = JetBrains_Mono({
  * here keeps every other route on Avenir Next.
  *
  * Self-hosted like Avenir (SIL Open Font License, see `Figtree-OFL.txt`) so
- * builds do not depend on fetching from Google, and so
- * `scripts/generate-rtss-og.mjs` can render the share image with the same face.
+ * builds do not depend on fetching from Google.
  */
 export const figtree = localFont({
   src: [{ path: '../public/fonts/Figtree-Variable.ttf', weight: '300 900', style: 'normal' }],

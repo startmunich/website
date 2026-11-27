@@ -331,6 +331,6 @@
     transform: translate(0, 0) rotate(-26deg);
   }
   50% {
-    transform: translate(7px, -9px) rotate(-30deg);
+    transform: translate(0.4375em, -0.5625em) rotate(-30deg);
   }
 }

@@ -21,13 +21,13 @@ export default function RtssSpeakers() {
     <section
       id="speakers"
       aria-labelledby="speakers-heading"
-      className="scroll-mt-24 px-5 py-24 sm:px-8 lg:px-10"
+      className="scroll-mt-24 px-5 py-24 max-sm:py-16 sm:px-8 lg:px-10"
     >
-      <div className="mb-16 max-w-2xl">
+      <div className="mb-16 max-w-2xl max-sm:mb-8">
         <Pill>Meet the people</Pill>
         <h2
           id="speakers-heading"
-          className="mt-6 text-[80px] leading-[1.08] font-medium tracking-[-0.055em] max-sm:text-[56px]"
+          className="mt-6 text-[80px] leading-[1.08] font-medium tracking-[-0.055em] max-sm:text-[clamp(2.5rem,11vw,3.5rem)]"
         >
           Speakers &amp; Jury
         </h2>
@@ -37,7 +37,7 @@ export default function RtssSpeakers() {
       </div>
       <div className="mx-auto grid max-w-7xl grid-cols-2 items-start gap-x-3 gap-y-8 sm:gap-x-6 sm:gap-y-12 lg:grid-cols-3 lg:gap-x-16 lg:gap-y-24">
         {speakersAndJury.map((person) => (
-          <article key={person.name} className="group lg:[&:nth-child(3n+2)]:translate-y-24">
+          <article key={person.name} className="group">
             <Dialog>
               <DialogTrigger
                 aria-label={`About ${person.name}`}

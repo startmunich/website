@@ -15,7 +15,6 @@ export const rtssConfig = {
   longDate: '9 December 2026',
   /** Event-specific attendee ticket booking. */
   ticketUrl: 'https://luma.com/road-to-start-summit',
-  applicationUrl: 'https://tally.so/r/5BW1Wv',
   directionsUrl: 'https://www.google.com/maps/search/?api=1&query=Freiheitshalle+Munich',
 } as const;
 
@@ -23,14 +22,13 @@ export const navItems = [
   ['About', '#about'],
   ['Speakers & Jury', '#speakers'],
   ['Schedule', '#schedule'],
+  ['Partners', '#partners'],
   ['FAQ', '#questions'],
-  ['Tickets & Applications', '#tickets'],
+  ['Tickets', '#tickets'],
 ] as const;
 
 export const aboutCopy = [
-  "The Road to START Summit is Munich's most exciting student-organized pitching competition, hosted by START Munich, the city's leading entrepreneurship student initiative.",
-  'This year, the event brings together the most promising early-stage DeepTech startups to pitch their ideas in front of an audience of founders, investors, students, and industry experts.',
-  "The winner secures a spot at START Summit in St. Gallen, Europe's largest student-organized startup conference with 6,000+ attendees, and competes for CHF 10,000 in prize money.",
+  'Road to START Summit is Munich’s most exciting startup pitching event. This year it’s all about Deep Tech, with pitches, keynotes, panels and booths. Around the main program, you can connect with like-minded people and enjoy the evening with included food and drinks.',
 ];
 
 export type Session = {
@@ -127,12 +125,9 @@ export const faqs: FaqItem[] = [
       'START Hack League Munich is a weekend-long hackathon where students build software and hardware projects. Road to START Summit is a pitching competition for startups.',
   },
   {
-    question: 'How can I attend or apply?',
-    answer: 'To come along, get your ticket on Luma.',
-    links: [
-      { label: 'Tickets', href: rtssConfig.ticketUrl },
-      { label: 'Apply as a startup', href: rtssConfig.applicationUrl },
-    ],
+    question: 'How can I attend?',
+    answer: 'Startup applications are closed. Get your ticket on Luma to attend.',
+    links: [{ label: 'Tickets', href: rtssConfig.ticketUrl }],
   },
 ];
 

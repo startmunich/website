@@ -37,35 +37,26 @@ export function Pill({ children }: { children: ReactNode }) {
   );
 }
 
-/**
- * The paired event actions for attendee tickets and startup applications.
- * `location` tells the placements apart in analytics.
- */
-export function SplitCta({ location }: { location: string }) {
+export function TicketCta({ location }: { location: 'header' | 'schedule' | 'finale' }) {
   return (
-    <div
-      role="group"
-      aria-label={`Join ${rtssConfig.title}`}
-      className="inline-flex shrink-0 items-stretch overflow-hidden rounded-full bg-muted-foreground text-brand-navy"
+    <a
+      href={rtssConfig.ticketUrl}
+      {...trackClick('ticket_cta_clicked', { page: 'rtss', location })}
+      className={cn(
+        'inline-flex shrink-0 items-center gap-2.5 rounded-full bg-muted-foreground py-1.5 pr-5 pl-1.5 text-base text-brand-navy transition-colors hover:bg-white',
+        location !== 'finale' && 'shadow-[0_6px_18px_-4px] shadow-brand-pink/60',
+      )}
     >
-      <a
-        href={rtssConfig.ticketUrl}
-        {...trackClick('ticket_cta_clicked', { page: 'rtss', location })}
-        className="flex items-center justify-center gap-2.5 py-[7px] pr-[18px] pl-1.5 text-base whitespace-nowrap transition-colors hover:bg-white max-sm:gap-2 max-sm:py-1.5 max-sm:pr-4 max-sm:pl-1.5 max-sm:text-base"
+      <span
+        className={cn(
+          'grid size-10 place-items-center rounded-full text-white',
+          location === 'finale' ? 'bg-brand-navy' : 'bg-brand-pink',
+        )}
       >
-        <span className="grid size-10 shrink-0 place-items-center rounded-full bg-brand-navy text-foreground">
-          <TicketIcon className="size-6 max-sm:size-5" />
-        </span>
-        Tickets
-      </a>
-      <a
-        href={rtssConfig.applicationUrl}
-        {...trackClick('startup_application_clicked', { page: 'rtss', location })}
-        className="flex items-center justify-center gap-2.5 border-l border-muted px-[18px] py-[7px] text-base whitespace-nowrap transition-colors hover:bg-white max-sm:px-4 max-sm:py-1.5 max-sm:text-base"
-      >
-        Start-Ups
-      </a>
-    </div>
+        <TicketIcon className="size-6 max-sm:size-5" />
+      </span>
+      Tickets
+    </a>
   );
 }
 
