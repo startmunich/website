@@ -168,7 +168,7 @@ export default function MemberJourneyContent() {
         />
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <SpecialCard
-            href="/start-goes-bay-area"
+            href="/eventpage/bayarea"
             image="/memberJourney/SF-opt.png"
             imageAlt="San Francisco Bay Area"
             title="START goes Bay Area"
